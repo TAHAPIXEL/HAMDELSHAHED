@@ -1,52 +1,57 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api } from "@/lib/client";
-import type { Me } from "@/lib/types";
+import { currentUser, ensureSeed, logout, restoreSession, type User } from "@/lib/model";
 import { Splash, ToastProvider } from "@/components/ui";
 import Auth from "@/components/Auth";
 import Shell from "@/components/Shell";
 
 export default function Page() {
   const [ready, setReady] = useState(false);
-  const [user, setUser] = useState<Me | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
-    let cancelled = false;
-    const startedAt = Date.now();
-
+    let alive = true;
+    const minSplash = new Promise((r) => setTimeout(r, 1400));
     (async () => {
       try {
-        const result = await api<{ user: Me | null }>("/api/me");
-        if (!cancelled) setUser(result.user);
-      } catch {
-        /* نبود نشست خطا نیست */
-      } finally {
-        const elapsed = Date.now() - startedAt;
-        const wait = Math.max(0, 800 - elapsed);
-        setTimeout(() => {
-          if (!cancelled) setReady(true);
-        }, wait);
+        await restoreSession();
+        ensureSeed();
+      } catch (err) {
+        if (alive) setLoadError((err as Error).message);
+      }
+      await minSplash;
+      if (alive) {
+        setUser(currentUser());
+        setReady(true);
       }
     })();
-
     return () => {
-      cancelled = true;
+      alive = false;
     };
   }, []);
+
+  const handleLogout = () => {
+    logout();
+    setUser(null);
+  };
 
   return (
     <ToastProvider>
       {!ready ? (
         <Splash />
+      ) : loadError ? (
+        <div className="flex min-h-dvh flex-col items-center justify-center gap-4 p-6 text-center">
+          <p className="text-sm font-bold text-rose-600">{loadError}</p>
+          <button className="btn-primary" onClick={() => window.location.reload()}>
+            تلاش دوباره
+          </button>
+        </div>
       ) : user ? (
-        <Shell
-          user={user}
-          onUserUpdated={(next) => setUser(next)}
-          onLogout={() => setUser(null)}
-        />
+        <Shell user={user} onLogout={handleLogout} />
       ) : (
-        <Auth onAuth={(next) => setUser(next)} />
+        <Auth onAuth={(u) => setUser(u)} />
       )}
     </ToastProvider>
   );

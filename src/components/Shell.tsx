@@ -1,293 +1,310 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  BookOpenCheck,
-  CalendarCheck2,
-  ChevronLeft,
-  ClipboardList,
-  FileCheck2,
-  LayoutDashboard,
-  LogOut,
-  Megaphone,
   MessagesSquare,
-  RefreshCw,
-  UserCog,
-  Users,
+  LayoutGrid,
+  ClipboardList,
+  CalendarCheck2,
+  Bell,
+  ShieldHalf,
+  LogOut,
+  Menu,
+  X,
+  GraduationCap,
+  Megaphone,
+  UserRound,
+  ChevronLeft,
+  BookOpen,
 } from "lucide-react";
-import { api } from "@/lib/client";
-import { fa, jalaliDate, roleLabel, weekdayName } from "@/lib/format";
-import type { ClassInfo, Me, SubjectInfo } from "@/lib/types";
-import { Avatar, useToast } from "./ui";
-import Dashboard from "./Dashboard";
-import Announcements from "./Announcements";
-import Chat from "./Chat";
-import Assignments from "./Assignments";
-import Quizzes from "./Quizzes";
+import {
+  DB,
+  GRADES,
+  SECTIONS,
+  canAdminPanel,
+  className,
+  currentUser,
+  fa,
+  faDateShort,
+  faTime,
+  isStaff,
+  readNoticeKey,
+  recordNoticeRead,
+  roleFa,
+  unreadNotices,
+  visibleNotices,
+  type Grade,
+  type User,
+} from "@/lib/model";
+import { Avatar, Modal, useDbTick } from "./ui";
+import Chats from "./Chats";
+import Classes from "./Classes";
+import Exams from "./Exams";
 import Attendance from "./Attendance";
+import Notices from "./Notices";
 import Admin from "./Admin";
-import ProfileModal from "./ProfileModal";
+import Profile from "./Profile";
+import Homework from "./Homework";
 
-export type Meta = {
-  role: string;
-  schoolName?: string;
-  academicYear?: string;
-  allowStudentDm?: boolean;
-  classes: ClassInfo[];
-  allClasses?: ClassInfo[];
-  subjects: SubjectInfo[];
-  teaching: { id?: number; classId: number; subjectId: number; teacherId: number }[];
-  teachers: {
-    id: number;
-    fullName: string;
-    role: string;
-    avatarColor: string;
-    avatarUrl?: string | null;
-  }[];
-  students: {
-    id: number;
-    fullName: string;
-    avatarColor: string;
-    avatarUrl?: string | null;
-    username: string;
-    role: string;
-    className: string | null;
-  }[];
+export type View = "chats" | "classes" | "homework" | "exams" | "attendance" | "notices" | "admin" | "profile";
+
+const titles: Record<View, string> = {
+  chats: "گفتگوها",
+  classes: "کلاس‌ها",
+  homework: "تکالیف و تمرین‌ها",
+  exams: "آزمون‌ها",
+  attendance: "حضور و غیاب",
+  notices: "اطلاعیه‌ها",
+  admin: "پنل مدیریت",
+  profile: "پروفایل من",
 };
 
-export type TabId =
-  | "dashboard"
-  | "announcements"
-  | "chat"
-  | "assignments"
-  | "quizzes"
-  | "attendance"
-  | "admin";
+export default function Shell({ user: initialUser, onLogout }: { user: User; onLogout: () => void }) {
+  useDbTick();
+  const user = currentUser() ?? initialUser;
+  const [view, setView] = useState<View>("chats");
+  const [classSel, setClassSel] = useState<{ grade: Grade; section: string } | null>(null);
+  const [drawer, setDrawer] = useState(false);
+  const [bellOpen, setBellOpen] = useState(false);
+  const bellRef = useRef<HTMLDivElement>(null);
+  const [openChatId, setOpenChatId] = useState<string | null>(null);
 
-type NavItem = { id: TabId; label: string; icon: typeof LayoutDashboard; mobile?: boolean };
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (bellRef.current && !bellRef.current.contains(e.target as Node)) setBellOpen(false);
+    };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
 
-export default function Shell({
-  user,
-  onUserUpdated,
-  onLogout,
-}: {
-  user: Me;
-  onUserUpdated: (next: Me) => void;
-  onLogout: () => void;
-}) {
-  const toast = useToast();
-  const [tab, setTab] = useState<TabId>("dashboard");
-  const [metaVersion, setMetaVersion] = useState(0);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
+  // بدون memo — همه رندرها تازه‌ترین داده (زنده بودن زنگوله اطلاعیه‌ها)
+  const notices = visibleNotices(user);
+  const unreadN = unreadNotices(user);
 
-  const nav = useMemo<NavItem[]>(() => {
-    const items: NavItem[] = [
-      { id: "dashboard", label: "داشبورد", icon: LayoutDashboard, mobile: true },
-      { id: "announcements", label: "اطلاعیه‌ها", icon: Megaphone, mobile: true },
-      { id: "chat", label: "گفت‌وگو", icon: MessagesSquare, mobile: true },
-      { id: "assignments", label: "تکالیف", icon: ClipboardList, mobile: true },
-      { id: "quizzes", label: "آزمون‌ها", icon: FileCheck2, mobile: true },
-      { id: "attendance", label: "حضور", icon: CalendarCheck2, mobile: true },
-    ];
-    if (user.role === "admin") items.push({ id: "admin", label: "مدیریت سامانه", icon: Users });
-    return items;
-  }, [user.role]);
-
-  const today = new Date();
-  const mobileItems = nav.filter((item) => item.mobile || item.id === "admin");
-  const active = nav.find((item) => item.id === tab) ?? nav[0];
-
-  const logout = async () => {
-    try {
-      await api("/api/auth/logout", { method: "POST" });
-    } catch {
-      /* بی‌اهمیت */
-    }
-    toast.push("از حساب خود خارج شدید", "info");
-    onLogout();
+  const go = (v: View) => {
+    setView(v);
+    setDrawer(false);
+    if (v !== "classes") setClassSel(null);
   };
 
-  return (
-    <div className="min-h-dvh bg-[#f6f7fb]">
-      {/* هدر */}
-      <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/85 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6">
+  const openChatFromShell = (chatId: string) => {
+    setOpenChatId(chatId);
+    go("chats");
+  };
+
+  const nav: { v: View; label: string; icon: React.ReactNode; show: boolean }[] = [
+    { v: "chats", label: "گفتگوها", icon: <MessagesSquare className="size-5" />, show: true },
+    { v: "classes", label: "کلاس‌ها", icon: <LayoutGrid className="size-5" />, show: true },
+    { v: "homework", label: "تکالیف", icon: <BookOpen className="size-5" />, show: true },
+    { v: "exams", label: "آزمون‌ها", icon: <ClipboardList className="size-5" />, show: true },
+    { v: "attendance", label: "حضور و غیاب", icon: <CalendarCheck2 className="size-5" />, show: true },
+    { v: "notices", label: "اطلاعیه‌ها", icon: <Megaphone className="size-5" />, show: true },
+    { v: "admin", label: "پنل مدیریت", icon: <ShieldHalf className="size-5" />, show: canAdminPanel(user) },
+  ];
+
+  const markNoticeRead = (nid: string) => recordNoticeRead(user.id, nid);
+
+  const sidebar = (
+    <div className="flex h-full flex-col">
+      <div className="flex items-center gap-3 px-5 pb-6 pt-6">
+        <div className="flex size-11 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 shadow-lg shadow-indigo-600/25">
+          <GraduationCap className="size-6 text-white" />
+        </div>
+        <div>
+          <div className="text-lg font-black text-slate-800 dark:text-white">هَمدِل</div>
+          <div className="text-[11px] font-bold text-slate-400">شاهد شهیدان فهیمی</div>
+        </div>
+      </div>
+
+      <nav className="flex flex-col gap-1 px-3">
+        {nav.filter((n) => n.show).map((n) => (
           <button
-            type="button"
-            className="flex items-center gap-2.5 rounded-xl p-1 transition hover:bg-slate-100/70 lg:pointer-events-none"
-            onClick={() => setTab("dashboard")}
+            key={n.v}
+            onClick={() => go(n.v)}
+            className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold transition ${
+              view === n.v
+                ? "bg-gradient-to-l from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-600/25"
+                : "text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-slate-100"
+            }`}
           >
-            <span className="grid size-10 place-items-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-base font-black text-white shadow-md shadow-indigo-500/25">
-              هـ
-            </span>
-            <span className="text-right">
-              <span className="block text-sm leading-tight font-extrabold text-slate-800">هَمدِل</span>
-              <span className="hidden text-[10px] text-slate-500 sm:block">
-                دبیرستان شاهد شهیدان فهیمی
+            {n.icon}
+            {n.label}
+            {n.v === "notices" && unreadN > 0 && (
+              <span className={`mr-auto rounded-full px-2 py-0.5 text-[10px] font-black ${view === n.v ? "bg-white/25 text-white" : "bg-rose-500 text-white"}`}>
+                {fa(unreadN)}
               </span>
-            </span>
+            )}
           </button>
-
-          <div className="mx-auto hidden items-center gap-1 rounded-2xl bg-slate-100/70 p-1 lg:flex">
-            {nav.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setTab(item.id)}
-                className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition ${
-                  tab === item.id
-                    ? "bg-white text-indigo-600 shadow-sm"
-                    : "text-slate-500 hover:text-slate-800"
-                }`}
-              >
-                <item.icon className="size-4" />
-                {item.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="ml-auto flex items-center gap-2">
-            <div className="hidden text-left sm:block">
-              <p className="text-[11px] font-semibold text-slate-500">
-                {weekdayName(today)} — {jalaliDate(today)}
-              </p>
-              <p className="text-[10px] text-slate-400">{fa(user.username)}@hamdelshahed</p>
-            </div>
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setMenuOpen((v) => !v)}
-                className="flex items-center gap-2 rounded-2xl p-1 pr-2 transition hover:bg-slate-100"
-              >
-                <Avatar
-                  name={user.fullName}
-                  color={user.avatarColor}
-                  src={user.avatarUrl}
-                  size={34}
-                />
-                <span className="hidden text-right sm:block">
-                  <span className="block max-w-32 truncate text-xs font-bold text-slate-700">
-                    {user.fullName}
-                  </span>
-                  <span className="block text-[10px] text-indigo-500">{roleLabel[user.role]}</span>
-                </span>
-              </button>
-
-              {menuOpen && (
-                <>
-                  <button
-                    type="button"
-                    className="fixed inset-0 z-10 cursor-default"
-                    aria-label="بستن"
-                    onClick={() => setMenuOpen(false)}
-                  />
-                  <div className="modal-pop absolute left-0 z-20 mt-2 w-64 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
-                    <div className="flex items-center gap-2.5 rounded-xl bg-slate-50 p-2.5">
-                      <Avatar
-                        name={user.fullName}
-                        color={user.avatarColor}
-                        src={user.avatarUrl}
-                        size={40}
-                      />
-                      <div className="min-w-0">
-                        <p className="truncate text-xs font-bold text-slate-800">{user.fullName}</p>
-                        <p className="truncate text-[10px] text-slate-500" dir="ltr">
-                          @{user.username}
-                        </p>
-                      </div>
-                    </div>
-                    {user.bio && (
-                      <p className="mt-2 px-1 text-[11px] leading-5 text-slate-500">{user.bio}</p>
-                    )}
-                    <div className="mt-2 space-y-1">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setMenuOpen(false);
-                          setProfileOpen(true);
-                        }}
-                        className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-xs font-semibold text-slate-700 transition hover:bg-indigo-50 hover:text-indigo-700"
-                      >
-                        <UserCog className="size-4" /> پروفایل و عکس من
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setMenuOpen(false);
-                          setMetaVersion((v) => v + 1);
-                          toast.push("اطلاعات به‌روزرسانی شد", "info");
-                        }}
-                        className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-100"
-                      >
-                        <RefreshCw className="size-4" /> به‌روزرسانی داده‌ها
-                      </button>
-                      <button
-                        type="button"
-                        onClick={logout}
-                        className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-xs font-semibold text-rose-600 transition hover:bg-rose-50"
-                      >
-                        <LogOut className="size-4" /> خروج از حساب
-                      </button>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* محتوا */}
-      <main className="mx-auto max-w-7xl px-4 pt-5 pb-28 sm:px-6 lg:pb-10">
-        <div className="mb-4 flex items-center gap-1 text-[11px] font-medium text-slate-400 lg:hidden">
-          <BookOpenCheck className="size-3.5" />
-          <span>هَمدِل</span>
-          <ChevronLeft className="size-3" />
-          <span className="text-slate-600">{active.label}</span>
-        </div>
-
-        <div key={`${tab}-${metaVersion}`} className="anim-fade-up">
-          {tab === "dashboard" && (
-            <Dashboard user={user} onNavigate={(next) => setTab(next as TabId)} />
-          )}
-          {tab === "announcements" && <Announcements user={user} />}
-          {tab === "chat" && <Chat user={user} />}
-          {tab === "assignments" && <Assignments user={user} />}
-          {tab === "quizzes" && <Quizzes user={user} />}
-          {tab === "attendance" && <Attendance user={user} />}
-          {tab === "admin" && user.role === "admin" && <Admin user={user} />}
-        </div>
-      </main>
-
-      {/* ناوبری موبایل */}
-      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden">
-        <div className="mx-auto flex max-w-md items-stretch justify-between px-2">
-          {mobileItems.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setTab(item.id)}
-              className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-[10px] font-bold transition ${
-                tab === item.id ? "text-indigo-600" : "text-slate-400"
-              }`}
-            >
-              <item.icon className={`size-5 ${tab === item.id ? "scale-110" : ""}`} />
-              {item.label}
-            </button>
-          ))}
-        </div>
+        ))}
       </nav>
 
-      <ProfileModal
-        open={profileOpen}
-        onClose={() => setProfileOpen(false)}
-        user={user}
-        onSaved={(next) => {
-          onUserUpdated(next);
-          setMetaVersion((v) => v + 1);
-        }}
-      />
+      <div className="mt-6 px-5 text-[11px] font-black tracking-wide text-slate-400">
+        {isStaff(user) ? "کلاس‌ها" : "کلاس من"}
+      </div>
+      <div className="mt-2 flex-1 space-y-0.5 overflow-y-auto px-3 pb-4">
+        {(isStaff(user)
+          ? GRADES.flatMap((g) => SECTIONS[g].map((s) => ({ g, s })))
+          : user.grade && user.section
+          ? [{ g: user.grade, s: user.section }]
+          : []
+        ).map(({ g, s }) => (
+          <button
+            key={`${g}-${s}`}
+            onClick={() => { setClassSel({ grade: g, section: s }); go("classes"); }}
+            className={`flex w-full items-center justify-between rounded-xl px-4 py-2 text-[13px] font-bold transition ${
+              view === "classes" && classSel?.grade === g && classSel?.section === s
+                ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300"
+                : "text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/5"
+            }`}
+          >
+            کلاس {className(g, s)}
+            <ChevronLeft className="size-3.5 opacity-60" />
+          </button>
+        ))}
+      </div>
+
+      <div className="border-t border-slate-100 p-3 dark:border-white/5">
+        <button
+          onClick={() => go("profile")}
+          className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 transition hover:bg-slate-100 dark:hover:bg-white/5"
+        >
+          <Avatar user={user} size={38} ring />
+          <div className="min-w-0 flex-1 text-right">
+            <div className="truncate text-[13px] font-bold text-slate-700 dark:text-slate-200">
+              {user.firstName} {user.lastName}
+            </div>
+            <div className="text-[11px] font-semibold text-slate-400">{roleFa(user)}</div>
+          </div>
+          <button
+            onClick={(e) => { e.stopPropagation(); onLogout(); }}
+            className="rounded-xl p-2 text-slate-400 transition hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-500/10"
+            aria-label="خروج"
+            title="خروج از حساب"
+          >
+            <LogOut className="size-4.5" />
+          </button>
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="flex h-dvh overflow-hidden bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+      {/* سایدبار دسکتاپ */}
+      <aside className="hidden w-72 shrink-0 border-l border-slate-200/70 bg-white/80 backdrop-blur-xl dark:border-white/5 dark:bg-slate-900/60 lg:block">
+        {sidebar}
+      </aside>
+
+      {/* دراور موبایل */}
+      {drawer && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div className="modal-bg absolute inset-0 bg-slate-950/50 backdrop-blur-sm" onClick={() => setDrawer(false)} />
+          <aside className="modal-pop absolute right-0 top-0 h-full w-80 max-w-[85vw] border-l border-slate-200 bg-white dark:border-white/10 dark:bg-slate-900">
+            <button onClick={() => setDrawer(false)} className="absolute left-3 top-4 rounded-xl p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10" aria-label="بستن منو">
+              <X className="size-5" />
+            </button>
+            {sidebar}
+          </aside>
+        </div>
+      )}
+
+      {/* بدنه */}
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* نوار بالا */}
+        <header className="z-30 flex items-center gap-3 border-b border-slate-200/70 bg-white/80 px-4 py-3 backdrop-blur-xl dark:border-white/5 dark:bg-slate-900/60 sm:px-6">
+          <button onClick={() => setDrawer(true)} className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 lg:hidden" aria-label="منو">
+            <Menu className="size-5" />
+          </button>
+          <h1 className="text-base font-black text-slate-800 dark:text-slate-100">
+            {view === "classes" && classSel ? `کلاس ${className(classSel.grade, classSel.section)}` : titles[view]}
+          </h1>
+          <div className="mr-auto flex items-center gap-1.5">
+            {/* زنگوله اطلاعیه‌ها */}
+            <div className="relative" ref={bellRef}>
+              <button
+                onClick={() => setBellOpen((o) => !o)}
+                className="relative rounded-xl p-2.5 text-slate-500 transition hover:bg-slate-100 dark:hover:bg-white/10"
+                aria-label="اطلاعیه‌ها"
+              >
+                <Bell className="size-5" />
+                {unreadN > 0 && (
+                  <span className="bell-dot absolute left-2 top-2 flex size-2.5 rounded-full bg-rose-500 ring-2 ring-white dark:ring-slate-900" />
+                )}
+              </button>
+              {bellOpen && (
+                <div className="anim-pop absolute left-0 top-12 w-80 max-w-[86vw] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-slate-900">
+                  <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-white/5">
+                    <span className="text-sm font-black">اطلاعیه‌ها</span>
+                    {unreadN > 0 && <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white">{fa(unreadN)} خوانده‌نشده</span>}
+                  </div>
+                  <div className="max-h-80 overflow-y-auto">
+                    {notices.length === 0 && (
+                      <div className="px-4 py-10 text-center text-[13px] font-semibold text-slate-400">اطلاعیه‌ای وجود ندارد</div>
+                    )}
+                    {notices.slice(0, 8).map((n) => {
+                      const read = !!DB.noticeReads()[readNoticeKey(user.id, n.id)];
+                      return (
+                        <button
+                          key={n.id}
+                          onClick={() => { markNoticeRead(n.id); setBellOpen(false); go("notices"); }}
+                          className="flex w-full items-start gap-3 border-b border-slate-50 px-4 py-3 text-right transition hover:bg-slate-50 dark:border-white/5 dark:hover:bg-white/5"
+                        >
+                          <span className={`mt-1.5 size-2 shrink-0 rounded-full ${read ? "bg-slate-200 dark:bg-white/15" : "bg-rose-500"}`} />
+                          <span className="min-w-0">
+                            <span className={`block truncate text-[13px] font-bold ${read ? "text-slate-500 dark:text-slate-400" : "text-slate-800 dark:text-slate-100"}`}>
+                              {n.title}
+                            </span>
+                            <span className="mt-0.5 block text-[11px] font-semibold text-slate-400">
+                              {faDateShort(n.createdAt)} • {faTime(n.createdAt)}
+                            </span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <button onClick={() => { setBellOpen(false); go("notices"); }} className="w-full bg-slate-50 py-2.5 text-center text-[12px] font-black text-indigo-600 transition hover:bg-slate-100 dark:bg-white/5 dark:text-indigo-300 dark:hover:bg-white/10">
+                    مشاهده همه
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <button onClick={() => go("profile")} className="mr-1 transition active:scale-95" aria-label="پروفایل">
+              <Avatar user={user} size={36} ring />
+            </button>
+          </div>
+        </header>
+
+        {/* محتوای ویو */}
+        <main className="min-h-0 flex-1 overflow-hidden">
+          {view === "chats" && <Chats user={user} externalChatId={openChatId} onConsumeExternal={() => setOpenChatId(null)} />}
+          {view === "classes" && (
+            <Classes user={user} selected={classSel} onSelect={setClassSel} onOpenChat={openChatFromShell} />
+          )}
+          {view === "homework" && <Homework user={user} />}
+          {view === "exams" && <Exams user={user} />}
+          {view === "attendance" && <Attendance user={user} />}
+          {view === "notices" && <Notices user={user} />}
+          {view === "admin" && <Admin user={user} />}
+          {view === "profile" && <Profile user={user} onLogout={onLogout} onGo={go} />}
+        </main>
+
+        {/* ناوبری پایین موبایل */}
+        <nav className="z-30 flex items-center justify-around border-t border-slate-200/70 bg-white/90 px-2 py-2 backdrop-blur-xl dark:border-white/5 dark:bg-slate-900/80 lg:hidden">
+          {nav.filter((n) => n.show && ["chats", "classes", "homework", "exams", "attendance", "admin"].includes(n.v)).map((n) => (
+            <button
+              key={n.v}
+              onClick={() => go(n.v)}
+              className={`flex flex-col items-center gap-1 rounded-2xl px-3 py-1.5 text-[10px] font-bold transition ${
+                view === n.v ? "text-indigo-600 dark:text-indigo-300" : "text-slate-400"
+              }`}
+            >
+              {n.icon}
+              {n.label}
+            </button>
+          ))}
+        </nav>
+      </div>
     </div>
   );
 }

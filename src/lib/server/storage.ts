@@ -1,0 +1,107 @@
+// ----------------------------------------------------------------------------
+//  ذخیره‌ی تصاویر در Supabase Storage (سطل عمومی با کلید سرویس)
+// ----------------------------------------------------------------------------
+
+import { randomUUID } from "node:crypto";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { query } from "@/db";
+import { HttpError } from "./http";
+
+export const BUCKET = process.env.SUPABASE_STORAGE_BUCKET?.trim() || "hamdel-media";
+export const MAX_UPLOAD_BYTES = 3 * 1024 * 1024;
+const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
+let client: SupabaseClient | null = null;
+
+function storageClient(): SupabaseClient {
+  const url = process.env.SUPABASE_URL?.trim();
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  if (!url || !key) {
+    throw new HttpError(503, "ذخیره‌سازی تصاویر هنوز پیکربندی نشده است.");
+  }
+  client ??= createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+  return client;
+}
+
+let bucketReady: Promise<void> | null = null;
+
+function ensureBucket(): Promise<void> {
+  bucketReady ??= (async () => {
+    const s = storageClient();
+    const existing = await s.storage.getBucket(BUCKET);
+    if (!existing.error) return;
+    const created = await s.storage.createBucket(BUCKET, {
+      public: true,
+      fileSizeLimit: MAX_UPLOAD_BYTES,
+      allowedMimeTypes: ALLOWED_MIME,
+    });
+    if (created.error && !/already exists|duplicate/i.test(created.error.message)) {
+      throw created.error;
+    }
+  })().catch((err: unknown) => {
+    bucketReady = null;
+    throw err;
+  });
+  return bucketReady;
+}
+
+/** تشخیص نوع تصویر از روی امضای فایل (نه از روی نام یا MIME ارسالی) */
+export function sniffImage(b: Uint8Array): string | null {
+  if (b.length >= 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "image/jpeg";
+  if (b.length >= 4 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return "image/png";
+  if (
+    b.length >= 12 &&
+    b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46 &&
+    b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50
+  ) {
+    return "image/webp";
+  }
+  if (b.length >= 4 && b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x38) return "image/gif";
+  return null;
+}
+
+const EXT: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/gif": "gif",
+};
+
+export async function storeImage(bytes: Uint8Array, mime: string): Promise<{ path: string; url: string }> {
+  await ensureBucket();
+  const s = storageClient();
+  const now = new Date();
+  const path = `${now.getUTCFullYear()}/${String(now.getUTCMonth() + 1).padStart(2, "0")}/${randomUUID()}.${EXT[mime]}`;
+  const { error } = await s.storage.from(BUCKET).upload(path, bytes, {
+    contentType: mime,
+    upsert: false,
+    cacheControl: "31536000",
+  });
+  if (error) {
+    console.error("[storage upload]", error.message);
+    throw new HttpError(502, "ذخیره‌ی تصویر در فضای ابری ناموفق بود؛ دوباره تلاش کنید.");
+  }
+  const url = s.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+  await query(
+    `insert into hamdel_media (path, public_url) values ($1, $2) on conflict (path) do nothing`,
+    [path, url],
+  );
+  return { path, url };
+}
+
+/** حذف همه‌ی تصاویر ذخیره‌شده (برای پاک‌سازی کامل سامانه) */
+export async function purgeAllMedia(): Promise<number> {
+  const { rows } = await query<{ path: string }>(`select path from hamdel_media`);
+  if (rows.length === 0) return 0;
+  const s = storageClient();
+  for (let i = 0; i < rows.length; i += 100) {
+    const chunk = rows.slice(i, i + 100).map((r) => r.path);
+    const { error } = await s.storage.from(BUCKET).remove(chunk);
+    if (error) {
+      console.error("[storage purge]", error.message);
+      throw new HttpError(502, "حذف فایل‌های تصویری ناموفق بود؛ دوباره تلاش کنید.");
+    }
+  }
+  await query(`delete from hamdel_media`);
+  return rows.length;
+}

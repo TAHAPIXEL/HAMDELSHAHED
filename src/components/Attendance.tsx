@@ -1,423 +1,252 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   CalendarCheck2,
-  CalendarDays,
-  CheckCheck,
-  Eraser,
-  Save,
-  UserCheck,
-  UserX,
-  Clock3,
-  ShieldCheck,
+  UserCheck2,
+  UserX2,
+  AlarmClock,
+  CircleCheckBig,
+  StickyNote,
 } from "lucide-react";
-import { api, errorMessage, useApi } from "@/lib/client";
-import { fa, isoDate, jalaliDate, weekdayName } from "@/lib/format";
-import type { Me, RosterEntry } from "@/lib/types";
 import {
-  Avatar,
-  Badge,
-  Button,
-  DeleteConfirmModal,
-  EmptyState,
-  Field,
-  LoadingBlock,
-  PageHeader,
-  Progress,
-  Select,
-  StatCard,
-  useToast,
-} from "./ui";
-import type { Meta } from "./Shell";
+  DB,
+  JALALI_MONTHS,
+  SECTIONS,
+  attFa,
+  className,
+  dateKeyFa,
+  fa,
+  faTime,
+  isStaff,
+  jalaaliDaysOfMonth,
+  jalaliToDateKey,
+  setAttendance,
+  todayJalali,
+  type AttStatus,
+  type Grade,
+  type User,
+} from "@/lib/model";
+import { Avatar, Chip, Empty, inputCls, useDbTick, useToast } from "./ui";
 
-type Status = "present" | "absent" | "late" | "excused";
+export default function Attendance({ user }: { user: User }) {
+  useDbTick();
+  if (isStaff(user)) return <StaffAttendance user={user} />;
+  return <StudentAttendance user={user} />;
+}
 
-const STATUS_OPTIONS: { id: Status; label: string; tone: "emerald" | "rose" | "amber" | "sky" }[] = [
-  { id: "present", label: "حاضر", tone: "emerald" },
-  { id: "absent", label: "غایب", tone: "rose" },
-  { id: "late", label: "تأخیر", tone: "amber" },
-  { id: "excused", label: "موجه", tone: "sky" },
-];
+// ----------------------------------------------------------------------------
+// ویوی دانش‌آموز
+// ----------------------------------------------------------------------------
 
-type StudentData = {
-  items: {
-    id: number;
-    sessionDate: string;
-    period: number;
-    status: Status;
-    note: string | null;
-    className: string;
-  }[];
-  summary: {
-    total: number;
-    present: number;
-    absent: number;
-    late: number;
-    excused: number;
-  } | null;
-};
-
-type TeacherData = {
-  class?: { id: number; name: string };
-  date: string;
-  period: number;
-  roster: RosterEntry[];
-  canRecord: boolean;
-};
-
-export default function Attendance({ user }: { user: Me }) {
-  const { data: meta } = useApi<Meta>("/api/meta");
-  const classes = useMemo(() => meta?.classes ?? [], [meta]);
-  const [classId, setClassId] = useState("");
-  const [date, setDate] = useState(isoDate());
-  const [period, setPeriod] = useState("1");
-
-  useEffect(() => {
-    if (!classId && classes[0]) setClassId(String(classes[0].id));
-  }, [classes, classId]);
-
-  if (user.role === "student") return <StudentAttendance />;
-
-  if (classes.length === 0)
-    return (
-      <div>
-        <PageHeader title="حضور و غیاب" subtitle="ثبت حضور هر زنگ و پیگیری وضعیت کلاس‌ها" />
-        <EmptyState
-          icon={<CalendarCheck2 className="size-5" />}
-          title="کلاسی برای ثبت حضور و غیاب ندارید"
-          description={
-            user.role === "admin"
-              ? "ابتدا از «مدیریت سامانه ← کلاس‌ها» کلاس بسازید و دانش‌آموز اضافه کنید."
-              : "هنوز کلاسی به شما تخصیص داده نشده است. با مدیر مدرسه هماهنگ کنید."
-          }
-        />
-      </div>
-    );
+function StudentAttendance({ user }: { user: User }) {
+  useDbTick();
+  const recs = DB.attendance()
+    .filter((r) => r.studentId === user.id)
+    .sort((a, b) => b.date.localeCompare(a.date));
+  const count = (s: AttStatus) => recs.filter((r) => r.status === s).length;
 
   return (
-    <div>
-      <PageHeader
-        title="حضور و غیاب"
-        subtitle="ثبت حضور هر زنگ و پیگیری وضعیت کلاس‌ها"
-      />
+    <div className="h-full overflow-y-auto p-4 sm:p-6">
+      <div className="mx-auto max-w-3xl">
+        <div className="stagger mb-5 grid grid-cols-3 gap-3">
+          <div className="card flex flex-col items-center gap-1.5 p-4">
+            <UserCheck2 className="size-6 text-emerald-500" />
+            <div className="text-xl font-black text-slate-800 dark:text-slate-100">{fa(count("present"))}</div>
+            <div className="text-[11px] font-bold text-slate-400">روز حاضر</div>
+          </div>
+          <div className="card flex flex-col items-center gap-1.5 p-4">
+            <UserX2 className="size-6 text-rose-500" />
+            <div className="text-xl font-black text-slate-800 dark:text-slate-100">{fa(count("absent"))}</div>
+            <div className="text-[11px] font-bold text-slate-400">روز غایب</div>
+          </div>
+          <div className="card flex flex-col items-center gap-1.5 p-4">
+            <AlarmClock className="size-6 text-amber-500" />
+            <div className="text-xl font-black text-slate-800 dark:text-slate-100">{fa(count("excused"))}</div>
+            <div className="text-[11px] font-bold text-slate-400">روز مرخصی</div>
+          </div>
+        </div>
 
-      <div className="card mb-4 grid gap-3 p-4 sm:grid-cols-3">
-        <Field label="کلاس">
-          <Select value={classId} onChange={(e) => setClassId(e.target.value)}>
-            {classes.map((cls) => (
-              <option key={cls.id} value={cls.id}>
-                {cls.name}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <Field label="تاریخ">
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
-          />
-        </Field>
-        <Field label="زنگ">
-          <Select value={period} onChange={(e) => setPeriod(e.target.value)}>
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((p) => (
-              <option key={p} value={p}>
-                زنگ {fa(p)}
-              </option>
-            ))}
-          </Select>
-        </Field>
+        <div className="mb-3 rounded-2xl bg-indigo-50 px-4 py-3 text-[12.5px] font-semibold leading-6 text-indigo-800 dark:bg-indigo-500/10 dark:text-indigo-200">
+          هر روزی که وارد سایت شوید، حضور شما به‌صورت خودکار ثبت می‌شود. کادر مدرسه می‌توانند آن را اصلاح کنند.
+        </div>
+
+        {recs.length === 0 && (
+          <Empty icon={<CalendarCheck2 className="size-7" />} title="سابقه‌ای نیست" />
+        )}
+        <div className="stagger space-y-2">
+          {recs.map((r) => (
+            <div key={r.id} className="card flex items-center gap-3.5 p-4">
+              <div className={`flex size-10 shrink-0 items-center justify-center rounded-2xl ${r.status === "present" ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15" : r.status === "absent" ? "bg-rose-100 text-rose-600 dark:bg-rose-500/15" : "bg-amber-100 text-amber-600 dark:bg-amber-500/15"}`}>
+                {r.status === "present" ? <UserCheck2 className="size-5" /> : r.status === "absent" ? <UserX2 className="size-5" /> : <AlarmClock className="size-5" />}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[13.5px] font-black text-slate-800 dark:text-slate-100">{dateKeyFa(r.date)}</div>
+                <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] font-semibold text-slate-400">
+                  {r.loginAt && <span>ورود: {faTime(r.loginAt)}</span>}
+                  {r.auto && <span>ثبت خودکار</span>}
+                  {r.note && <span className="flex items-center gap-1"><StickyNote className="size-3" />{r.note}</span>}
+                </div>
+              </div>
+              <Chip tone={r.status === "present" ? "green" : r.status === "absent" ? "red" : "amber"}>{attFa[r.status]}</Chip>
+            </div>
+          ))}
+        </div>
       </div>
-
-      {classId && (
-        <RosterEditor
-          key={`${classId}-${date}-${period}`}
-          classId={Number(classId)}
-          date={date}
-          period={Number(period)}
-          className={classes.find((c) => String(c.id) === classId)?.name ?? ""}
-        />
-      )}
     </div>
   );
 }
 
-/* ----------------------------- ثبت برای دبیر ---------------------------- */
+// ----------------------------------------------------------------------------
+// ویوی کادر
+// ----------------------------------------------------------------------------
 
-function RosterEditor({
-  classId,
-  date,
-  period,
-  className,
-}: {
-  classId: number;
-  date: string;
-  period: number;
-  className: string;
-}) {
+function StaffAttendance({ user }: { user: User }) {
+  useDbTick();
   const toast = useToast();
-  const { data, loading, reload } = useApi<TeacherData>(
-    `/api/attendance?classId=${classId}&date=${date}&period=${period}`,
+  const [jy, setJy] = useState(() => todayJalali().jy);
+  const [jm, setJm] = useState(() => todayJalali().jm);
+  const [jd, setJd] = useState(() => todayJalali().jd);
+  const date = jalaliToDateKey(jy, jm, jd); // کلید ذخیره‌سازی استاندارد
+  const [grade, setGrade] = useState<Grade>(7);
+  const [section, setSection] = useState("1");
+  const [savedTick, setSavedTick] = useState(0);
+  const jDays = jalaaliDaysOfMonth(jy, jm);
+
+  const students = useMemo(
+    () => DB.users().filter((u) => u.role === "student" && u.grade === grade && u.section === section),
+    [grade, section]
   );
-  const [statuses, setStatuses] = useState<Record<number, Status>>({});
-  const [saving, setSaving] = useState(false);
-  const [clearOpen, setClearOpen] = useState(false);
 
-  useEffect(() => {
-    if (!data?.roster) return;
-    const next: Record<number, Status> = {};
-    for (const row of data.roster) next[row.studentId] = row.status ?? "present";
-    setStatuses(next);
-  }, [data]);
-
-  const rows = data?.roster ?? [];
-  const counts = useMemo(() => {
-    const values = Object.values(statuses);
-    return {
-      present: values.filter((s) => s === "present").length,
-      absent: values.filter((s) => s === "absent").length,
-      late: values.filter((s) => s === "late").length,
-      excused: values.filter((s) => s === "excused").length,
-    };
-  }, [statuses]);
-
-  const save = async () => {
-    setSaving(true);
-    try {
-      await api("/api/attendance", {
-        method: "POST",
-        body: JSON.stringify({
-          classId,
-          date,
-          period,
-          entries: rows.map((row) => ({
-            studentId: row.studentId,
-            status: statuses[row.studentId] ?? "present",
-          })),
-        }),
-      });
-      toast.push(`حضور و غیاب ${className} ذخیره شد`);
-      await reload();
-    } catch (e) {
-      toast.push(errorMessage(e), "error");
-    } finally {
-      setSaving(false);
-    }
+  const recOf = (sid: string) => DB.attendance().find((r) => r.id === `${date}:${sid}`);
+  const counts = {
+    present: students.filter((s) => (recOf(s.id)?.status) === "present").length,
+    absent: students.filter((s) => (recOf(s.id)?.status) === "absent").length,
+    excused: students.filter((s) => (recOf(s.id)?.status) === "excused").length,
+    none: students.filter((s) => !recOf(s.id)).length,
   };
 
-  const markAll = (status: Status) => {
-    const next: Record<number, Status> = {};
-    for (const row of rows) next[row.studentId] = status;
-    setStatuses(next);
+  const setStatus = (sid: string, status: AttStatus) => {
+    setAttendance(sid, date, status, user.id);
+    setSavedTick((t) => t + 1);
   };
-
-  const hasRecords = rows.some((row) => row.attendanceId != null);
-
-  if (loading && !data) return <LoadingBlock rows={4} />;
-
-  if (rows.length === 0)
-    return (
-      <EmptyState
-        icon={<UserX className="size-5" />}
-        title="دانش‌آموزی در این کلاس نیست"
-        description="ابتدا از بخش مدیریت، دانش‌آموز به کلاس اضافه کنید."
-      />
-    );
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard icon={<UserCheck className="size-5" />} label="حاضر" value={counts.present} tone="emerald" />
-        <StatCard icon={<UserX className="size-5" />} label="غایب" value={counts.absent} tone="rose" />
-        <StatCard icon={<Clock3 className="size-5" />} label="تأخیر" value={counts.late} tone="amber" />
-        <StatCard icon={<ShieldCheck className="size-5" />} label="موجه" value={counts.excused} tone="sky" />
-      </div>
-
-      <div className="card overflow-hidden">
-        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-4 py-3">
+    <div className="h-full overflow-y-auto p-4 sm:p-6">
+      <div className="mx-auto max-w-4xl">
+        {/* فیلترها */}
+        <div className="card mb-5 grid gap-3 p-4 sm:grid-cols-3">
           <div>
-            <p className="text-xs font-extrabold text-slate-800">
-              {className} — {weekdayName(date)} {jalaliDate(date)}
-            </p>
-            <p className="text-[10px] text-slate-500">
-              زنگ {fa(period)} · {fa(rows.length)} دانش‌آموز
-            </p>
+            <span className="mb-1.5 block text-[12px] font-bold text-slate-500 dark:text-slate-400">تاریخ (شمسی)</span>
+            <div className="grid grid-cols-3 gap-1.5">
+              <select className={`${inputCls} !px-2 text-center !text-[12px]`} value={jd} onChange={(e) => setJd(Number(e.target.value))}>
+                {Array.from({ length: jDays }, (_, i) => i + 1).map((d) => (
+                  <option key={d} value={d}>{fa(d)}</option>
+                ))}
+              </select>
+              <select className={`${inputCls} !px-2 !text-[12px]`} value={jm} onChange={(e) => { const m = Number(e.target.value); setJm(m); setJd((d) => Math.min(d, jalaaliDaysOfMonth(jy, m))); }}>
+                {JALALI_MONTHS.map((m, i) => (
+                  <option key={m} value={i + 1}>{m}</option>
+                ))}
+              </select>
+              <select className={`${inputCls} !px-2 text-center !text-[12px]`} value={jy} onChange={(e) => { const y = Number(e.target.value); setJy(y); setJd((d) => Math.min(d, jalaaliDaysOfMonth(y, jm))); }}>
+                {[jy - 1, jy, jy + 1].sort((a, b) => b - a).map((y) => (
+                  <option key={y} value={y}>{fa(y)}</option>
+                ))}
+              </select>
+            </div>
           </div>
-          <div className="mr-auto flex items-center gap-1.5">
-            <Button size="sm" variant="outline" onClick={() => markAll("present")}>
-              <CheckCheck className="size-3.5" /> همه حاضر
-            </Button>
-            {hasRecords && (
-              <Button size="sm" variant="danger" onClick={() => setClearOpen(true)}>
-                <Eraser className="size-3.5" /> پاک‌سازی این زنگ
-              </Button>
-            )}
-            <Button size="sm" onClick={save} loading={saving}>
-              <Save className="size-3.5" /> ذخیره
-            </Button>
-          </div>
+          <label className="block">
+            <span className="mb-1.5 block text-[12px] font-bold text-slate-500 dark:text-slate-400">پایه</span>
+            <select className={inputCls} value={grade} onChange={(e) => { setGrade(Number(e.target.value) as Grade); setSection("1"); }}>
+              {([7, 8, 9] as Grade[]).map((g) => (
+                <option key={g} value={g}>پایه {className(g, "1").split(" ")[0]}</option>
+              ))}
+            </select>
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-[12px] font-bold text-slate-500 dark:text-slate-400">شعبه</span>
+            <select className={inputCls} value={section} onChange={(e) => setSection(e.target.value)}>
+              {SECTIONS[grade].map((s) => (
+                <option key={s} value={s}>شعبه {s}</option>
+              ))}
+            </select>
+          </label>
         </div>
 
-        <ul className="divide-y divide-slate-100">
-          {rows.map((row) => {
-            const current = statuses[row.studentId] ?? "present";
+        {/* خلاصه */}
+        <div className="mb-4 flex flex-wrap items-center gap-2 text-[12px] font-bold">
+          <Chip tone="green">حاضر: {fa(counts.present)}</Chip>
+          <Chip tone="red">غایب: {fa(counts.absent)}</Chip>
+          <Chip tone="amber">مرخصی: {fa(counts.excused)}</Chip>
+          <Chip>بدون ثبت: {fa(counts.none)}</Chip>
+          {savedTick > 0 && (
+            <span key={savedTick} className="anim-fade-up mr-auto flex items-center gap-1 text-[11px] font-bold text-emerald-600">
+              <CircleCheckBig className="size-3.5" />
+              ذخیره شد
+            </span>
+          )}
+        </div>
+
+        {students.length === 0 && (
+          <Empty
+            icon={<CalendarCheck2 className="size-7" />}
+            title="دانش‌آموزی در این کلاس نیست"
+            desc="وقتی دانش‌آموزان کلاس ثبت‌نام کنند، لیستشان اینجا می‌آید"
+          />
+        )}
+
+        <div className="stagger space-y-2.5">
+          {students.map((s) => {
+            const rec = recOf(s.id);
             return (
-              <li key={row.studentId} className="flex flex-wrap items-center gap-2 px-4 py-2.5">
-                <Avatar name={row.fullName} color={row.avatarColor} src={row.avatarUrl} size={32} />
+              <div key={s.id} className="card flex flex-wrap items-center gap-3 p-3.5">
+                <Avatar user={s} size={42} />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-bold text-slate-800">{row.fullName}</p>
-                  <p className="text-[10px] text-slate-400" dir="ltr">
-                    {row.username}
-                  </p>
+                  <div className="truncate text-[13.5px] font-black text-slate-800 dark:text-slate-100">{s.firstName} {s.lastName}</div>
+                  <div className="mt-0.5 text-[11px] font-semibold text-slate-400">
+                    {rec?.loginAt ? `ورود امروز: ${faTime(rec.loginAt)}` : "امروز وارد نشده"}
+                    {rec?.auto ? " • ثبت خودکار" : rec ? " • ثبت دستی" : ""}
+                  </div>
                 </div>
-                <div className="flex gap-1">
-                  {STATUS_OPTIONS.map((option) => (
+                <div className="flex rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-white/10 dark:bg-white/5">
+                  {(
+                    [
+                      { v: "present", l: "حاضر", on: "bg-emerald-500 text-white" },
+                      { v: "absent", l: "غایب", on: "bg-rose-500 text-white" },
+                      { v: "excused", l: "مرخصی", on: "bg-amber-500 text-white" },
+                    ] as const
+                  ).map((o) => (
                     <button
-                      key={option.id}
-                      type="button"
-                      onClick={() =>
-                        setStatuses((prev) => ({ ...prev, [row.studentId]: option.id }))
-                      }
-                      className={`rounded-lg px-2.5 py-1.5 text-[10px] font-bold transition ${
-                        current === option.id
-                          ? option.id === "present"
-                            ? "bg-emerald-500 text-white"
-                            : option.id === "absent"
-                              ? "bg-rose-500 text-white"
-                              : option.id === "late"
-                                ? "bg-amber-500 text-white"
-                                : "bg-sky-500 text-white"
-                          : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                      key={o.v}
+                      onClick={() => setStatus(s.id, o.v)}
+                      className={`rounded-lg px-3 py-1.5 text-[12px] font-black transition ${
+                        rec?.status === o.v ? o.on : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
                       }`}
                     >
-                      {option.label}
+                      {o.l}
                     </button>
                   ))}
                 </div>
-              </li>
+                <input
+                  className={`${inputCls} !w-36 !py-1.5 !text-[12px]`}
+                  placeholder="یادداشت..."
+                  defaultValue={rec?.note ?? ""}
+                  key={`${s.id}-${date}-${rec?.note ?? ""}`}
+                  onBlur={(e) => {
+                    const v = e.target.value.trim();
+                    if (v !== (rec?.note ?? "")) {
+                      setAttendance(s.id, date, rec?.status ?? "present", user.id, v || undefined);
+                      setSavedTick((t) => t + 1);
+                      toast("success", "یادداشت ذخیره شد");
+                    }
+                  }}
+                />
+              </div>
             );
           })}
-        </ul>
-      </div>
-
-      <DeleteConfirmModal
-        open={clearOpen}
-        onClose={() => setClearOpen(false)}
-        title="پاک‌سازی حضور و غیاب این زنگ"
-        description={`سوابق حضور «${className}» در ${weekdayName(date)} ${jalaliDate(date)} — زنگ ${fa(period)} حذف می‌شود. رمز حذف سامانه را وارد کنید.`}
-        onConfirm={async (deletePassword) => {
-          await api("/api/attendance", {
-            method: "DELETE",
-            body: JSON.stringify({ classId, date, period, deletePassword }),
-          });
-          toast.push("سوابق این زنگ پاک شد", "info");
-          await reload(true);
-        }}
-      />
-    </div>
-  );
-}
-
-/* --------------------------- نمای دانش‌آموز ----------------------------- */
-
-function StudentAttendance() {
-  const { data, loading } = useApi<StudentData>("/api/attendance");
-  const summary = data?.summary;
-
-  const rate = summary && summary.total ? ((summary.present + summary.late) / summary.total) * 100 : 100;
-
-  return (
-    <div>
-      <PageHeader title="کارنامه‌ی حضور" subtitle="سابقه‌ی حضور، غیبت و تأخیر شما در کلاس‌ها" />
-
-      {loading && !data ? (
-        <LoadingBlock rows={3} />
-      ) : (
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <StatCard
-              icon={<CalendarCheck2 className="size-5" />}
-              label="درصد حضور"
-              value={`${Math.round(rate)}٪`}
-              tone={rate >= 90 ? "emerald" : "amber"}
-            />
-            <StatCard icon={<UserCheck className="size-5" />} label="حاضر" value={summary?.present ?? 0} tone="emerald" />
-            <StatCard icon={<UserX className="size-5" />} label="غایب" value={summary?.absent ?? 0} tone="rose" />
-            <StatCard
-              icon={<Clock3 className="size-5" />}
-              label="تأخیر و موجه"
-              value={`${fa(summary?.late ?? 0)} / ${fa(summary?.excused ?? 0)}`}
-              tone="amber"
-            />
-          </div>
-
-          <div className="card p-4">
-            <div className="mb-2 flex items-center justify-between">
-              <p className="text-xs font-extrabold text-slate-800">نرخ حضور کل</p>
-              <span className="text-[11px] font-bold text-slate-500">{fa(Math.round(rate))}٪</span>
-            </div>
-            <Progress value={rate} tone={rate >= 90 ? "emerald" : "amber"} />
-            <p className="mt-2 text-[10px] text-slate-400">
-              بر پایه‌ی {fa(summary?.total ?? 0)} جلسه‌ی ثبت‌شده
-            </p>
-          </div>
-
-          <div className="card overflow-hidden">
-            <div className="flex items-center gap-2 border-b border-slate-100 px-4 py-3">
-              <CalendarDays className="size-4 text-indigo-500" />
-              <p className="text-xs font-extrabold text-slate-800">ریز حضور</p>
-            </div>
-            {(data?.items ?? []).length === 0 ? (
-              <EmptyState
-                icon={<CalendarDays className="size-5" />}
-                title="سابقه‌ای ثبت نشده است"
-                description="پس از اولین ثبت حضور توسط دبیر، اینجا نمایش داده می‌شود."
-              />
-            ) : (
-              <div className="max-h-[420px] overflow-y-auto">
-                <table className="w-full text-right text-xs">
-                  <thead className="sticky top-0 bg-slate-50/95 text-[10px] text-slate-500 backdrop-blur">
-                    <tr>
-                      <th className="px-4 py-2 font-semibold">تاریخ</th>
-                      <th className="px-4 py-2 font-semibold">روز</th>
-                      <th className="px-4 py-2 font-semibold">زنگ</th>
-                      <th className="px-4 py-2 font-semibold">کلاس</th>
-                      <th className="px-4 py-2 font-semibold">وضعیت</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {(data?.items ?? []).map((row) => (
-                      <tr key={row.id} className="transition hover:bg-slate-50/60">
-                        <td className="px-4 py-2 text-slate-700">{jalaliDate(row.sessionDate)}</td>
-                        <td className="px-4 py-2 text-slate-500">{weekdayName(row.sessionDate)}</td>
-                        <td className="px-4 py-2 text-slate-500">{fa(row.period)}</td>
-                        <td className="px-4 py-2 text-slate-500">{row.className}</td>
-                        <td className="px-4 py-2">
-                          <Badge
-                            tone={
-                              row.status === "present"
-                                ? "emerald"
-                                : row.status === "absent"
-                                  ? "rose"
-                                  : row.status === "late"
-                                    ? "amber"
-                                    : "sky"
-                            }
-                          >
-                            {STATUS_OPTIONS.find((s) => s.id === row.status)?.label ?? row.status}
-                          </Badge>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

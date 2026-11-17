@@ -1,47 +1,26 @@
-import type { NextRequest } from "next/server";
-import { ApiError, audit, requireUser, route } from "@/lib/api";
-import { UPLOAD_FOLDERS, type UploadFolder, saveUploadedImage } from "@/lib/storage";
+import { HttpError, NO_STORE, clientIp, errorResponse, rateLimit } from "@/lib/server/http";
+import { requireViewer } from "@/lib/server/session";
+import { MAX_UPLOAD_BYTES, sniffImage, storeImage } from "@/lib/server/storage";
 
 export const dynamic = "force-dynamic";
 
-export const POST = route(async (req: NextRequest) => {
-  const user = await requireUser();
-  const formData = await req.formData().catch(() => null);
-  if (!formData) throw new ApiError("فرم آپلود نامعتبر است", 400);
-
-  const file = formData.get("file");
-  if (!file || !(file instanceof File)) {
-    throw new ApiError("فایل تصویری انتخاب نشده است", 400);
+/** آپلود تصویر (پروفایل، پیام، اطلاعیه، تکلیف، پاسخ، آزمون) در Supabase Storage */
+export async function POST(req: Request) {
+  try {
+    await requireViewer(req);
+    rateLimit(`upload:${clientIp(req)}`, 120, 10 * 60 * 1000);
+    const form = await req.formData().catch(() => null);
+    const file = form?.get("file");
+    if (!(file instanceof File)) throw new HttpError(400, "فایلی ارسال نشده است.");
+    if (file.size === 0 || file.size > MAX_UPLOAD_BYTES) {
+      throw new HttpError(413, "حجم تصویر باید بین ۱ بایت و ۳ مگابایت باشد.");
+    }
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const mime = sniffImage(bytes);
+    if (!mime) throw new HttpError(415, "فقط تصویر JPEG، PNG، WebP یا GIF پذیرفته می‌شود.");
+    const stored = await storeImage(bytes, mime);
+    return Response.json({ url: stored.url, path: stored.path }, { headers: NO_STORE });
+  } catch (err) {
+    return errorResponse(err);
   }
-
-  const rawFolder = String(formData.get("folder") ?? "messages").trim();
-  const folder: UploadFolder = UPLOAD_FOLDERS.includes(rawFolder as UploadFolder)
-    ? (rawFolder as UploadFolder)
-    : "messages";
-
-  // دانش‌آموز فقط در بخش‌های پروفایل، گفت‌وگو و پاسخ تکلیف مجاز به آپلود است
-  if (
-    user.role === "student" &&
-    !["avatars", "messages", "submissions"].includes(folder)
-  ) {
-    throw new ApiError("شما اجازه‌ی آپلود در این بخش را ندارید", 403);
-  }
-
-  const arrayBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-
-  const saved = await saveUploadedImage({
-    uploaderId: user.id,
-    folder,
-    mimeType: file.type || "image/jpeg",
-    buffer,
-  });
-
-  await audit(user.id, "upload", "media", null, {
-    id: saved.id,
-    folder,
-    sizeBytes: saved.sizeBytes,
-  });
-
-  return { ok: true, id: saved.id, url: saved.url };
-});
+}

@@ -5,734 +5,476 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useMemo,
   useRef,
   useState,
   type ReactNode,
 } from "react";
-import {
-  CheckCircle2,
-  Download,
-  ImagePlus,
-  Info,
-  KeyRound,
-  Loader2,
-  Trash2,
-  X,
-  XCircle,
-  ZoomIn,
-} from "lucide-react";
-import { createPortal } from "react-dom";
-import { fa, initials } from "@/lib/format";
-import { errorMessage, uploadImage, type ImageFolder } from "@/lib/client";
+import { X, CheckCircle2, AlertTriangle, Info, Loader2, Eye, EyeOff, Copy } from "lucide-react";
+import { fa, type User } from "@/lib/model";
 
-/* ------------------------------- Toastها -------------------------------- */
+// ----------------------------------------------------------------------------
+// Toast
+// ----------------------------------------------------------------------------
 
 type ToastKind = "success" | "error" | "info";
-type Toast = { id: number; kind: ToastKind; text: string };
+interface ToastItem { id: number; kind: ToastKind; msg: string }
 
-const ToastContext = createContext<{
-  push: (text: string, kind?: ToastKind) => void;
-}>({ push: () => {} });
-
-export function useToast() {
-  return useContext(ToastContext);
-}
+const ToastCtx = createContext<(kind: ToastKind, msg: string) => void>(() => {});
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<Toast[]>([]);
-
-  const push = useCallback((text: string, kind: ToastKind = "success") => {
-    const id = Date.now() + Math.random();
-    setItems((prev) => [...prev, { id, kind, text }]);
-    setTimeout(() => setItems((prev) => prev.filter((t) => t.id !== id)), 4200);
+  const [items, setItems] = useState<ToastItem[]>([]);
+  const idRef = useRef(1);
+  const push = useCallback((kind: ToastKind, msg: string) => {
+    const id = idRef.current++;
+    setItems((s) => [...s, { id, kind, msg }]);
+    setTimeout(() => setItems((s) => s.filter((t) => t.id !== id)), 3800);
   }, []);
-
-  const value = useMemo(() => ({ push }), [push]);
-
+  // خطاهای همگام‌سازی با سرور (مثلاً تغییری که سرور نپذیرفت) به کاربر نشان داده می‌شود
+  useEffect(() => {
+    const onError = (e: Event) => push("error", String((e as CustomEvent).detail ?? "خطا"));
+    window.addEventListener("hamdel:error", onError);
+    return () => window.removeEventListener("hamdel:error", onError);
+  }, [push]);
   return (
-    <ToastContext.Provider value={value}>
+    <ToastCtx.Provider value={push}>
       {children}
-      <div className="pointer-events-none fixed inset-x-0 bottom-4 z-[100] flex flex-col items-center gap-2 px-4 sm:bottom-6">
-        {items.map((toast) => (
+      <div className="pointer-events-none fixed inset-x-0 bottom-5 z-[100] flex flex-col items-center gap-2 px-4">
+        {items.map((t) => (
           <div
-            key={toast.id}
-            className={`toast-in pointer-events-auto flex max-w-md items-start gap-2 rounded-2xl px-4 py-3 text-sm font-medium shadow-lg ring-1 backdrop-blur-xl ${
-              toast.kind === "success"
-                ? "bg-emerald-50/95 text-emerald-800 ring-emerald-200"
-                : toast.kind === "error"
-                  ? "bg-rose-50/95 text-rose-700 ring-rose-200"
-                  : "bg-white/95 text-slate-700 ring-slate-200"
+            key={t.id}
+            className={`toast-in pointer-events-auto flex items-center gap-2.5 rounded-2xl border px-4 py-3 text-sm font-medium shadow-2xl backdrop-blur-xl ${
+              t.kind === "success"
+                ? "border-emerald-300/60 bg-emerald-50/90 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-950/80 dark:text-emerald-200"
+                : t.kind === "error"
+                ? "border-rose-300/60 bg-rose-50/90 text-rose-800 dark:border-rose-500/30 dark:bg-rose-950/80 dark:text-rose-200"
+                : "border-sky-300/60 bg-sky-50/90 text-sky-800 dark:border-sky-500/30 dark:bg-sky-950/80 dark:text-sky-200"
             }`}
           >
-            {toast.kind === "success" ? (
-              <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
-            ) : toast.kind === "error" ? (
-              <XCircle className="mt-0.5 size-4 shrink-0" />
-            ) : (
-              <Info className="mt-0.5 size-4 shrink-0" />
-            )}
-            <span className="user-text">{toast.text}</span>
+            {t.kind === "success" ? <CheckCircle2 className="size-4.5 shrink-0" /> : t.kind === "error" ? <AlertTriangle className="size-4.5 shrink-0" /> : <Info className="size-4.5 shrink-0" />}
+            <span>{t.msg}</span>
           </div>
         ))}
       </div>
-    </ToastContext.Provider>
+    </ToastCtx.Provider>
   );
 }
 
-/* -------------------------------- Splash -------------------------------- */
+export const useToast = () => useContext(ToastCtx);
 
-export function Splash() {
+// ----------------------------------------------------------------------------
+// هوک تغییر دیتابیس محلی (زنده)
+// ----------------------------------------------------------------------------
+
+export function useDbTick() {
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const bump = () => setTick((t) => t + 1);
+    window.addEventListener("hamdel:db", bump);
+    const iv = setInterval(bump, 2500); // فقط بازرسم UI؛ دریافت داده در store انجام می‌شود
+    return () => {
+      window.removeEventListener("hamdel:db", bump);
+      clearInterval(iv);
+    };
+  }, []);
+  return tick;
+}
+
+// ----------------------------------------------------------------------------
+// آواتار
+// ----------------------------------------------------------------------------
+
+const PALETTES = [
+  "from-indigo-500 to-violet-500",
+  "from-sky-500 to-cyan-500",
+  "from-emerald-500 to-teal-500",
+  "from-rose-500 to-pink-500",
+  "from-amber-500 to-orange-500",
+  "from-fuchsia-500 to-purple-500",
+];
+
+export function Avatar({
+  user,
+  size = 40,
+  className = "",
+  ring = false,
+}: {
+  user?: Pick<User, "firstName" | "lastName" | "avatar" | "id"> | null;
+  size?: number;
+  className?: string;
+  ring?: boolean;
+}) {
+  const name = user ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() : "?";
+  const initial = name ? name.charAt(0) : "؟";
+  const palette =
+    PALETTES[[...(user?.id ?? name)].reduce((a, c) => a + c.charCodeAt(0), 0) % PALETTES.length];
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-gradient-to-b from-indigo-50 via-white to-white">
-      <div className="splash-logo grid size-24 place-items-center rounded-[28px] bg-gradient-to-br from-indigo-500 to-violet-600 text-4xl font-black text-white shadow-xl shadow-indigo-500/30">
-        هـ
-      </div>
-      <div className="text-center">
-        <h1 className="text-2xl font-extrabold text-slate-800">هَمدِل</h1>
-        <p className="mt-1 text-sm text-slate-500">دبیرستان شاهد شهیدان فهیمی</p>
-      </div>
-      <div className="flex items-center gap-1.5">
-        {[0, 1, 2].map((i) => (
-          <span
-            key={i}
-            className="splash-dot size-2 rounded-full bg-indigo-400"
-            style={{ animationDelay: `${i * 0.15}s` }}
-          />
-        ))}
+    <div
+      className={`relative flex shrink-0 select-none items-center justify-center overflow-hidden rounded-full bg-gradient-to-br font-bold text-white ${palette} ${
+        ring ? "ring-2 ring-white/70 dark:ring-white/10" : ""
+      } ${className}`}
+      style={{ width: size, height: size, fontSize: size * 0.42 }}
+    >
+      {user?.avatar ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={user.avatar} alt={name} className="absolute inset-0 h-full w-full object-cover" />
+      ) : (
+        initial
+      )}
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// مودال
+// ----------------------------------------------------------------------------
+
+export function Modal({
+  open,
+  onClose,
+  title,
+  children,
+  wide = false,
+  icon,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  children: ReactNode;
+  wide?: boolean;
+  icon?: ReactNode;
+}) {
+  useEffect(() => {
+    if (!open) return;
+    const h = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [open, onClose]);
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-[90] flex items-end justify-center p-0 sm:items-center sm:p-6">
+      <div className="modal-bg absolute inset-0 bg-slate-950/50 backdrop-blur-sm" onClick={onClose} />
+      <div
+        className={`modal-pop relative flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-3xl border border-slate-200/70 bg-white shadow-2xl dark:border-white/10 dark:bg-slate-900 sm:rounded-3xl ${
+          wide ? "sm:max-w-3xl" : "sm:max-w-lg"
+        }`}
+      >
+        <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 dark:border-white/5">
+          <div className="flex items-center gap-2.5 font-bold text-slate-800 dark:text-slate-100">
+            {icon}
+            <span>{title}</span>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/10 dark:hover:text-slate-200"
+            aria-label="بستن"
+          >
+            <X className="size-5" />
+          </button>
+        </div>
+        <div className="overflow-y-auto px-5 py-5">{children}</div>
       </div>
     </div>
   );
 }
 
-/* -------------------------------- Avatar -------------------------------- */
+// ----------------------------------------------------------------------------
+// فرم
+// ----------------------------------------------------------------------------
 
-export function Avatar({
-  name,
-  color = "#6366f1",
-  src,
-  size = 40,
-  ring = false,
-}: {
-  name: string;
-  color?: string;
-  src?: string | null;
-  size?: number;
-  ring?: boolean;
-}) {
-  const [failedUrl, setFailedUrl] = useState<string | null>(null);
-  const showImage = Boolean(src && src !== failedUrl);
-
-  if (showImage && src) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={src}
-        alt={name}
-        onError={() => setFailedUrl(src)}
-        className={`shrink-0 select-none rounded-full object-cover ${
-          ring ? "ring-2 ring-white" : "ring-1 ring-slate-200/80"
-        }`}
-        style={{ width: size, height: size }}
-      />
-    );
-  }
-
-  return (
-    <span
-      className={`grid shrink-0 select-none place-items-center rounded-full font-bold text-white ${
-        ring ? "ring-2 ring-white" : ""
-      }`}
-      style={{
-        width: size,
-        height: size,
-        fontSize: size * 0.36,
-        background: `linear-gradient(135deg, ${color}, ${color}cc)`,
-      }}
-      aria-hidden
-    >
-      {initials(name)}
-    </span>
-  );
-}
-
-/* -------------------------------- Badge --------------------------------- */
-
-type Tone = "indigo" | "emerald" | "amber" | "rose" | "slate" | "sky" | "violet";
-
-const toneClasses: Record<Tone, string> = {
-  indigo: "bg-indigo-50 text-indigo-700 ring-indigo-200",
-  emerald: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  amber: "bg-amber-50 text-amber-700 ring-amber-200",
-  rose: "bg-rose-50 text-rose-700 ring-rose-200",
-  slate: "bg-slate-100 text-slate-600 ring-slate-200",
-  sky: "bg-sky-50 text-sky-700 ring-sky-200",
-  violet: "bg-violet-50 text-violet-700 ring-violet-200",
-};
-
-export function Badge({
+export function Field({
+  label,
+  required,
+  error,
   children,
-  tone = "slate",
-  className = "",
+  hint,
 }: {
+  label: string;
+  required?: boolean;
+  error?: string;
+  hint?: string;
   children: ReactNode;
-  tone?: Tone;
-  className?: string;
 }) {
   return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${toneClasses[tone]} ${className}`}
-    >
+    <label className="block">
+      <span className="mb-1.5 flex items-center gap-1 text-[13px] font-semibold text-slate-600 dark:text-slate-300">
+        {label}
+        {required && <span className="text-rose-500">*</span>}
+      </span>
       {children}
-    </span>
+      {hint && !error && <span className="mt-1 block text-[11px] text-slate-400">{hint}</span>}
+      {error && <span className="mt-1 block text-[11px] font-medium text-rose-500">{error}</span>}
+    </label>
   );
 }
 
-/* -------------------------------- Button -------------------------------- */
+export const inputCls =
+  "w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100 dark:focus:border-indigo-400/60 dark:focus:bg-white/[0.07]";
 
-type ButtonProps = {
-  children: ReactNode;
-  onClick?: () => void;
-  type?: "button" | "submit";
-  variant?: "primary" | "ghost" | "outline" | "danger" | "soft";
-  size?: "sm" | "md";
-  disabled?: boolean;
-  loading?: boolean;
+/**
+ * ورودی رمز عبور با دکمه چشم برای نمایش/پنهان کردن رمز
+ * در تمام بخش‌های سایت از همین کامپوننت استفاده می‌شود.
+ */
+export function PasswordInput({
+  value,
+  onChange,
+  placeholder = "••••",
+  numeric = true,
+  icon,
+  onEnter,
+  autoFocus,
+  className = "",
+  tracking = false,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  numeric?: boolean;
+  icon?: ReactNode;
+  onEnter?: () => void;
+  autoFocus?: boolean;
   className?: string;
-  title?: string;
-};
+  tracking?: boolean;
+}) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="relative">
+      {icon && <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400">{icon}</span>}
+      <input
+        dir="ltr"
+        type={show ? "text" : "password"}
+        inputMode={numeric ? "numeric" : "text"}
+        autoFocus={autoFocus}
+        className={`${inputCls} ${icon ? "pr-10" : ""} pl-11 text-left ${tracking ? "tracking-[0.35em]" : ""} ${className}`}
+        value={value}
+        onChange={(e) => onChange(numeric ? e.target.value.replace(/[^\d]/g, "") : e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && onEnter) onEnter();
+        }}
+        placeholder={placeholder}
+        autoComplete="off"
+      />
+      <button
+        type="button"
+        onClick={() => setShow((s) => !s)}
+        className="absolute left-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-white/10"
+        aria-label={show ? "پنهان کردن رمز" : "نمایش رمز"}
+        title={show ? "پنهان کردن رمز" : "نمایش رمز"}
+        tabIndex={-1}
+      >
+        {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+      </button>
+    </div>
+  );
+}
 
-export function Button({
+/** نمایش رمز ذخیره‌شده یک کاربر با قابلیت آشکارسازی (برای کادر مجاز) */
+export function SecretReveal({ value, label = "رمز عبور" }: { value: string; label?: string }) {
+  const [show, setShow] = useState(false);
+  const push = useContext(ToastCtx);
+  return (
+    <div className="flex min-w-0 items-center gap-1.5">
+      <span
+        className="min-w-0 break-all font-black tabular-nums text-slate-700 dark:text-slate-200"
+        dir="ltr"
+        style={{ overflowWrap: "anywhere" }}
+      >
+        {show ? value : "•".repeat(Math.max(4, value.length))}
+      </span>
+      <button
+        onClick={() => setShow((s) => !s)}
+        className="shrink-0 rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-white/10"
+        aria-label={show ? `پنهان کردن ${label}` : `نمایش ${label}`}
+        title={show ? "پنهان کردن" : "نمایش"}
+      >
+        {show ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+      </button>
+      <button
+        onClick={() =>
+          navigator.clipboard?.writeText(value).then(
+            () => push("success", `${label} کپی شد`),
+            () => push("error", "کپی ممکن نشد")
+          )
+        }
+        className="shrink-0 rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-white/10"
+        aria-label={`کپی ${label}`}
+        title="کپی"
+      >
+        <Copy className="size-3.5" />
+      </button>
+    </div>
+  );
+}
+
+export function Btn({
   children,
   onClick,
-  type = "button",
-  variant = "primary",
-  size = "md",
-  disabled,
-  loading,
+  kind = "primary",
   className = "",
-  title,
-}: ButtonProps) {
+  disabled,
+  type = "button",
+  loading,
+}: {
+  children: ReactNode;
+  onClick?: () => void;
+  kind?: "primary" | "ghost" | "danger" | "soft";
+  className?: string;
+  disabled?: boolean;
+  type?: "button" | "submit";
+  loading?: boolean;
+}) {
   const base =
-    "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:cursor-not-allowed disabled:opacity-60";
-  const sizes = size === "sm" ? "px-3 py-1.5 text-xs" : "px-4 py-2.5 text-sm";
-  const variants = {
+    "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50";
+  const kinds = {
     primary:
-      "bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/25 hover:shadow-lg hover:shadow-indigo-500/30 hover:brightness-105 active:scale-[0.98]",
-    ghost: "text-slate-600 hover:bg-slate-100 active:scale-[0.98]",
-    outline:
-      "border border-slate-200 bg-white text-slate-700 hover:border-indigo-200 hover:bg-indigo-50/60 active:scale-[0.98]",
-    danger: "bg-rose-600 text-white shadow-sm hover:bg-rose-700 active:scale-[0.98]",
-    soft: "bg-indigo-50 text-indigo-700 hover:bg-indigo-100 active:scale-[0.98]",
+      "bg-gradient-to-l from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-600/25 hover:shadow-indigo-600/40 hover:brightness-110",
+    soft: "bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20",
+    ghost:
+      "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-white/10 dark:bg-transparent dark:text-slate-300 dark:hover:bg-white/5",
+    danger: "bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-500/10 dark:text-rose-300 dark:hover:bg-rose-500/20",
   };
   return (
-    <button
-      type={type}
-      onClick={onClick}
-      disabled={disabled || loading}
-      title={title}
-      className={`${base} ${sizes} ${variants[variant]} ${className}`}
-    >
+    <button type={type} onClick={onClick} disabled={disabled || loading} className={`${base} ${kinds[kind]} ${className}`}>
       {loading && <Loader2 className="size-4 animate-spin" />}
       {children}
     </button>
   );
 }
 
-/* -------------------------------- Fields -------------------------------- */
+// ----------------------------------------------------------------------------
+// کنترل‌های کوچک
+// ----------------------------------------------------------------------------
 
-export function Field({
-  label,
-  hint,
-  children,
-  className = "",
-}: {
-  label: string;
-  hint?: string;
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <label className={`block ${className}`}>
-      <span className="mb-1.5 flex items-baseline justify-between gap-2">
-        <span className="text-xs font-semibold text-slate-600">{label}</span>
-        {hint && <span className="text-[11px] font-normal text-slate-400">{hint}</span>}
-      </span>
-      {children}
-    </label>
-  );
-}
-
-const inputClass =
-  "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 disabled:bg-slate-50";
-
-export function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
-  const { className = "", ...rest } = props;
-  return <input {...rest} className={`${inputClass} ${className}`} />;
-}
-
-export function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  const { className = "", ...rest } = props;
-  return <textarea {...rest} className={`${inputClass} min-h-24 resize-y leading-6 ${className}`} />;
-}
-
-export function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
-  const { className = "", children, ...rest } = props;
-  return (
-    <select {...rest} className={`${inputClass} appearance-none ${className}`}>
-      {children}
-    </select>
-  );
-}
-
-/* -------------------------------- Modal --------------------------------- */
-
-export function Modal({
-  open,
-  onClose,
-  title,
-  subtitle,
-  children,
-  wide = false,
-}: {
-  open: boolean;
-  onClose: () => void;
-  title: string;
-  subtitle?: string;
-  children: ReactNode;
-  wide?: boolean;
-}) {
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [open, onClose]);
-
-  if (!open) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-0 backdrop-blur-sm sm:items-center sm:p-6">
-      <button
-        type="button"
-        aria-label="بستن"
-        className="absolute inset-0 cursor-default"
-        onClick={onClose}
-      />
-      <div
-        className={`modal-pop relative z-10 max-h-[92dvh] w-full overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl sm:rounded-3xl ${
-          wide ? "sm:max-w-3xl" : "sm:max-w-lg"
-        }`}
-      >
-        <div className="mb-4 flex items-start justify-between gap-3">
-          <div>
-            <h3 className="text-base font-extrabold text-slate-800">{title}</h3>
-            {subtitle && <p className="mt-1 text-xs text-slate-500">{subtitle}</p>}
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
-            aria-label="بستن"
-          >
-            <X className="size-5" />
-          </button>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-/* ------------------------- آپلود و نمایش تصویر -------------------------- */
-
-export function ImageUploader({
-  value,
-  onChange,
-  folder,
-  label = "پیوست تصویر (اختیاری)",
-  compact = false,
-}: {
-  value: string | null;
-  onChange: (url: string | null) => void;
-  folder: ImageFolder;
-  label?: string;
-  compact?: boolean;
-}) {
-  const toast = useToast();
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-
-  const handleFile = async (file: File | undefined) => {
-    if (!file) return;
-    setUploading(true);
-    try {
-      const url = await uploadImage(file, folder);
-      onChange(url);
-      toast.push("تصویر با موفقیت بارگذاری شد");
-    } catch (e) {
-      toast.push(errorMessage(e), "error");
-    } finally {
-      setUploading(false);
-      if (inputRef.current) inputRef.current.value = "";
-    }
+export function Chip({ children, tone = "slate" }: { children: ReactNode; tone?: "slate" | "green" | "red" | "amber" | "indigo" | "violet" }) {
+  const tones = {
+    slate: "bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300",
+    green: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300",
+    red: "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300",
+    amber: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300",
+    indigo: "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300",
+    violet: "bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300",
   };
-
-  return (
-    <div>
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp,image/gif"
-        className="hidden"
-        onChange={(e) => void handleFile(e.target.files?.[0])}
-      />
-      {value ? (
-        <div className="relative inline-block overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={value}
-            alt="پیش‌نمایش"
-            className={compact ? "max-h-24 w-auto object-cover" : "max-h-44 w-auto object-contain"}
-          />
-          <button
-            type="button"
-            onClick={() => onChange(null)}
-            title="حذف تصویر"
-            className="absolute top-1.5 left-1.5 grid size-7 place-items-center rounded-full bg-slate-900/70 text-white transition hover:bg-rose-600"
-          >
-            <X className="size-4" />
-          </button>
-        </div>
-      ) : (
-        <button
-          type="button"
-          disabled={uploading}
-          onClick={() => inputRef.current?.click()}
-          className={`inline-flex items-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50/70 font-semibold text-slate-600 transition hover:border-indigo-300 hover:bg-indigo-50/50 hover:text-indigo-600 disabled:opacity-60 ${
-            compact ? "px-2.5 py-1.5 text-[11px]" : "px-3.5 py-2.5 text-xs"
-          }`}
-        >
-          {uploading ? (
-            <Loader2 className="size-4 animate-spin text-indigo-500" />
-          ) : (
-            <ImagePlus className="size-4 text-indigo-500" />
-          )}
-          {uploading ? "در حال آپلود تصویر…" : label}
-        </button>
-      )}
-    </div>
-  );
+  return <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${tones[tone]}`}>{children}</span>;
 }
 
-export function ImageAttachment({
-  src,
-  alt = "تصویر پیوست",
-  className = "max-h-60",
-}: {
-  src?: string | null;
-  alt?: string;
-  className?: string;
-}) {
-  const [zoomed, setZoomed] = useState(false);
-
-  useEffect(() => {
-    if (!zoomed) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setZoomed(false);
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [zoomed]);
-
-  if (!src) return null;
-
+export function Empty({ icon, title, desc, action }: { icon: ReactNode; title: string; desc?: string; action?: ReactNode }) {
   return (
-    <>
-      <button
-        type="button"
-        onClick={() => setZoomed(true)}
-        className="group relative block overflow-hidden rounded-xl ring-1 ring-black/5 transition hover:brightness-95"
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={src}
-          alt={alt}
-          loading="lazy"
-          className={`w-auto max-w-full rounded-xl object-contain ${className}`}
-        />
-        <span className="pointer-events-none absolute bottom-1.5 left-1.5 grid size-6 place-items-center rounded-full bg-slate-900/60 text-white opacity-0 transition group-hover:opacity-100">
-          <ZoomIn className="size-3.5" />
-        </span>
-      </button>
-
-      {zoomed && typeof document !== "undefined" && createPortal(
-        <div
-          className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/85 p-4 backdrop-blur-sm"
-          onClick={() => setZoomed(false)}
-        >
-          <div className="absolute top-4 left-4 flex items-center gap-2">
-            <a
-              href={src}
-              target="_blank"
-              rel="noopener noreferrer"
-              download
-              onClick={(e) => e.stopPropagation()}
-              className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-2 text-xs font-semibold text-white backdrop-blur transition hover:bg-white/25"
-            >
-              <Download className="size-4" /> دریافت اصلی
-            </a>
-            <button
-              type="button"
-              onClick={() => setZoomed(false)}
-              className="grid size-9 place-items-center rounded-full bg-white/15 text-white backdrop-blur transition hover:bg-white/25"
-              aria-label="بستن"
-            >
-              <X className="size-5" />
-            </button>
-          </div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={src}
-            alt={alt}
-            onClick={(e) => e.stopPropagation()}
-            className="max-h-[88dvh] max-w-[92vw] rounded-2xl object-contain shadow-2xl"
-          />
-        </div>
-        ,document.body)}
-    </>
-  );
-}
-
-/* --------------------------- پنجره‌ی تأیید حذف -------------------------- */
-
-export function DeleteConfirmModal({
-  open,
-  onClose,
-  title,
-  description,
-  onConfirm,
-}: {
-  open: boolean;
-  onClose: () => void;
-  title: string;
-  description?: string;
-  onConfirm: (deletePassword: string) => Promise<void>;
-}) {
-  const toast = useToast();
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (open) setPassword("");
-  }, [open]);
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!password.trim()) {
-      toast.push("رمز حذف را وارد کنید", "error");
-      return;
-    }
-    setLoading(true);
-    try {
-      await onConfirm(password);
-      setPassword("");
-      onClose();
-    } catch (err) {
-      toast.push(errorMessage(err), "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title={title}
-      subtitle={description ?? "برای تأیید این عملیات، رمز حذف سامانه را وارد کنید."}
-    >
-      <form onSubmit={submit} className="space-y-4">
-        <Field label="رمز حذف">
-          <div className="relative">
-            <KeyRound className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-slate-400" />
-            <Input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="رمز حذف سامانه…"
-              autoFocus
-              className="pr-9"
-              dir="ltr"
-            />
-          </div>
-        </Field>
-        <div className="flex justify-end gap-2">
-          <Button variant="ghost" onClick={onClose}>
-            انصراف
-          </Button>
-          <Button type="submit" variant="danger" loading={loading}>
-            <Trash2 className="size-4" /> تأیید و حذف
-          </Button>
-        </div>
-      </form>
-    </Modal>
-  );
-}
-
-/* ------------------------------ Misc UI --------------------------------- */
-
-export function PageHeader({
-  title,
-  subtitle,
-  action,
-}: {
-  title: string;
-  subtitle?: string;
-  action?: ReactNode;
-}) {
-  return (
-    <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <h2 className="text-xl font-extrabold tracking-tight text-slate-800 sm:text-2xl">{title}</h2>
-        {subtitle && <p className="mt-1 text-xs text-slate-500 sm:text-sm">{subtitle}</p>}
+    <div className="flex flex-col items-center justify-center gap-3 px-6 py-14 text-center">
+      <div className="flex size-16 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 text-indigo-500 dark:from-indigo-500/15 dark:to-violet-500/15">
+        {icon}
       </div>
+      <div className="text-base font-bold text-slate-700 dark:text-slate-200">{title}</div>
+      {desc && <div className="max-w-xs text-[13px] leading-6 text-slate-400">{desc}</div>}
       {action}
     </div>
   );
 }
 
-export function EmptyState({
-  icon,
-  title,
-  description,
-  action,
-}: {
-  icon: ReactNode;
-  title: string;
-  description?: string;
-  action?: ReactNode;
-}) {
-  return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-slate-200 bg-white/60 px-6 py-12 text-center">
-      <div className="grid size-12 place-items-center rounded-2xl bg-indigo-50 text-indigo-500">
-        {icon}
-      </div>
-      <div>
-        <p className="font-bold text-slate-700">{title}</p>
-        {description && <p className="mt-1 text-xs text-slate-500">{description}</p>}
-      </div>
-      {action}
-    </div>
-  );
-}
-
-export function Skeleton({ className = "" }: { className?: string }) {
-  return <div className={`animate-pulse rounded-xl bg-slate-200/70 ${className}`} />;
-}
-
-export function LoadingBlock({ rows = 3 }: { rows?: number }) {
-  return (
-    <div className="space-y-3">
-      {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="card p-4">
-          <Skeleton className="mb-3 h-4 w-1/3" />
-          <Skeleton className="mb-2 h-3 w-full" />
-          <Skeleton className="h-3 w-2/3" />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-export function StatCard({
-  icon,
-  label,
-  value,
-  hint,
-  tone = "indigo",
-}: {
-  icon: ReactNode;
-  label: string;
-  value: string | number;
-  hint?: string;
-  tone?: Tone;
-}) {
-  const bg: Record<Tone, string> = {
-    indigo: "from-indigo-500/10 to-violet-500/5 text-indigo-600",
-    emerald: "from-emerald-500/10 to-teal-500/5 text-emerald-600",
-    amber: "from-amber-500/10 to-orange-500/5 text-amber-600",
-    rose: "from-rose-500/10 to-pink-500/5 text-rose-600",
-    slate: "from-slate-500/10 to-slate-400/5 text-slate-600",
-    sky: "from-sky-500/10 to-blue-500/5 text-sky-600",
-    violet: "from-violet-500/10 to-purple-500/5 text-violet-600",
-  };
-  return (
-    <div className="card flex items-center gap-3 p-4">
-      <div className={`grid size-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br ${bg[tone]}`}>
-        {icon}
-      </div>
-      <div className="min-w-0">
-        <p className="truncate text-[11px] font-medium text-slate-500">{label}</p>
-        <p className="mt-0.5 text-lg font-extrabold text-slate-800">{fa(value)}</p>
-        {hint && <p className="truncate text-[11px] text-slate-400">{hint}</p>}
-      </div>
-    </div>
-  );
-}
-
-export function Progress({ value, tone = "indigo" }: { value: number; tone?: Tone }) {
-  const colors: Record<string, string> = {
-    indigo: "from-indigo-500 to-violet-500",
-    emerald: "from-emerald-500 to-teal-500",
-    amber: "from-amber-500 to-orange-500",
-    rose: "from-rose-500 to-pink-500",
-    slate: "from-slate-400 to-slate-500",
-    sky: "from-sky-500 to-blue-500",
-    violet: "from-violet-500 to-purple-500",
-  };
-  return (
-    <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
-      <div
-        className={`h-full rounded-full bg-gradient-to-l ${colors[tone]} transition-all duration-500`}
-        style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
-      />
-    </div>
-  );
-}
-
-export function Tabs<T extends string>({
-  tabs,
+export function Seg<T extends string>({
+  options,
   value,
   onChange,
 }: {
-  tabs: { id: T; label: string; icon?: ReactNode }[];
+  options: { value: T; label: string }[];
   value: T;
-  onChange: (id: T) => void;
+  onChange: (v: T) => void;
 }) {
   return (
-    <div className="mb-4 flex gap-1 overflow-x-auto rounded-2xl bg-slate-100/80 p-1">
-      {tabs.map((tab) => (
+    <div className="flex rounded-xl border border-slate-200 bg-slate-100/70 p-1 dark:border-white/10 dark:bg-white/5">
+      {options.map((o) => (
         <button
-          key={tab.id}
-          type="button"
-          onClick={() => onChange(tab.id)}
-          className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition ${
-            value === tab.id
-              ? "bg-white text-indigo-600 shadow-sm"
-              : "text-slate-500 hover:text-slate-700"
+          key={o.value}
+          onClick={() => onChange(o.value)}
+          className={`flex-1 rounded-lg px-2 py-1.5 text-[12px] font-bold transition ${
+            value === o.value
+              ? "bg-white text-indigo-700 shadow dark:bg-white/15 dark:text-indigo-200"
+              : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
           }`}
         >
-          {tab.icon}
-          {tab.label}
+          {o.label}
         </button>
       ))}
     </div>
+  );
+}
+
+export function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label?: string }) {
+  return (
+    <button
+      onClick={() => onChange(!checked)}
+      className="flex items-center gap-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300"
+    >
+      <span
+        className={`relative h-6 w-11 rounded-full transition ${checked ? "bg-indigo-600" : "bg-slate-300 dark:bg-white/15"}`}
+      >
+        <span
+          className={`absolute top-0.5 size-5 rounded-full bg-white shadow transition-all ${checked ? "left-[1.4rem]" : "left-0.5"}`}
+        />
+      </span>
+      {label}
+    </button>
+  );
+}
+
+export function Stat({ label, value, icon, tone }: { label: string; value: string | number; icon: ReactNode; tone: string }) {
+  return (
+    <div className="card flex items-center gap-3.5 p-4">
+      <div className={`flex size-11 shrink-0 items-center justify-center rounded-2xl ${tone}`}>{icon}</div>
+      <div className="min-w-0">
+        <div className="text-xl font-black text-slate-800 dark:text-slate-100">{fa(value)}</div>
+        <div className="truncate text-[12px] font-semibold text-slate-400">{label}</div>
+      </div>
+    </div>
+  );
+}
+
+export function Splash() {
+  return (
+    <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-6 bg-gradient-to-br from-slate-50 via-indigo-50/60 to-violet-50 dark:from-slate-950 dark:via-indigo-950/40 dark:to-slate-950">
+      <div className="splash-logo relative flex size-24 items-center justify-center rounded-[2rem] bg-gradient-to-br from-indigo-600 to-violet-600 shadow-2xl shadow-indigo-600/40">
+        <svg viewBox="0 0 24 24" className="size-12 text-white" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M22 10L12 5 2 10l10 5 10-5z" />
+          <path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5" />
+          <path d="M22 10v6" />
+        </svg>
+        <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-white/25 to-transparent" />
+      </div>
+      <div className="text-center">
+        <div className="text-2xl font-black tracking-tight text-slate-800 dark:text-white">هَمدِل</div>
+        <div className="mt-1 text-[13px] font-semibold text-slate-400">دبیرستان شاهد شهیدان فهیمی</div>
+      </div>
+      <div className="flex gap-1.5">
+        {[0, 1, 2].map((i) => (
+          <span key={i} className="splash-dot size-2 rounded-full bg-indigo-500" style={{ animationDelay: `${i * 0.15}s` }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function Confirm({
+  open,
+  onClose,
+  onYes,
+  title,
+  desc,
+  yesLabel = "تأیید",
+  danger = true,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onYes: () => void;
+  title: string;
+  desc?: string;
+  yesLabel?: string;
+  danger?: boolean;
+}) {
+  return (
+    <Modal open={open} onClose={onClose} title={title}>
+      {desc && <p className="mb-5 text-sm leading-7 text-slate-500 dark:text-slate-400">{desc}</p>}
+      <div className="flex justify-end gap-2">
+        <Btn kind="ghost" onClick={onClose}>انصراف</Btn>
+        <Btn kind={danger ? "danger" : "primary"} onClick={() => { onYes(); onClose(); }}>{yesLabel}</Btn>
+      </div>
+    </Modal>
   );
 }
