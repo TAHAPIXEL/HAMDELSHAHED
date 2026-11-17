@@ -104,9 +104,9 @@ export default function Auth({ onAuth }: { onAuth: (u: User) => void }) {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      setAvatar(await uploadImage(file, 420, 0.75));
-    } catch {
-      toast("error", "خواندن تصویر ممکن نشد");
+      setAvatar(await uploadImage(file, 420, 0.75, "registration"));
+    } catch (err) {
+      toast("error", (err as Error).message || "بارگذاری تصویر ممکن نشد");
     }
   };
 
@@ -422,7 +422,7 @@ export default function Auth({ onAuth }: { onAuth: (u: User) => void }) {
             </div>
           </div>
           <p className="mt-4 text-center text-[11px] font-semibold text-slate-400">
-            دبیرستان شاهد شهیدان فهیمی • اطلاعات شما فقط روی همین دستگاه ذخیره می‌شود
+            دبیرستان شاهد شهیدان فهیمی
           </p>
         </div>
       </div>

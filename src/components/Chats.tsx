@@ -385,8 +385,8 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
     if (!f) return;
     try {
       setImage(await uploadImage(f, 960, 0.7));
-    } catch {
-      toast("error", "خواندن تصویر ممکن نشد");
+    } catch (err) {
+      toast("error", (err as Error).message || "بارگذاری تصویر ممکن نشد");
     }
     e.target.value = "";
   };

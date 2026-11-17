@@ -205,7 +205,13 @@ function NewNoticeModal({ user, onClose }: { user: User; onClose: () => void }) 
             className="hidden"
             onChange={async (e) => {
               const f = e.target.files?.[0];
-              if (f) setImage(await uploadImage(f, 1000, 0.72));
+              if (f) {
+                try {
+                  setImage(await uploadImage(f, 1000, 0.72));
+                } catch (err) {
+                  toast("error", (err as Error).message || "بارگذاری تصویر ممکن نشد");
+                }
+              }
               e.target.value = "";
             }}
           />

@@ -820,7 +820,7 @@ function compressToDataURL(file: File, max: number, quality: number): Promise<st
       img.onerror = () => reject(new Error("این فایل تصویر معتبر نیست"));
       img.src = String(reader.result);
     };
-    reader.onerror = () => reject(new Error("خواندن فایل ممکن نشد"));
+    reader.onerror = () => reject(new Error("خواندن فایل از دستگاه ممکن نشد؛ فایل را دوباره انتخاب کنید"));
     reader.readAsDataURL(file);
   });
 }
@@ -829,11 +829,17 @@ function compressToDataURL(file: File, max: number, quality: number): Promise<st
  * فشرده‌سازی تصویر در مرورگر و ذخیره در فضای ابری (Supabase Storage).
  * خروجی آدرس عمومی تصویر است که در رکوردها ذخیره می‌شود.
  */
-export async function uploadImage(file: File, max = 720, quality = 0.72): Promise<string> {
+export async function uploadImage(
+  file: File,
+  max = 720,
+  quality = 0.72,
+  purpose?: "registration",
+): Promise<string> {
   const dataUrl = await compressToDataURL(file, max, quality);
   const blob = await (await fetch(dataUrl)).blob();
   const form = new FormData();
   form.append("file", blob, "image.jpg");
+  if (purpose) form.append("purpose", purpose);
   const res = await api<{ url: string }>("/api/upload", { form });
   return res.url;
 }

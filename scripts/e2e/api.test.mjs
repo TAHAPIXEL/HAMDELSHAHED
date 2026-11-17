@@ -260,6 +260,23 @@ async function main() {
     assert.equal(r.status, 503);
   });
 
+  await check("registration avatar upload works before login (purpose=registration)", async () => {
+    const png = Buffer.from("89504e470d0a1a0a0000000d49484452", "hex");
+    const f = new FormData();
+    f.append("purpose", "registration");
+    f.append("file", new Blob([png], { type: "image/png" }), "avatar.png");
+    const r = await req("POST", "/api/upload", { form: f });
+    // بدون نشست پذیرفته می‌شود؛ بدون تنظیم Supabase در آزمون باید 503 بدهد (نه 401)
+    assert.equal(r.status, 503);
+  });
+
+  await check("registration upload still refuses non-images", async () => {
+    const f = new FormData();
+    f.append("purpose", "registration");
+    f.append("file", new Blob([Buffer.from("not an image")], { type: "text/plain" }), "a.txt");
+    assert.equal((await req("POST", "/api/upload", { form: f })).status, 415);
+  });
+
   await check("upload requires a session", async () => {
     const f = new FormData();
     f.append("file", new Blob(["x"], { type: "image/png" }), "a.png");

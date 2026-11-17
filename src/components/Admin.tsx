@@ -483,7 +483,13 @@ function AddStaff() {
             </button>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={async (e) => {
               const f = e.target.files?.[0];
-              if (f) setAvatar(await uploadImage(f, 420, 0.75));
+              if (f) {
+                try {
+                  setAvatar(await uploadImage(f, 420, 0.75));
+                } catch (err) {
+                  toast("error", (err as Error).message || "بارگذاری تصویر ممکن نشد");
+                }
+              }
               e.target.value = "";
             }} />
           </div>
@@ -1428,7 +1434,13 @@ function AddStudent() {
             </button>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={async (e) => {
               const file = e.target.files?.[0];
-              if (file) setAvatar(await uploadImage(file, 420, 0.75));
+              if (file) {
+                try {
+                  setAvatar(await uploadImage(file, 420, 0.75));
+                } catch (err) {
+                  toast("error", (err as Error).message || "بارگذاری تصویر ممکن نشد");
+                }
+              }
               e.target.value = "";
             }} />
           </div>

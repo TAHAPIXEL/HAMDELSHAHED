@@ -228,7 +228,13 @@ function EditProfileModal({ userId, onClose }: { userId: string; onClose: () => 
               className="hidden"
               onChange={async (e) => {
                 const f = e.target.files?.[0];
-                if (f) setAvatar(await uploadImage(f, 420, 0.75));
+                if (f) {
+                  try {
+                    setAvatar(await uploadImage(f, 420, 0.75));
+                  } catch (err) {
+                    toast("error", (err as Error).message || "بارگذاری تصویر ممکن نشد");
+                  }
+                }
                 e.target.value = "";
               }}
             />
@@ -303,6 +309,8 @@ export default function Profile({
         DB.saveUsers(users);
         toast("success", "عکس پروفایل به‌روز شد");
       }
+    } catch (err) {
+      toast("error", (err as Error).message || "بارگذاری تصویر ممکن نشد");
     } finally {
       setChanging(false);
     }

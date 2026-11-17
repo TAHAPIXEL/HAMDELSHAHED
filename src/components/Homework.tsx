@@ -306,8 +306,8 @@ function AnswerModal({ hw, user, onClose }: { hw: Hw; user: User; onClose: () =>
       const urls = await Promise.all(picked.map((f) => uploadImage(f, 1000, 0.7)));
       setImages((prev) => [...prev, ...urls]);
       if (files.length > room) toast("info", `فقط ${fa(room)} تصویر اضافه شد (حداکثر ${fa(MAX_IMAGES)} تصویر)`);
-    } catch {
-      toast("error", "خواندن تصویر ممکن نشد");
+    } catch (err) {
+      toast("error", (err as Error).message || "بارگذاری تصویر ممکن نشد");
     } finally {
       setBusy(false);
     }
