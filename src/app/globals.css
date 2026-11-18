@@ -245,3 +245,18 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 .safe-t {
   padding-top: max(0.75rem, env(safe-area-inset-top));
 }
+
+/* نوار بالای موبایل با پس‌زمینه‌ی تیره؛ روی دسکتاپ شفاف است */
+.ink-bar {
+  background-color: var(--ink-1);
+  background-image:
+    radial-gradient(420px 160px at 100% 0%, rgb(124 58 237 / 0.35), transparent 70%),
+    linear-gradient(180deg, var(--ink-1), var(--ink-0));
+  color: #fff;
+}
+@media (min-width: 64rem) {
+  .ink-bar {
+    background: transparent;
+    color: inherit;
+  }
+}

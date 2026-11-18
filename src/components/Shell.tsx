@@ -228,15 +228,15 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
       {/* بدنه */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* نوار بالا */}
-        <header className="safe-t z-30 flex items-center gap-3 bg-white/95 px-4 py-3 shadow-[0_1px_0_rgb(18_24_40/0.06)] sm:px-6 lg:bg-transparent lg:pt-5 lg:shadow-none">
+        <header className="ink-bar safe-t z-30 flex items-center gap-3 px-4 py-3 sm:px-6 lg:pt-5">
           <button
             onClick={() => setDrawer(true)}
-            className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition active:scale-95 lg:hidden"
+            className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white ring-1 ring-white/15 transition active:scale-95 lg:hidden"
             aria-label="منو"
           >
             <Menu className="size-5" />
           </button>
-          <h1 className="min-w-0 truncate text-[17px] font-black tracking-tight text-slate-800 lg:text-2xl">
+          <h1 className="min-w-0 truncate text-[17px] font-black tracking-tight text-white lg:text-2xl lg:text-slate-800">
             {view === "classes" && classSel ? `کلاس ${className(classSel.grade, classSel.section)}` : titles[view]}
           </h1>
           <div className="mr-auto flex shrink-0 items-center gap-2">
@@ -244,7 +244,7 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
             <div className="relative" ref={bellRef}>
               <button
                 onClick={() => setBellOpen((o) => !o)}
-                className="relative flex size-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-slate-200 active:scale-95 lg:bg-white lg:shadow-[0_1px_2px_rgb(18_24_40/0.06)]"
+                className="relative flex size-10 items-center justify-center rounded-xl bg-white/10 text-white ring-1 ring-white/15 transition hover:bg-white/15 active:scale-95 lg:bg-white lg:text-slate-600 lg:shadow-[0_1px_2px_rgb(18_24_40/0.06)] lg:ring-0"
                 aria-label="اطلاعیه‌ها"
               >
                 <Bell className="size-5" />
@@ -311,15 +311,15 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
         </main>
 
         {/* ناوبری پایین موبایل: نوار افقی قابل اسکرول تا همه‌ی برچسب‌ها کامل دیده شوند */}
-        <nav className="safe-b z-30 border-t border-slate-200/70 bg-white/95 lg:hidden">
-          <div ref={tabsRef} className="flex gap-1.5 overflow-x-auto px-2.5 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <nav className="safe-b z-30 bg-[#f3f5fb] px-2.5 pb-2.5 pt-1 lg:hidden">
+          <div ref={tabsRef} className="ink-panel flex gap-1 overflow-x-auto rounded-2xl p-1.5 shadow-[0_18px_40px_-16px_rgb(11_15_36/0.75)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {nav.filter((n) => n.show && ["chats", "classes", "homework", "exams", "attendance", "admin"].includes(n.v)).map((n) => (
               <button
                 key={n.v}
                 data-active={view === n.v}
                 onClick={() => go(n.v)}
                 className={`flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-[12px] font-extrabold transition active:scale-95 ${
-                  view === n.v ? "btn-brand text-white" : "text-slate-500 hover:bg-slate-100"
+                  view === n.v ? "btn-brand text-white" : "text-indigo-100/70 hover:bg-white/10 hover:text-white"
                 }`}
               >
                 {n.icon}
