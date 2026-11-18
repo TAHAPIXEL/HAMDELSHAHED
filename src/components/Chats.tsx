@@ -88,6 +88,8 @@ export default function Chats({
   const [showCreate, setShowCreate] = useState(false);
   const [showDm, setShowDm] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
+  const [fabOpen, setFabOpen] = useState(false);
+  const [createType, setCreateType] = useState<"group" | "channel">("group");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmBulk, setConfirmBulk] = useState(false);
   const toast = useToast();
@@ -128,11 +130,18 @@ export default function Chats({
 
   const filtered = chats.filter((c) => chatTitle(c, user).includes(query.trim()));
 
+  const fabItems = [
+    { key: "dm", label: "گفتگوی شخصی", icon: <UserRoundPlus className="size-4" />, run: () => setShowDm(true), show: true },
+    { key: "group", label: "ساخت گروه", icon: <Users className="size-4" />, run: () => { setCreateType("group"); setShowCreate(true); }, show: isStaff(user) },
+    { key: "channel", label: "ساخت کانال", icon: <Megaphone className="size-4" />, run: () => { setCreateType("channel"); setShowCreate(true); }, show: isStaff(user) },
+    { key: "select", label: "حذف گفتگوها", icon: <Trash2 className="size-4" />, run: () => setSelectMode(true), show: isStaff(user) },
+  ].filter((i) => i.show);
+
   return (
     <div className="flex h-full">
       {/* لیست چت‌ها */}
       <div
-        className={`flex w-full flex-col border-l border-slate-200/70 bg-white/60 backdrop-blur-xl dark:border-white/5 dark:bg-slate-900/40 sm:w-80 lg:w-[21rem] ${
+        className={`relative flex w-full flex-col border-l border-slate-200/70 bg-white/60 backdrop-blur-xl dark:border-white/5 dark:bg-slate-900/40 sm:w-80 lg:w-[21rem] ${
           active ? "hidden sm:flex" : "flex"
         }`}
       >
@@ -146,7 +155,7 @@ export default function Chats({
               onChange={(e) => setQuery(e.target.value)}
             />
           </div>
-          {selectMode ? (
+          {selectMode && (
             <div className="flex items-center gap-2">
               <Btn kind="ghost" className="!py-2 !text-[12px]" onClick={exitSelect}>
                 انصراف
@@ -161,39 +170,17 @@ export default function Chats({
                 حذف {selected.size > 0 ? `(${fa(selected.size)})` : ""}
               </Btn>
             </div>
-          ) : (
-            <div className="flex gap-2">
-              {isStaff(user) && (
-                <Btn kind="soft" className="flex-1 !py-2 !text-[12px]" onClick={() => setShowCreate(true)}>
-                  <Plus className="size-4" />
-                  گروه / کانال
-                </Btn>
-              )}
-              <Btn kind="soft" className="flex-1 !py-2 !text-[12px]" onClick={() => setShowDm(true)}>
-                <UserRoundPlus className="size-4" />
-                گفتگوی شخصی
-              </Btn>
-              {isStaff(user) && (
-                <Btn
-                  kind="ghost"
-                  className="!px-3 !py-2"
-                  onClick={() => setSelectMode(true)}
-                >
-                  <Trash2 className="size-4" />
-                </Btn>
-              )}
-            </div>
           )}
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-2.5 pb-4">
+        <div className="min-h-0 flex-1 overflow-y-auto px-2.5 pb-24">
           {filtered.length === 0 && (
             <Empty
               icon={<MessagesSquare className="size-7" />}
               title="گفتگویی نیست"
               desc={
                 isStaff(user)
-                  ? "از دکمه «گروه / کانال» یک گفتگوی جدید بسازید"
+                  ? "از دکمه‌ی «+» پایین صفحه یک گفتگوی جدید بسازید"
                   : "وقتی کادر مدرسه شما را عضو گروهی کند، اینجا نمایش داده می‌شود"
               }
             />
@@ -266,7 +253,39 @@ export default function Chats({
             })}
           </div>
         </div>
+
+        {/* دکمه‌ی شناور «+» بالای ناوبری پایین — ساخت گفتگو */}
+        {!selectMode && (
+          <>
+            {fabOpen && (
+              <div className="anim-pop absolute bottom-[4.75rem] left-4 z-40 w-60 overflow-hidden rounded-2xl border border-slate-200 bg-white p-1.5 shadow-2xl dark:border-white/10 dark:bg-slate-900">
+                {fabItems.map((it) => (
+                  <button
+                    key={it.key}
+                    onClick={() => { setFabOpen(false); it.run(); }}
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-right text-[13.5px] font-bold text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/5"
+                  >
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
+                      {it.icon}
+                    </span>
+                    {it.label}
+                  </button>
+                ))}
+              </div>
+            )}
+            <button
+              onClick={() => setFabOpen((o) => !o)}
+              aria-label="ساخت گفتگو"
+              aria-expanded={fabOpen}
+              className="absolute bottom-4 left-4 z-40 flex size-14 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-600/30 transition active:scale-95"
+            >
+              <Plus className={`size-6 transition-transform duration-200 ${fabOpen ? "rotate-45" : ""}`} />
+            </button>
+          </>
+        )}
       </div>
+
+      {fabOpen && <div className="fixed inset-0 z-30" onClick={() => setFabOpen(false)} />}
 
       {/* پنجره چت */}
       <div className={`min-w-0 flex-1 flex-col ${active ? "flex" : "hidden sm:flex"}`}>
@@ -284,7 +303,7 @@ export default function Chats({
       </div>
 
       {showCreate && (
-        <CreateChatWizard user={user} onClose={() => setShowCreate(false)} onCreated={(id) => { setShowCreate(false); setActiveId(id); }} />
+        <CreateChatWizard user={user} initialType={createType} onClose={() => setShowCreate(false)} onCreated={(id) => { setShowCreate(false); setActiveId(id); }} />
       )}
       {showDm && (
         <NewDmModal user={user} onClose={() => setShowDm(false)} onOpen={(id) => { setShowDm(false); setActiveId(id); }} />
@@ -1234,14 +1253,16 @@ function CreateChatWizard({
   user,
   onClose,
   onCreated,
+  initialType = "group",
 }: {
   user: User;
   onClose: () => void;
   onCreated: (id: string) => void;
+  initialType?: "group" | "channel";
 }) {
   const toast = useToast();
   const [step, setStep] = useState(1);
-  const [type, setType] = useState<"group" | "channel">("group");
+  const [type, setType] = useState<"group" | "channel">(initialType);
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [picked, setPicked] = useState<Set<string>>(new Set());

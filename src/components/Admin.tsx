@@ -1068,8 +1068,8 @@ function DataTab({ actor }: { actor: User }) {
 
   const resetPurge = () => { setPurgeOpen(false); setPurgePhrase(""); setPurgeErr(""); };
   const doPurge = () => {
-    if (purgePhrase.trim() !== "حذف پیام‌ها") {
-      setPurgeErr("عبارت تأیید را دقیقاً «حذف پیام‌ها» بنویسید");
+    if (purgePhrase.trim() !== "حذف پیام ها") {
+      setPurgeErr("عبارت تأیید را دقیقاً «حذف پیام ها» بنویسید");
       return;
     }
     const n = deleteAllMessages();
@@ -1244,13 +1244,13 @@ function DataTab({ actor }: { actor: User }) {
           <div className="rounded-2xl bg-slate-50 px-4 py-3 text-[12px] font-semibold leading-6 text-slate-500 dark:bg-white/5 dark:text-slate-400">
             پیشنهاد: پیش از ادامه، از بخش «پیام‌ها» یک فایل پشتیبان بگیرید.
           </div>
-          <Field label="برای تأیید، عبارت «حذف پیام‌ها» را بنویسید" required error={purgeErr}>
+          <Field label="برای تأیید، عبارت «حذف پیام ها» را بنویسید" required error={purgeErr}>
             <input
               className={inputCls}
               value={purgePhrase}
               onChange={(e) => { setPurgePhrase(e.target.value); setPurgeErr(""); }}
               onKeyDown={(e) => e.key === "Enter" && doPurge()}
-              placeholder="حذف پیام‌ها"
+              placeholder="حذف پیام ها"
               autoFocus
             />
           </Field>

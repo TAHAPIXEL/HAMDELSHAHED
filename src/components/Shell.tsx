@@ -9,7 +9,7 @@ import {
   Bell,
   ShieldHalf,
   LogOut,
-  Menu,
+  EllipsisVertical,
   X,
   GraduationCap,
   Megaphone,
@@ -36,7 +36,7 @@ import {
   type Grade,
   type User,
 } from "@/lib/model";
-import { Avatar, Modal, useDbTick } from "./ui";
+import { Avatar, Confirm, useDbTick } from "./ui";
 import Chats from "./Chats";
 import Classes from "./Classes";
 import Exams from "./Exams";
@@ -68,6 +68,8 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
   const [bellOpen, setBellOpen] = useState(false);
   const bellRef = useRef<HTMLDivElement>(null);
   const [openChatId, setOpenChatId] = useState<string | null>(null);
+  const [logoutAsk, setLogoutAsk] = useState(false);
+  const requestLogout = () => setLogoutAsk(true);
 
   useEffect(() => {
     const h = (e: MouseEvent) => {
@@ -103,6 +105,22 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
   ];
 
   const markNoticeRead = (nid: string) => recordNoticeRead(user.id, nid);
+
+  // ناوبری پایین موبایل: گفتگوها، کلاس‌ها، تکالیف، آزمون‌ها، پروفایل
+  const bottomItems: { v: View; label: string; icon: React.ReactNode }[] = [
+    { v: "chats", label: "گفتگوها", icon: <MessagesSquare className="size-5" /> },
+    { v: "classes", label: "کلاس‌ها", icon: <LayoutGrid className="size-5" /> },
+    { v: "homework", label: "تکالیف", icon: <BookOpen className="size-5" /> },
+    { v: "exams", label: "آزمون‌ها", icon: <ClipboardList className="size-5" /> },
+    { v: "profile", label: "پروفایل", icon: <UserRound className="size-5" /> },
+  ];
+  // امکانات داخل منوی سه‌نقطه (بیرون از ناوبری پایین)
+  const menuFeatures = nav.filter((n) => n.show && ["attendance", "notices", "admin"].includes(n.v));
+  const classItems = isStaff(user)
+    ? GRADES.flatMap((g) => SECTIONS[g].map((s) => ({ g, s })))
+    : user.grade && user.section
+    ? [{ g: user.grade, s: user.section }]
+    : [];
 
   const sidebar = (
     <div className="flex h-full flex-col">
@@ -176,7 +194,7 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
             <div className="text-[11px] font-semibold text-slate-400">{roleFa(user)}</div>
           </div>
           <button
-            onClick={(e) => { e.stopPropagation(); onLogout(); }}
+            onClick={(e) => { e.stopPropagation(); requestLogout(); }}
             className="rounded-xl p-2 text-slate-400 transition hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-500/10"
             aria-label="خروج"
             title="خروج از حساب"
@@ -184,6 +202,86 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
             <LogOut className="size-4.5" />
           </button>
         </button>
+      </div>
+    </div>
+  );
+
+  const drawerBody = (
+    <div className="flex h-full flex-col">
+      {/* بالاترین: پروفایل و خروج */}
+      <div className="flex items-center gap-2 border-b border-slate-100 p-4 dark:border-white/5">
+        <button
+          onClick={() => go("profile")}
+          className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl p-1.5 text-right transition hover:bg-slate-100 dark:hover:bg-white/5"
+        >
+          <Avatar user={user} size={44} ring />
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-black text-slate-800 dark:text-slate-100">
+              {user.firstName} {user.lastName}
+            </div>
+            <div className="text-[11px] font-semibold text-slate-400">پروفایل من • {roleFa(user)}</div>
+          </div>
+        </button>
+        <button
+          onClick={requestLogout}
+          className="rounded-xl p-2.5 text-rose-500 transition hover:bg-rose-50 dark:hover:bg-rose-500/10"
+          aria-label="خروج"
+          title="خروج از حساب"
+        >
+          <LogOut className="size-5" />
+        </button>
+        <button
+          onClick={() => setDrawer(false)}
+          className="rounded-xl p-2.5 text-slate-400 transition hover:bg-slate-100 dark:hover:bg-white/10"
+          aria-label="بستن منو"
+        >
+          <X className="size-5" />
+        </button>
+      </div>
+
+      {/* امکانات — قابل اسکرول */}
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div className="px-5 pb-2 pt-4 text-[11px] font-black tracking-wide text-slate-400">امکانات</div>
+        <div className="max-h-[40%] shrink-0 space-y-1 overflow-y-auto px-3 pb-3">
+          {menuFeatures.map((n) => (
+            <button
+              key={n.v}
+              onClick={() => go(n.v)}
+              className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold transition ${
+                view === n.v
+                  ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300"
+                  : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/5"
+              }`}
+            >
+              {n.icon}
+              {n.label}
+              {n.v === "notices" && unreadN > 0 && (
+                <span className="mr-auto rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white">{fa(unreadN)}</span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* کلاس‌ها — قابل اسکرول */}
+        <div className="px-5 pb-2 pt-3 text-[11px] font-black tracking-wide text-slate-400">
+          {isStaff(user) ? "کلاس‌ها" : "کلاس من"}
+        </div>
+        <div className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-3 pb-4">
+          {classItems.map(({ g, s }) => (
+            <button
+              key={`d-${g}-${s}`}
+              onClick={() => { setClassSel({ grade: g, section: s }); go("classes"); }}
+              className={`flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-[13px] font-bold transition ${
+                view === "classes" && classSel?.grade === g && classSel?.section === s
+                  ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300"
+                  : "text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/5"
+              }`}
+            >
+              کلاس {className(g, s)}
+              <ChevronLeft className="size-3.5 opacity-60" />
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -200,10 +298,7 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="modal-bg absolute inset-0 bg-slate-950/50 backdrop-blur-sm" onClick={() => setDrawer(false)} />
           <aside className="modal-pop absolute right-0 top-0 h-full w-80 max-w-[85vw] border-l border-slate-200 bg-white dark:border-white/10 dark:bg-slate-900">
-            <button onClick={() => setDrawer(false)} className="absolute left-3 top-4 rounded-xl p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10" aria-label="بستن منو">
-              <X className="size-5" />
-            </button>
-            {sidebar}
+            {drawerBody}
           </aside>
         </div>
       )}
@@ -213,7 +308,7 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
         {/* نوار بالا */}
         <header className="z-30 flex items-center gap-3 border-b border-slate-200/70 bg-white/80 px-4 py-3 backdrop-blur-xl dark:border-white/5 dark:bg-slate-900/60 sm:px-6">
           <button onClick={() => setDrawer(true)} className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 lg:hidden" aria-label="منو">
-            <Menu className="size-5" />
+            <EllipsisVertical className="size-5" />
           </button>
           <h1 className="text-base font-black text-slate-800 dark:text-slate-100">
             {view === "classes" && classSel ? `کلاس ${className(classSel.grade, classSel.section)}` : titles[view]}
@@ -286,24 +381,34 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
           {view === "attendance" && <Attendance user={user} />}
           {view === "notices" && <Notices user={user} />}
           {view === "admin" && <Admin user={user} />}
-          {view === "profile" && <Profile user={user} onLogout={onLogout} onGo={go} />}
+          {view === "profile" && <Profile user={user} onLogout={requestLogout} onGo={go} />}
         </main>
 
         {/* ناوبری پایین موبایل */}
         <nav className="z-30 flex items-center justify-around border-t border-slate-200/70 bg-white/90 px-2 py-2 backdrop-blur-xl dark:border-white/5 dark:bg-slate-900/80 lg:hidden">
-          {nav.filter((n) => n.show && ["chats", "classes", "homework", "exams", "attendance", "admin"].includes(n.v)).map((n) => (
+          {bottomItems.map((n) => (
             <button
               key={n.v}
               onClick={() => go(n.v)}
-              className={`flex flex-col items-center gap-1 rounded-2xl px-3 py-1.5 text-[10px] font-bold transition ${
+              className={`flex min-w-0 flex-1 flex-col items-center gap-1 rounded-2xl px-1 py-1.5 text-[10px] font-bold transition ${
                 view === n.v ? "text-indigo-600 dark:text-indigo-300" : "text-slate-400"
               }`}
             >
               {n.icon}
-              {n.label}
+              <span className="truncate">{n.label}</span>
             </button>
           ))}
         </nav>
+
+        {/* تأیید خروج از حساب — در همه‌ی نقاط برنامه */}
+        <Confirm
+          open={logoutAsk}
+          onClose={() => setLogoutAsk(false)}
+          onYes={onLogout}
+          title="خروج از حساب"
+          desc="آیا می‌خواهید از حساب کاربری خود خارج شوید؟"
+          yesLabel="خروج"
+        />
       </div>
     </div>
   );
