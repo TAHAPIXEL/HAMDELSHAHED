@@ -54,7 +54,18 @@ const VISIBLE_SQL = `(
       ))
   or (r.collection in ('subs','hwsubs') and ($3 or r.data->>'studentId' = $1))
   or (r.collection = 'attendance' and ($3 or r.data->>'studentId' = $1))
-  or (r.collection in ('seen','noticeReads') and ($3 or left(r.id, length($1) + 1) = $1 || ':'))
+  or (r.collection = 'noticeReads' and ($3 or left(r.id, length($1) + 1) = $1 || ':'))
+  -- زمان آخرین بازدید گفتگو: خود کاربر، کادر، و اعضای همان گفتگو (برای تیک خوانده‌شدن)
+  or (r.collection = 'seen' and (
+        $3
+        or left(r.id, length($1) + 1) = $1 || ':'
+        or exists (
+          select 1 from hamdel_records c
+           where c.collection = 'chats' and c.deleted = false
+             and c.id = substring(r.id from position(':' in r.id) + 1)
+             and (c.data->'memberIds') ? $1
+        )
+      ))
 )`;
 
 function visibilityParams(viewer: Viewer): unknown[] {

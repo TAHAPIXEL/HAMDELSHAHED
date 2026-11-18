@@ -27,7 +27,10 @@ import {
   type Grade,
   type User,
 } from "@/lib/model";
-import { Avatar, Chip, Empty, inputCls, useDbTick, useToast } from "./ui";
+import { Avatar, Chip, Empty, Seg, inputCls, useDbTick, useToast } from "./ui";
+import { ExportButtons } from "./ExportPanel";
+import { attendanceDoc, reportCardDoc } from "@/lib/export/doc";
+import { periodFor, type ReportKind } from "@/lib/reports";
 
 export default function Attendance({ user }: { user: User }) {
   useDbTick();
@@ -70,6 +73,8 @@ function StudentAttendance({ user }: { user: User }) {
         <div className="mb-3 rounded-2xl bg-indigo-50 px-4 py-3 text-[12.5px] font-semibold leading-6 text-indigo-800 dark:bg-indigo-500/10 dark:text-indigo-200">
           هر روزی که وارد سایت شوید، حضور شما به‌صورت خودکار ثبت می‌شود. کادر مدرسه می‌توانند آن را اصلاح کنند.
         </div>
+
+        <ReportCardCard students={[user]} lockedToSelf />
 
         {recs.length === 0 && (
           <Empty icon={<CalendarCheck2 className="size-7" />} title="سابقه‌ای نیست" />
@@ -174,6 +179,9 @@ function StaffAttendance({ user }: { user: User }) {
           </label>
         </div>
 
+        {/* خروجی بازه‌ای حضور و غیاب */}
+        <AttendanceExportCard grade={grade} section={section} jy={jy} jm={jm} jd={jd} />
+
         {/* خلاصه */}
         <div className="mb-4 flex flex-wrap items-center gap-2 text-[12px] font-bold">
           <Chip tone="green">حاضر: {fa(counts.present)}</Chip>
@@ -195,6 +203,8 @@ function StaffAttendance({ user }: { user: User }) {
             desc="وقتی دانش‌آموزان کلاس ثبت‌نام کنند، لیستشان اینجا می‌آید"
           />
         )}
+
+        <ReportCardCard students={students} />
 
         <div className="stagger space-y-2.5">
           {students.map((s) => {
@@ -247,6 +257,88 @@ function StaffAttendance({ user }: { user: User }) {
           })}
         </div>
       </div>
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// خروجی‌ها: حضور و غیاب بازه‌ای (روزانه/هفتگی/ماهانه) و کارنامه‌ی ماهانه
+// ----------------------------------------------------------------------------
+
+function MonthYearPicker({ jy, jm, onChange }: { jy: number; jm: number; onChange: (jy: number, jm: number) => void }) {
+  const t = todayJalali();
+  const years = [t.jy - 1, t.jy, t.jy + 1].sort((a, b) => b - a);
+  return (
+    <div className="grid grid-cols-2 gap-1.5">
+      <select className={`${inputCls} !px-2 !text-[12px]`} value={jm} onChange={(e) => onChange(jy, Number(e.target.value))}>
+        {JALALI_MONTHS.map((m, i) => (
+          <option key={m} value={i + 1}>{m}</option>
+        ))}
+      </select>
+      <select className={`${inputCls} !px-2 text-center !text-[12px]`} value={jy} onChange={(e) => onChange(Number(e.target.value), jm)}>
+        {years.map((y) => (
+          <option key={y} value={y}>{fa(y)}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function AttendanceExportCard({ grade, section, jy, jm, jd }: { grade: Grade; section: string; jy: number; jm: number; jd: number }) {
+  const [kind, setKind] = useState<ReportKind>("day");
+  const period = periodFor(kind, jy, jm, jd);
+  return (
+    <div className="card mb-5 space-y-3 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <div className="text-[13.5px] font-black text-slate-800 dark:text-slate-100">خروجی حضور و غیاب</div>
+          <div className="mt-0.5 text-[11.5px] font-semibold text-slate-400">{period.title}</div>
+        </div>
+        <Seg<ReportKind>
+          value={kind}
+          onChange={setKind}
+          options={[
+            { value: "day", label: "روزانه" },
+            { value: "week", label: "هفتگی" },
+            { value: "month", label: "ماهانه" },
+          ]}
+        />
+      </div>
+      <ExportButtons
+        build={() => attendanceDoc(grade, section, periodFor(kind, jy, jm, jd))}
+      />
+    </div>
+  );
+}
+
+function ReportCardCard({ students, lockedToSelf }: { students: User[]; lockedToSelf?: boolean }) {
+  const t = todayJalali();
+  const [jy, setJy] = useState(t.jy);
+  const [jm, setJm] = useState(t.jm);
+  const [sid, setSid] = useState(students[0]?.id ?? "");
+  const current = students.find((s) => s.id === sid) ?? students[0];
+  if (!current) return null;
+  return (
+    <div className="card mb-5 space-y-3 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <div className="text-[13.5px] font-black text-slate-800 dark:text-slate-100">کارنامه ماهانه</div>
+          <div className="mt-0.5 text-[11.5px] font-semibold text-slate-400">
+            {lockedToSelf ? "کارنامه ماه انتخابی شما" : `کارنامه ماه انتخابی برای ${current.firstName} ${current.lastName}`}
+          </div>
+        </div>
+      </div>
+      <div className="grid gap-2.5 sm:grid-cols-2">
+        {!lockedToSelf && (
+          <select className={inputCls} value={current.id} onChange={(e) => setSid(e.target.value)}>
+            {students.map((s) => (
+              <option key={s.id} value={s.id}>{s.firstName} {s.lastName}</option>
+            ))}
+          </select>
+        )}
+        <MonthYearPicker jy={jy} jm={jm} onChange={(y, m) => { setJy(y); setJm(m); }} />
+      </div>
+      <ExportButtons build={() => reportCardDoc(current.id, jy, jm)} />
     </div>
   );
 }

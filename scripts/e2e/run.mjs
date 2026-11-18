@@ -81,6 +81,7 @@ try {
 
   execSync("node scripts/e2e/api.test.mjs", { cwd: root, env, stdio: "inherit" });
   execSync("node scripts/e2e/store.test.mjs", { cwd: root, env, stdio: "inherit" });
+  execSync("node scripts/e2e/exports.test.mjs", { cwd: root, env, stdio: "inherit" });
   code = 0;
 } catch (err) {
   console.error(String(err.message ?? err));

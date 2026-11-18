@@ -497,6 +497,14 @@ export function faTime(ts: number): string {
     return "";
   }
 }
+/** ساعت کامل با ثانیه، مثل ۱۴:۰۵:۲۰ (برای پیام‌های گفتگو) */
+export function faClock(ts: number): string {
+  try {
+    return new Intl.DateTimeFormat("fa-IR", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }).format(new Date(ts));
+  } catch {
+    return "";
+  }
+}
 export function faDate(ts: number): string {
   try {
     return new Intl.DateTimeFormat("fa-IR", { dateStyle: "full" }).format(new Date(ts));

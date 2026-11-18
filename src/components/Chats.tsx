@@ -42,6 +42,7 @@ import {
   chatTitle,
   className,
   fa,
+  faClock,
   faDate,
   faTime,
   uploadImage,
@@ -378,6 +379,15 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
 
   // بدون memo — هر رندر، تازه‌ترین پیام‌ها (رفع باگ ارسال و نمایش نشدن)
   const messages = chatMessages(chat.id);
+  // وضعیت خوانده‌شدن: چه کسی آخرین بار گفتگو را باز کرده (برای تیک‌های پیام)
+  const seenMap = DB.seen();
+  const directOtherId = chat.type === "direct" ? chat.memberIds.find((id) => id !== user.id) : undefined;
+  const receiptOf = (m: Message): "none" | "sent" | "read" | "group" => {
+    if (chat.type === "channel") return "none";
+    if (chat.type === "group") return "group";
+    if (!directOtherId) return "sent";
+    return (seenMap[`${directOtherId}:${chat.id}`] ?? 0) >= m.createdAt ? "read" : "sent";
+  };
   const canPost = canPostInChat(chat, user);
   const otherUser = chatAvatarUser(chat, user);
   const canLock = chat.type === "group" && hasChatPerm(chat, user, "lock");
@@ -389,6 +399,17 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
   }, [chat.id]);
+
+  const jumpToMessage = (id: string) => {
+    const el = document.getElementById(`msg-${id}`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.classList.remove("msg-flash");
+    // بازخوانی انیمیشن برای بار دوم کلیک
+    void el.offsetWidth;
+    el.classList.add("msg-flash");
+    window.setTimeout(() => el.classList.remove("msg-flash"), 1800);
+  };
 
   const onScroll = () => {
     const el = listRef.current;
@@ -496,13 +517,21 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
         if (!pm) return null;
         return (
           <div className="flex items-center gap-2.5 border-b border-amber-200/60 bg-amber-50/90 px-4 py-2.5 backdrop-blur dark:border-amber-400/20 dark:bg-amber-500/10">
-            <Pin className="size-4 shrink-0 -scale-y-100 text-amber-500" />
-            <div className="min-w-0 flex-1">
-              <div className="text-[10.5px] font-black text-amber-600 dark:text-amber-300">پیام سنجاق‌شده</div>
-              <div className="truncate text-[12.5px] font-bold text-slate-700 dark:text-slate-200">
-                {pm.poll ? `نظرسنجی: ${pm.poll.question}` : pm.image ? "تصویر" : pm.text}
+            {/* کلیک روی نوار: پرش به خود پیام سنجاق‌شده در گفتگو */}
+            <button
+              type="button"
+              onClick={() => jumpToMessage(pm.id)}
+              className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg text-right transition hover:opacity-80"
+              aria-label="رفتن به پیام سنجاق‌شده"
+            >
+              <Pin className="size-4 shrink-0 -scale-y-100 text-amber-500" />
+              <div className="min-w-0 flex-1">
+                <div className="text-[10.5px] font-black text-amber-600 dark:text-amber-300">پیام سنجاق‌شده</div>
+                <div className="truncate text-[12.5px] font-bold text-slate-700 dark:text-slate-200">
+                  {pm.poll ? `نظرسنجی: ${pm.poll.question}` : pm.image ? "تصویر" : pm.text}
+                </div>
               </div>
-            </div>
+            </button>
             {/* برداشتن سنجاق — فقط فرستنده همان پیام */}
             {chat.type !== "direct" && hasChatPerm(chat, user, "pin") && pm.senderId === user.id && (
               <button
@@ -527,8 +556,9 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
           const showDay = idx === 0 || faDate(messages[idx - 1].createdAt) !== day;
           const mine = m.senderId === user.id;
           const sender = m.senderId === "dev-root" ? undefined : DB.users().find((u) => u.id === m.senderId);
+          const receipt = mine ? receiptOf(m) : "none";
           return (
-            <div key={m.id}>
+            <div key={m.id} id={`msg-${m.id}`} className="scroll-mt-24">
               {showDay && (
                 <div className="my-4 flex justify-center">
                   <span className="rounded-full bg-slate-200/70 px-4 py-1 text-[11px] font-bold text-slate-500 backdrop-blur dark:bg-white/10 dark:text-slate-300">
@@ -584,8 +614,10 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
                   )}
                   <div className={`mt-1 flex items-center justify-end gap-1 text-[10px] font-semibold ${mine ? "text-white/70" : "text-slate-400"}`}>
                     {m.editedAt && !m.deleted && <span>ویرایش‌شده</span>}
-                    <span>{faTime(m.createdAt)}</span>
-                    {mine && <CheckCheck className="size-3.5" />}
+                    <span dir="ltr" className="tabular-nums">{faClock(m.createdAt)}</span>
+                    {receipt === "read" && <CheckCheck className="size-3.5 text-sky-300" aria-label="خوانده شد" />}
+                    {receipt === "sent" && <Check className="size-3.5" aria-label="ارسال شد" />}
+                    {receipt === "group" && <CheckCheck className="size-3.5" aria-label="ارسال شد" />}
                   </div>
 
                   {/* نشانه‌ی وجود منوی گزینه‌ها (با کلیک یا ضربه روی پیام باز می‌شود) */}

@@ -227,6 +227,20 @@ async function main() {
     assert.equal(bad.status, 403);
   });
 
+  await check("read receipts: chat members see each other's seen time, outsiders do not", async () => {
+    // A عضو گروه است و زمان بازدیدش ثبت می‌شود؛ B (عضو گروه) باید آن را ببیند
+    const seenKey = `${studentA.id}:${groupId}`;
+    const sb = await req("GET", "/api/state", { token: tokenB });
+    const seenByB = sb.json.rows.find((r) => r.c === "seen" && r.id === seenKey);
+    assert.ok(seenByB, "group member B must see A's seen time for the group");
+    assert.equal(seenByB.d, 123);
+    // B در گفتگوی خصوصی‌ای است که A عضو آن نیست؛ زمان بازدید B در آن گفتگو نباید به A برسد
+    const bKey = `${studentB.id}:${secretChatId}`;
+    await req("POST", "/api/state/sync", { token: tokenB, body: { ops: [{ c: "seen", id: bKey, d: 456 }] } });
+    const sa = await req("GET", "/api/state", { token: tokenA });
+    assert.ok(!sa.json.rows.some((r) => r.c === "seen" && r.id === bKey), "outsider must not see seen time of a private chat");
+  });
+
   await check("sync rejects malformed input", async () => {
     assert.equal((await req("POST", "/api/state/sync", { token: tokenA, body: { ops: [{ c: "nope", id: "1", d: {} }] } })).status, 400);
     assert.equal((await req("POST", "/api/state/sync", { token: tokenA, body: { ops: [{ c: "notices", id: "a", d: { id: "b", title: "t" } }] } })).status, 400);

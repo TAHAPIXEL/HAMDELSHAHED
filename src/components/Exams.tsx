@@ -333,11 +333,11 @@ function ExamBuilder({ exam, user, onClose }: { exam: Exam | null; user: User; o
                   <div className="flex items-center gap-2">
                     <label className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400">
                       نمره:
-                      <input
-                        type="number" min={0.25} step={0.25}
+                      <NumInput
+                        min={0.25} step={0.25}
                         className={`${inputCls} !w-16 !px-2 !py-1 text-center !text-[12px]`}
                         value={q.score}
-                        onChange={(e) => updQ(q.id, { score: Number(e.target.value) || 0 })}
+                        onCommit={(n) => updQ(q.id, { score: Math.max(0.25, n) })}
                       />
                     </label>
                     <button
@@ -694,15 +694,12 @@ function ResultModal({ exam, sub, viewer, onClose }: { exam: Exam; sub: Submissi
               <div className="mt-2.5 flex items-center justify-end gap-2">
                 <label className="flex items-center gap-2 text-[12px] font-bold text-slate-500">
                   نمره این سؤال:
-                  <input
-                    type="number" min={0} max={q.score} step={0.25}
+                  <NumInput
+                    min={0} max={q.score} step={0.25}
                     className={`${inputCls} !w-20 !px-2 !py-1.5 text-center`}
-                    value={grades[q.id] ?? ""}
-                    onChange={(e) =>
-                      setGrades((g) => ({
-                        ...g,
-                        [q.id]: Math.min(q.score, Math.max(0, Number(e.target.value) || 0)),
-                      }))
+                    value={grades[q.id]}
+                    onCommit={(n) =>
+                      setGrades((g) => ({ ...g, [q.id]: Math.min(q.score, Math.max(0, n)) }))
                     }
                   />
                   از {fa(q.score)}
@@ -736,5 +733,56 @@ function ResultModal({ exam, sub, viewer, onClose }: { exam: Exam; sub: Submissi
         )
       )}
     </Modal>
+  );
+}
+
+/**
+ * ورودی عددی که متن کاربر را نگه می‌دارد: می‌شود کل عدد را پاک کرد و عدد تازه نوشت.
+ * (قبلاً خالی‌شدن کادر فوراً به «۰» تبدیل می‌شد و باید اول «۰» را انتخاب می‌کردند)
+ * مقدار معتبر فوراً به والد داده می‌شود؛ هنگام خروج از کادر، کادر خالی به مقدار قبلی برمی‌گردد.
+ */
+function NumInput({
+  value,
+  onCommit,
+  min,
+  max,
+  step,
+  className,
+}: {
+  value: number | undefined;
+  onCommit: (n: number) => void;
+  min: number;
+  max?: number;
+  step: number;
+  className: string;
+}) {
+  const [draft, setDraft] = useState(value === undefined ? "" : String(value));
+  // هماهنگ‌سازی با مقدار بیرونی بدون effect: اگر مقدار از بیرون عوض شد و با پیش‌نویس فعلی یکی نیست، پیش‌نویس را به‌روز کن
+  const [seenValue, setSeenValue] = useState(value);
+  if (value !== seenValue) {
+    setSeenValue(value);
+    if (!(draft !== "" && Number(draft) === value)) setDraft(value === undefined ? "" : String(value));
+  }
+  return (
+    <input
+      type="number"
+      inputMode="decimal"
+      min={min}
+      max={max}
+      step={step}
+      className={className}
+      value={draft}
+      onChange={(e) => {
+        const raw = e.target.value;
+        setDraft(raw);
+        const n = Number(raw);
+        if (raw !== "" && Number.isFinite(n)) onCommit(n);
+      }}
+      onBlur={() => {
+        if (draft === "" || !Number.isFinite(Number(draft))) {
+          setDraft(value === undefined ? "" : String(value));
+        }
+      }}
+    />
   );
 }
