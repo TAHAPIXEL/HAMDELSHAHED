@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   MessagesSquare,
   LayoutGrid,
@@ -13,6 +13,7 @@ import {
   X,
   GraduationCap,
   Megaphone,
+  UserRound,
   ChevronLeft,
   BookOpen,
 } from "lucide-react";
@@ -35,7 +36,7 @@ import {
   type Grade,
   type User,
 } from "@/lib/model";
-import { Avatar, useDbTick } from "./ui";
+import { Avatar, Modal, useDbTick } from "./ui";
 import Chats from "./Chats";
 import Classes from "./Classes";
 import Exams from "./Exams";
@@ -66,14 +67,7 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
   const [drawer, setDrawer] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
   const bellRef = useRef<HTMLDivElement>(null);
-  const tabsRef = useRef<HTMLDivElement>(null);
   const [openChatId, setOpenChatId] = useState<string | null>(null);
-
-  // دکمه‌ی فعال نوار پایین موبایل همیشه کامل دیده شود
-  useEffect(() => {
-    const active = tabsRef.current?.querySelector<HTMLElement>('[data-active="true"]');
-    active?.scrollIntoView({ inline: "nearest", block: "nearest", behavior: "smooth" });
-  }, [view]);
 
   useEffect(() => {
     const h = (e: MouseEvent) => {
@@ -111,37 +105,32 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
   const markNoticeRead = (nid: string) => recordNoticeRead(user.id, nid);
 
   const sidebar = (
-    <div className="relative flex h-full flex-col overflow-hidden text-white ink-panel">
-      <div className="ink-grid pointer-events-none absolute inset-0" />
-
-      <div className="relative flex items-center gap-3 px-5 pb-6 pt-7">
-        <div className="flex size-11 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-600 to-sky-500 shadow-[0_12px_28px_-10px_rgb(124_58_237/0.9)]">
+    <div className="flex h-full flex-col">
+      <div className="flex items-center gap-3 px-5 pb-6 pt-6">
+        <div className="flex size-11 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 shadow-lg shadow-indigo-600/25">
           <GraduationCap className="size-6 text-white" />
         </div>
         <div>
-          <div className="text-lg font-black tracking-tight text-white">هَمدِل</div>
-          <div className="text-[11px] font-bold text-indigo-200/60">شاهد شهیدان فهیمی</div>
+          <div className="text-lg font-black text-slate-800 dark:text-white">هَمدِل</div>
+          <div className="text-[11px] font-bold text-slate-400">شاهد شهیدان فهیمی</div>
         </div>
       </div>
 
-      <nav className="relative flex flex-col gap-1 px-3">
+      <nav className="flex flex-col gap-1 px-3">
         {nav.filter((n) => n.show).map((n) => (
           <button
             key={n.v}
             onClick={() => go(n.v)}
-            className={`relative flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold transition ${
+            className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold transition ${
               view === n.v
-                ? "bg-white/10 text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.08)]"
-                : "text-indigo-100/60 hover:bg-white/[0.06] hover:text-white"
+                ? "bg-gradient-to-l from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-600/25"
+                : "text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-slate-100"
             }`}
           >
-            {view === n.v && (
-              <span className="absolute inset-y-2.5 right-0 w-1 rounded-l-full bg-gradient-to-b from-sky-300 to-violet-400" />
-            )}
             {n.icon}
             {n.label}
             {n.v === "notices" && unreadN > 0 && (
-              <span className="mr-auto rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white">
+              <span className={`mr-auto rounded-full px-2 py-0.5 text-[10px] font-black ${view === n.v ? "bg-white/25 text-white" : "bg-rose-500 text-white"}`}>
                 {fa(unreadN)}
               </span>
             )}
@@ -149,10 +138,10 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
         ))}
       </nav>
 
-      <div className="relative mt-7 px-5 text-[11px] font-black tracking-wider text-indigo-200/50">
+      <div className="mt-6 px-5 text-[11px] font-black tracking-wide text-slate-400">
         {isStaff(user) ? "کلاس‌ها" : "کلاس من"}
       </div>
-      <div className="relative mt-2 flex-1 space-y-0.5 overflow-y-auto px-3 pb-4">
+      <div className="mt-2 flex-1 space-y-0.5 overflow-y-auto px-3 pb-4">
         {(isStaff(user)
           ? GRADES.flatMap((g) => SECTIONS[g].map((s) => ({ g, s })))
           : user.grade && user.section
@@ -164,8 +153,8 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
             onClick={() => { setClassSel({ grade: g, section: s }); go("classes"); }}
             className={`flex w-full items-center justify-between rounded-xl px-4 py-2 text-[13px] font-bold transition ${
               view === "classes" && classSel?.grade === g && classSel?.section === s
-                ? "bg-white/10 text-white"
-                : "text-indigo-100/60 hover:bg-white/[0.06] hover:text-white"
+                ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300"
+                : "text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/5"
             }`}
           >
             کلاس {className(g, s)}
@@ -174,21 +163,21 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
         ))}
       </div>
 
-      <div className="relative border-t border-white/10 p-3">
+      <div className="border-t border-slate-100 p-3 dark:border-white/5">
         <button
           onClick={() => go("profile")}
-          className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 transition hover:bg-white/[0.06]"
+          className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 transition hover:bg-slate-100 dark:hover:bg-white/5"
         >
           <Avatar user={user} size={38} ring />
           <div className="min-w-0 flex-1 text-right">
-            <div className="truncate text-[13px] font-bold text-white">
+            <div className="truncate text-[13px] font-bold text-slate-700 dark:text-slate-200">
               {user.firstName} {user.lastName}
             </div>
-            <div className="text-[11px] font-semibold text-indigo-200/60">{roleFa(user)}</div>
+            <div className="text-[11px] font-semibold text-slate-400">{roleFa(user)}</div>
           </div>
           <button
             onClick={(e) => { e.stopPropagation(); onLogout(); }}
-            className="rounded-xl p-2 text-indigo-200/60 transition hover:bg-rose-500/20 hover:text-rose-300"
+            className="rounded-xl p-2 text-slate-400 transition hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-500/10"
             aria-label="خروج"
             title="خروج از حساب"
           >
@@ -200,24 +189,18 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
   );
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-[#f3f5fb] text-slate-900">
+    <div className="flex h-dvh overflow-hidden bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       {/* سایدبار دسکتاپ */}
-      <aside className="hidden w-72 shrink-0 p-3 lg:block">
-        <div className="h-full overflow-hidden rounded-[1.75rem] shadow-[0_24px_50px_-28px_rgb(11_15_36/0.7)]">
-          {sidebar}
-        </div>
+      <aside className="hidden w-72 shrink-0 border-l border-slate-200/70 bg-white/80 backdrop-blur-xl dark:border-white/5 dark:bg-slate-900/60 lg:block">
+        {sidebar}
       </aside>
 
       {/* دراور موبایل */}
       {drawer && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="modal-bg absolute inset-0 bg-[#0b0f24]/60" onClick={() => setDrawer(false)} />
-          <aside className="modal-pop absolute right-0 top-0 h-full w-80 max-w-[85vw] shadow-2xl">
-            <button
-              onClick={() => setDrawer(false)}
-              className="absolute left-3 top-5 z-10 rounded-xl p-2 text-indigo-200/70 hover:bg-white/10 hover:text-white"
-              aria-label="بستن منو"
-            >
+          <div className="modal-bg absolute inset-0 bg-slate-950/50 backdrop-blur-sm" onClick={() => setDrawer(false)} />
+          <aside className="modal-pop absolute right-0 top-0 h-full w-80 max-w-[85vw] border-l border-slate-200 bg-white dark:border-white/10 dark:bg-slate-900">
+            <button onClick={() => setDrawer(false)} className="absolute left-3 top-4 rounded-xl p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10" aria-label="بستن منو">
               <X className="size-5" />
             </button>
             {sidebar}
@@ -228,33 +211,29 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
       {/* بدنه */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* نوار بالا */}
-        <header className="ink-bar safe-t z-30 flex items-center gap-3 px-4 py-3 sm:px-6 lg:pt-5">
-          <button
-            onClick={() => setDrawer(true)}
-            className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white ring-1 ring-white/15 transition active:scale-95 lg:hidden"
-            aria-label="منو"
-          >
+        <header className="z-30 flex items-center gap-3 border-b border-slate-200/70 bg-white/80 px-4 py-3 backdrop-blur-xl dark:border-white/5 dark:bg-slate-900/60 sm:px-6">
+          <button onClick={() => setDrawer(true)} className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 lg:hidden" aria-label="منو">
             <Menu className="size-5" />
           </button>
-          <h1 className="min-w-0 truncate text-[17px] font-black tracking-tight text-white lg:text-2xl lg:text-slate-800">
+          <h1 className="text-base font-black text-slate-800 dark:text-slate-100">
             {view === "classes" && classSel ? `کلاس ${className(classSel.grade, classSel.section)}` : titles[view]}
           </h1>
-          <div className="mr-auto flex shrink-0 items-center gap-2">
+          <div className="mr-auto flex items-center gap-1.5">
             {/* زنگوله اطلاعیه‌ها */}
             <div className="relative" ref={bellRef}>
               <button
                 onClick={() => setBellOpen((o) => !o)}
-                className="relative flex size-10 items-center justify-center rounded-xl bg-white/10 text-white ring-1 ring-white/15 transition hover:bg-white/15 active:scale-95 lg:bg-white lg:text-slate-600 lg:shadow-[0_1px_2px_rgb(18_24_40/0.06)] lg:ring-0"
+                className="relative rounded-xl p-2.5 text-slate-500 transition hover:bg-slate-100 dark:hover:bg-white/10"
                 aria-label="اطلاعیه‌ها"
               >
                 <Bell className="size-5" />
                 {unreadN > 0 && (
-                  <span className="bell-dot absolute left-2 top-2 flex size-2.5 rounded-full bg-rose-500 ring-2 ring-white" />
+                  <span className="bell-dot absolute left-2 top-2 flex size-2.5 rounded-full bg-rose-500 ring-2 ring-white dark:ring-slate-900" />
                 )}
               </button>
               {bellOpen && (
-                <div className="anim-pop absolute left-0 top-12 z-40 w-80 max-w-[86vw] overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_24px_50px_-16px_rgb(11_15_36/0.35)]">
-                  <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+                <div className="anim-pop absolute left-0 top-12 w-80 max-w-[86vw] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-slate-900">
+                  <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-white/5">
                     <span className="text-sm font-black">اطلاعیه‌ها</span>
                     {unreadN > 0 && <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white">{fa(unreadN)} خوانده‌نشده</span>}
                   </div>
@@ -268,11 +247,11 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
                         <button
                           key={n.id}
                           onClick={() => { markNoticeRead(n.id); setBellOpen(false); go("notices"); }}
-                          className="flex w-full items-start gap-3 border-b border-slate-50 px-4 py-3 text-right transition hover:bg-slate-50"
+                          className="flex w-full items-start gap-3 border-b border-slate-50 px-4 py-3 text-right transition hover:bg-slate-50 dark:border-white/5 dark:hover:bg-white/5"
                         >
-                          <span className={`mt-1.5 size-2 shrink-0 rounded-full ${read ? "bg-slate-200" : "bg-rose-500"}`} />
+                          <span className={`mt-1.5 size-2 shrink-0 rounded-full ${read ? "bg-slate-200 dark:bg-white/15" : "bg-rose-500"}`} />
                           <span className="min-w-0">
-                            <span className={`block truncate text-[13px] font-bold ${read ? "text-slate-500" : "text-slate-800"}`}>
+                            <span className={`block truncate text-[13px] font-bold ${read ? "text-slate-500 dark:text-slate-400" : "text-slate-800 dark:text-slate-100"}`}>
                               {n.title}
                             </span>
                             <span className="mt-0.5 block text-[11px] font-semibold text-slate-400">
@@ -283,21 +262,21 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
                       );
                     })}
                   </div>
-                  <button onClick={() => { setBellOpen(false); go("notices"); }} className="w-full bg-slate-50 py-2.5 text-center text-[12px] font-black text-indigo-600 transition hover:bg-slate-100">
+                  <button onClick={() => { setBellOpen(false); go("notices"); }} className="w-full bg-slate-50 py-2.5 text-center text-[12px] font-black text-indigo-600 transition hover:bg-slate-100 dark:bg-white/5 dark:text-indigo-300 dark:hover:bg-white/10">
                     مشاهده همه
                   </button>
                 </div>
               )}
             </div>
 
-            <button onClick={() => go("profile")} className="rounded-full transition active:scale-95" aria-label="پروفایل">
-              <Avatar user={user} size={40} ring />
+            <button onClick={() => go("profile")} className="mr-1 transition active:scale-95" aria-label="پروفایل">
+              <Avatar user={user} size={36} ring />
             </button>
           </div>
         </header>
 
         {/* محتوای ویو */}
-        <main className="min-h-0 flex-1 overflow-hidden lg:px-5 lg:pb-5 lg:pt-3">
+        <main className="min-h-0 flex-1 overflow-hidden">
           {view === "chats" && <Chats user={user} externalChatId={openChatId} onConsumeExternal={() => setOpenChatId(null)} />}
           {view === "classes" && (
             <Classes user={user} selected={classSel} onSelect={setClassSel} onOpenChat={openChatFromShell} />
@@ -310,23 +289,20 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
           {view === "profile" && <Profile user={user} onLogout={onLogout} onGo={go} />}
         </main>
 
-        {/* ناوبری پایین موبایل: نوار افقی قابل اسکرول تا همه‌ی برچسب‌ها کامل دیده شوند */}
-        <nav className="safe-b z-30 bg-[#f3f5fb] px-2.5 pb-2.5 pt-1 lg:hidden">
-          <div ref={tabsRef} className="ink-panel flex gap-1 overflow-x-auto rounded-2xl p-1.5 shadow-[0_18px_40px_-16px_rgb(11_15_36/0.75)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {nav.filter((n) => n.show && ["chats", "classes", "homework", "exams", "attendance", "admin"].includes(n.v)).map((n) => (
-              <button
-                key={n.v}
-                data-active={view === n.v}
-                onClick={() => go(n.v)}
-                className={`flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-[12px] font-extrabold transition active:scale-95 ${
-                  view === n.v ? "btn-brand text-white" : "text-indigo-100/70 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                {n.icon}
-                {n.label}
-              </button>
-            ))}
-          </div>
+        {/* ناوبری پایین موبایل */}
+        <nav className="z-30 flex items-center justify-around border-t border-slate-200/70 bg-white/90 px-2 py-2 backdrop-blur-xl dark:border-white/5 dark:bg-slate-900/80 lg:hidden">
+          {nav.filter((n) => n.show && ["chats", "classes", "homework", "exams", "attendance", "admin"].includes(n.v)).map((n) => (
+            <button
+              key={n.v}
+              onClick={() => go(n.v)}
+              className={`flex flex-col items-center gap-1 rounded-2xl px-3 py-1.5 text-[10px] font-bold transition ${
+                view === n.v ? "text-indigo-600 dark:text-indigo-300" : "text-slate-400"
+              }`}
+            >
+              {n.icon}
+              {n.label}
+            </button>
+          ))}
         </nav>
       </div>
     </div>

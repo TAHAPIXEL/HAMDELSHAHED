@@ -162,30 +162,30 @@ export default function Auth({ onAuth }: { onAuth: (u: User) => void }) {
   };
 
   return (
-    <div className="relative min-h-dvh overflow-hidden">
-      {/* بنر تیره‌ی بالای گوشی (بدون blur و انیمیشن سنگین) */}
-      <div className="ink-panel absolute inset-x-0 top-0 h-64 lg:hidden" aria-hidden="true">
-        <div className="ink-grid absolute inset-0" />
+    <div className="min-h-dvh bg-gradient-to-br from-slate-50 via-indigo-50/50 to-violet-50 dark:from-slate-950 dark:via-indigo-950/30 dark:to-slate-950">
+      {/* نورهای پس‌زمینه */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute -top-32 right-1/4 size-96 rounded-full bg-indigo-400/20 blur-3xl dark:bg-indigo-600/10" />
+        <div className="absolute bottom-0 left-1/4 size-96 rounded-full bg-violet-400/20 blur-3xl dark:bg-violet-600/10" />
       </div>
 
-      <div className="relative mx-auto grid min-h-dvh w-full max-w-6xl items-center gap-10 px-4 pb-10 pt-8 lg:grid-cols-2 lg:gap-16 lg:px-8 lg:py-10">
+      <div className="relative mx-auto grid min-h-dvh w-full max-w-6xl items-center gap-10 px-4 py-10 lg:grid-cols-2 lg:gap-16">
         {/* سمت برند */}
-        <div className="anim-fade-up hidden min-h-[calc(100dvh-5rem)] flex-col justify-center gap-7 overflow-hidden rounded-[2rem] relative p-10 text-white ink-panel lg:flex">
-          <div className="ink-grid pointer-events-none absolute inset-0" />
+        <div className="anim-fade-up hidden flex-col gap-7 lg:flex">
           <div className="flex items-center gap-3">
-            <div className="flex size-14 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-500 via-violet-600 to-sky-500 shadow-[0_18px_40px_-14px_rgb(124_58_237/0.8)]">
+            <div className="flex size-14 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-600 to-violet-600 shadow-xl shadow-indigo-600/30">
               <GraduationCap className="size-7 text-white" />
             </div>
             <div>
-              <div className="text-2xl font-black text-white">هَمدِل</div>
-              <div className="text-[13px] font-semibold text-indigo-200/70">دبیرستان شاهد شهیدان فهیمی</div>
+              <div className="text-2xl font-black text-slate-800 dark:text-white">هَمدِل</div>
+              <div className="text-[13px] font-semibold text-slate-400">دبیرستان شاهد شهیدان فهیمی</div>
             </div>
           </div>
-          <h1 className="text-4xl font-black leading-[1.35] text-white">
+          <h1 className="text-4xl font-black leading-[1.35] text-slate-800 dark:text-white">
             کلاسِ ما،
-            <span className="bg-gradient-to-l from-sky-300 via-violet-300 to-indigo-300 bg-clip-text text-transparent"> همیشه کنارِ هم</span>
+            <span className="bg-gradient-to-l from-indigo-600 to-violet-600 bg-clip-text text-transparent"> همیشه کنارِ هم</span>
           </h1>
-          <p className="max-w-md text-[15px] leading-8 text-indigo-100/70">
+          <p className="max-w-md text-[15px] leading-8 text-slate-500 dark:text-slate-400">
             سامانه اختصاصی دبیرستان شاهد شهیدان فهیمی: گفتگوی گروهی هر کلاس، پیام به دبیران،
             آزمون آنلاین، تکالیف، حضور و غیاب و اطلاعیه‌های مدرسه — همه در یک جای امن و ساده.
           </p>
@@ -196,8 +196,8 @@ export default function Auth({ onAuth }: { onAuth: (u: User) => void }) {
               { icon: <ShieldCheck className="size-4.5" />, t: "امن و کنترل‌شده" },
               { icon: <UserRound className="size-4.5" />, t: "پروفایل شخصی" },
             ].map((x, i) => (
-              <div key={i} className="flex items-center gap-2.5 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-[13px] font-bold text-indigo-50">
-                <span className="text-sky-300">{x.icon}</span>
+              <div key={i} className="card flex items-center gap-2.5 px-4 py-3 text-[13px] font-bold text-slate-600 dark:text-slate-300">
+                <span className="text-indigo-500">{x.icon}</span>
                 {x.t}
               </div>
             ))}
@@ -205,14 +205,14 @@ export default function Auth({ onAuth }: { onAuth: (u: User) => void }) {
         </div>
 
         {/* کارت اصلی */}
-        <div key={shake} className={`anim-pop mx-auto w-full max-w-md pt-6 lg:pt-0 ${shake ? "shake" : ""}`}>
-          <div className="card overflow-hidden p-0 shadow-[0_30px_60px_-30px_rgb(11_15_36/0.45)]">
-            <div className="flex items-center justify-between border-b border-slate-100 px-6 pb-0 pt-5">
+        <div key={shake} className={`anim-pop mx-auto w-full max-w-md ${shake ? "shake" : ""}`}>
+          <div className="card overflow-hidden p-0 shadow-2xl shadow-indigo-900/5">
+            <div className="flex items-center justify-between border-b border-slate-100 px-6 pb-0 pt-5 dark:border-white/5">
               <div className="flex items-center gap-2.5">
-                <div className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-md shadow-indigo-600/30 lg:hidden">
+                <div className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 lg:hidden">
                   <GraduationCap className="size-5 text-white" />
                 </div>
-                <div className="pb-4 text-base font-black text-slate-800">
+                <div className="pb-4 text-base font-black text-slate-800 dark:text-slate-100">
                   {mode === "login" ? "ورود به هَمدِل" : "ساخت حساب کاربری"}
                 </div>
               </div>
@@ -220,7 +220,7 @@ export default function Auth({ onAuth }: { onAuth: (u: User) => void }) {
 
             {/* تب نوع کاربر */}
             <div className="px-6 pt-5">
-              <div className="grid grid-cols-2 gap-1 rounded-2xl bg-slate-100 p-1.5">
+              <div className="grid grid-cols-2 gap-1 rounded-2xl bg-slate-100 p-1.5 dark:bg-white/5">
                 {(
                   [
                     { v: "student", label: "ورود دانش‌آموز", icon: <GraduationCap className="size-4" /> },
@@ -232,8 +232,8 @@ export default function Auth({ onAuth }: { onAuth: (u: User) => void }) {
                     onClick={() => { setTab(t.v); setErrors({}); }}
                     className={`flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-[13px] font-bold transition ${
                       tab === t.v
-                        ? "bg-white text-indigo-700 shadow-sm"
-                        : "text-slate-500 hover:text-slate-700"
+                        ? "bg-white text-indigo-700 shadow-sm dark:bg-white/15 dark:text-indigo-200"
+                        : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
                     }`}
                   >
                     {t.icon}
@@ -269,15 +269,15 @@ export default function Auth({ onAuth }: { onAuth: (u: User) => void }) {
                       icon={<KeyRound className="size-4" />}
                     />
                   </Field>
-                  <Btn className="w-full !py-3.5" onClick={() => void submitLogin()} loading={busy}>
+                  <Btn className="w-full !py-3" onClick={() => void submitLogin()} loading={busy}>
                     ورود
                     <ChevronLeft className="size-4" />
                   </Btn>
                   <button
                     onClick={() => { setMode("register"); setErrors({}); }}
-                    className="w-full pt-1 text-center text-[13px] font-semibold text-slate-500 transition hover:text-indigo-600"
+                    className="w-full pt-1 text-center text-[13px] font-semibold text-slate-400 transition hover:text-indigo-600"
                   >
-                    حساب ندارید؟ <span className="font-bold text-indigo-600">ثبت‌نام کنید</span>
+                    حساب ندارید؟ <span className="font-bold text-indigo-600 dark:text-indigo-400">ثبت‌نام کنید</span>
                   </button>
                 </>
               ) : (
@@ -318,7 +318,7 @@ export default function Auth({ onAuth }: { onAuth: (u: User) => void }) {
                           </select>
                         </Field>
                       </div>
-                      <div className="rounded-xl bg-indigo-50 px-3.5 py-2.5 text-[12px] font-bold text-indigo-700">
+                      <div className="rounded-xl bg-indigo-50/70 px-3.5 py-2.5 text-[12px] font-bold text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300">
                         کلاس شما: {className(grade, section)}
                       </div>
                       <Field label="تاریخ تولد (شمسی)" required>
@@ -354,13 +354,13 @@ export default function Auth({ onAuth }: { onAuth: (u: User) => void }) {
                             <button
                               key={o.value}
                               onClick={() => setStaffRole(o.value)}
-                              className={`rounded-xl border px-3 py-2.5 text-right transition active:scale-[0.98] ${
+                              className={`rounded-xl border px-3 py-2.5 text-right transition ${
                                 staffRole === o.value
-                                  ? "border-indigo-400 bg-indigo-50 ring-2 ring-indigo-500/15"
-                                  : "border-slate-200 hover:border-slate-300"
+                                  ? "border-indigo-400 bg-indigo-50/70 ring-2 ring-indigo-500/15 dark:border-indigo-400/50 dark:bg-indigo-500/10"
+                                  : "border-slate-200 hover:border-slate-300 dark:border-white/10 dark:hover:border-white/20"
                               }`}
                             >
-                              <div className="text-[13px] font-bold text-slate-700">{o.label}</div>
+                              <div className="text-[13px] font-bold text-slate-700 dark:text-slate-200">{o.label}</div>
                               <div className="mt-0.5 text-[10.5px] text-slate-400">{o.hint}</div>
                             </button>
                           ))}
@@ -398,7 +398,7 @@ export default function Auth({ onAuth }: { onAuth: (u: User) => void }) {
                       <Avatar user={{ id: f.phone || "x", firstName: f.firstName || "؟", lastName: "", avatar }} size={52} ring />
                       <button
                         onClick={() => fileRef.current?.click()}
-                        className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 px-3 py-3 text-[13px] font-bold text-slate-500 transition hover:border-indigo-300 hover:text-indigo-600"
+                        className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 px-3 py-3 text-[13px] font-bold text-slate-500 transition hover:border-indigo-300 hover:text-indigo-600 dark:border-white/10 dark:hover:border-indigo-400/50"
                       >
                         <Camera className="size-4" />
                         {avatar ? "تغییر عکس" : "انتخاب عکس از گالری"}
@@ -407,21 +407,21 @@ export default function Auth({ onAuth }: { onAuth: (u: User) => void }) {
                     </div>
                   </Field>
 
-                  <Btn className="w-full !py-3.5" onClick={() => void submitRegister()} loading={busy}>
+                  <Btn className="w-full !py-3" onClick={() => void submitRegister()} loading={busy}>
                     ثبت‌نام و ورود
                     <ChevronLeft className="size-4" />
                   </Btn>
                   <button
                     onClick={() => { setMode("login"); setErrors({}); }}
-                    className="w-full pt-1 text-center text-[13px] font-semibold text-slate-500 transition hover:text-indigo-600"
+                    className="w-full pt-1 text-center text-[13px] font-semibold text-slate-400 transition hover:text-indigo-600"
                   >
-                    حساب دارید؟ <span className="font-bold text-indigo-600">وارد شوید</span>
+                    حساب دارید؟ <span className="font-bold text-indigo-600 dark:text-indigo-400">وارد شوید</span>
                   </button>
                 </>
               )}
             </div>
           </div>
-          <p className="mt-4 text-center text-[11px] font-semibold text-slate-500 lg:text-indigo-200/60">
+          <p className="mt-4 text-center text-[11px] font-semibold text-slate-400">
             دبیرستان شاهد شهیدان فهیمی
           </p>
         </div>

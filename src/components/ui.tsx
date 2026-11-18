@@ -38,16 +38,16 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastCtx.Provider value={push}>
       {children}
-      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+6.5rem)] z-[100] flex flex-col items-center gap-2 px-4 lg:bottom-6">
+      <div className="pointer-events-none fixed inset-x-0 bottom-5 z-[100] flex flex-col items-center gap-2 px-4">
         {items.map((t) => (
           <div
             key={t.id}
-            className={`toast-in pointer-events-auto flex max-w-full items-center gap-2.5 rounded-2xl border px-4 py-3 text-sm font-semibold shadow-[0_18px_40px_-16px_rgb(18_24_40/0.35)] ${
+            className={`toast-in pointer-events-auto flex items-center gap-2.5 rounded-2xl border px-4 py-3 text-sm font-medium shadow-2xl backdrop-blur-xl ${
               t.kind === "success"
-                ? "border-emerald-200 bg-white text-emerald-700"
+                ? "border-emerald-300/60 bg-emerald-50/90 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-950/80 dark:text-emerald-200"
                 : t.kind === "error"
-                ? "border-rose-200 bg-white text-rose-600"
-                : "border-sky-200 bg-white text-sky-700"
+                ? "border-rose-300/60 bg-rose-50/90 text-rose-800 dark:border-rose-500/30 dark:bg-rose-950/80 dark:text-rose-200"
+                : "border-sky-300/60 bg-sky-50/90 text-sky-800 dark:border-sky-500/30 dark:bg-sky-950/80 dark:text-sky-200"
             }`}
           >
             {t.kind === "success" ? <CheckCircle2 className="size-4.5 shrink-0" /> : t.kind === "error" ? <AlertTriangle className="size-4.5 shrink-0" /> : <Info className="size-4.5 shrink-0" />}
@@ -84,12 +84,12 @@ export function useDbTick() {
 // ----------------------------------------------------------------------------
 
 const PALETTES = [
-  "from-indigo-500 to-violet-600",
-  "from-sky-500 to-cyan-400",
-  "from-emerald-500 to-teal-400",
+  "from-indigo-500 to-violet-500",
+  "from-sky-500 to-cyan-500",
+  "from-emerald-500 to-teal-500",
   "from-rose-500 to-pink-500",
-  "from-amber-500 to-orange-400",
-  "from-fuchsia-500 to-purple-600",
+  "from-amber-500 to-orange-500",
+  "from-fuchsia-500 to-purple-500",
 ];
 
 export function Avatar({
@@ -109,8 +109,8 @@ export function Avatar({
     PALETTES[[...(user?.id ?? name)].reduce((a, c) => a + c.charCodeAt(0), 0) % PALETTES.length];
   return (
     <div
-      className={`relative flex shrink-0 select-none items-center justify-center overflow-hidden rounded-full bg-gradient-to-br font-black text-white ${palette} ${
-        ring ? "ring-2 ring-white shadow-sm" : ""
+      className={`relative flex shrink-0 select-none items-center justify-center overflow-hidden rounded-full bg-gradient-to-br font-bold text-white ${palette} ${
+        ring ? "ring-2 ring-white/70 dark:ring-white/10" : ""
       } ${className}`}
       style={{ width: size, height: size, fontSize: size * 0.42 }}
     >
@@ -152,27 +152,26 @@ export function Modal({
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[90] flex items-end justify-center p-0 sm:items-center sm:p-6">
-      <div className="modal-bg absolute inset-0 bg-[#0b0f24]/55" onClick={onClose} />
+      <div className="modal-bg absolute inset-0 bg-slate-950/50 backdrop-blur-sm" onClick={onClose} />
       <div
-        className={`modal-pop relative flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-[1.75rem] bg-white shadow-[0_-20px_60px_-20px_rgb(11_15_36/0.45)] sm:rounded-3xl sm:shadow-[0_30px_80px_-24px_rgb(11_15_36/0.5)] ${
+        className={`modal-pop relative flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-3xl border border-slate-200/70 bg-white shadow-2xl dark:border-white/10 dark:bg-slate-900 sm:rounded-3xl ${
           wide ? "sm:max-w-3xl" : "sm:max-w-lg"
         }`}
       >
-        <div className="relative flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
-          <span className="absolute left-1/2 top-1.5 block h-1 w-10 -translate-x-1/2 rounded-full bg-slate-200 sm:hidden" />
-          <div className="flex items-center gap-2.5 text-[15px] font-black text-slate-800">
+        <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 dark:border-white/5">
+          <div className="flex items-center gap-2.5 font-bold text-slate-800 dark:text-slate-100">
             {icon}
             <span>{title}</span>
           </div>
           <button
             onClick={onClose}
-            className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 active:scale-95"
+            className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/10 dark:hover:text-slate-200"
             aria-label="بستن"
           >
             <X className="size-5" />
           </button>
         </div>
-        <div className="overflow-y-auto px-5 py-5 [-webkit-overflow-scrolling:touch]">{children}</div>
+        <div className="overflow-y-auto px-5 py-5">{children}</div>
       </div>
     </div>
   );
@@ -197,19 +196,19 @@ export function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 flex items-center gap-1 text-[13px] font-bold text-slate-600">
+      <span className="mb-1.5 flex items-center gap-1 text-[13px] font-semibold text-slate-600 dark:text-slate-300">
         {label}
         {required && <span className="text-rose-500">*</span>}
       </span>
       {children}
-      {hint && !error && <span className="mt-1.5 block text-[11px] leading-5 text-slate-400">{hint}</span>}
-      {error && <span className="mt-1.5 block text-[11px] font-semibold text-rose-500">{error}</span>}
+      {hint && !error && <span className="mt-1 block text-[11px] text-slate-400">{hint}</span>}
+      {error && <span className="mt-1 block text-[11px] font-medium text-rose-500">{error}</span>}
     </label>
   );
 }
 
 export const inputCls =
-  "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-[15px] text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/15";
+  "w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100 dark:focus:border-indigo-400/60 dark:focus:bg-white/[0.07]";
 
 /**
  * ورودی رمز عبور با دکمه چشم برای نمایش/پنهان کردن رمز
@@ -257,7 +256,7 @@ export function PasswordInput({
       <button
         type="button"
         onClick={() => setShow((s) => !s)}
-        className="absolute left-2 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600"
+        className="absolute left-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-white/10"
         aria-label={show ? "پنهان کردن رمز" : "نمایش رمز"}
         title={show ? "پنهان کردن رمز" : "نمایش رمز"}
         tabIndex={-1}
@@ -275,7 +274,7 @@ export function SecretReveal({ value, label = "رمز عبور" }: { value: stri
   return (
     <div className="flex min-w-0 items-center gap-1.5">
       <span
-        className="min-w-0 break-all font-black tabular-nums text-slate-700"
+        className="min-w-0 break-all font-black tabular-nums text-slate-700 dark:text-slate-200"
         dir="ltr"
         style={{ overflowWrap: "anywhere" }}
       >
@@ -283,7 +282,7 @@ export function SecretReveal({ value, label = "رمز عبور" }: { value: stri
       </span>
       <button
         onClick={() => setShow((s) => !s)}
-        className="shrink-0 rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600"
+        className="shrink-0 rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-white/10"
         aria-label={show ? `پنهان کردن ${label}` : `نمایش ${label}`}
         title={show ? "پنهان کردن" : "نمایش"}
       >
@@ -296,7 +295,7 @@ export function SecretReveal({ value, label = "رمز عبور" }: { value: stri
             () => push("error", "کپی ممکن نشد")
           )
         }
-        className="shrink-0 rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600"
+        className="shrink-0 rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-white/10"
         aria-label={`کپی ${label}`}
         title="کپی"
       >
@@ -324,14 +323,14 @@ export function Btn({
   loading?: boolean;
 }) {
   const base =
-    "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-[transform,background,box-shadow] duration-150 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50";
+    "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50";
   const kinds = {
     primary:
-      "btn-brand text-white hover:brightness-110",
-    soft: "bg-indigo-50 text-indigo-700 hover:bg-indigo-100",
+      "bg-gradient-to-l from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-600/25 hover:shadow-indigo-600/40 hover:brightness-110",
+    soft: "bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20",
     ghost:
-      "border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50",
-    danger: "bg-rose-50 text-rose-600 hover:bg-rose-100",
+      "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-white/10 dark:bg-transparent dark:text-slate-300 dark:hover:bg-white/5",
+    danger: "bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-500/10 dark:text-rose-300 dark:hover:bg-rose-500/20",
   };
   return (
     <button type={type} onClick={onClick} disabled={disabled || loading} className={`${base} ${kinds[kind]} ${className}`}>
@@ -347,24 +346,24 @@ export function Btn({
 
 export function Chip({ children, tone = "slate" }: { children: ReactNode; tone?: "slate" | "green" | "red" | "amber" | "indigo" | "violet" }) {
   const tones = {
-    slate: "bg-slate-100 text-slate-600",
-    green: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/70",
-    red: "bg-rose-50 text-rose-700 ring-1 ring-rose-200/70",
-    amber: "bg-amber-50 text-amber-700 ring-1 ring-amber-200/70",
-    indigo: "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200/70",
-    violet: "bg-violet-50 text-violet-700 ring-1 ring-violet-200/70",
+    slate: "bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300",
+    green: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300",
+    red: "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300",
+    amber: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300",
+    indigo: "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300",
+    violet: "bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300",
   };
-  return <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-extrabold ${tones[tone]}`}>{children}</span>;
+  return <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${tones[tone]}`}>{children}</span>;
 }
 
 export function Empty({ icon, title, desc, action }: { icon: ReactNode; title: string; desc?: string; action?: ReactNode }) {
   return (
-    <div className="anim-fade-up flex flex-col items-center justify-center gap-3 px-6 py-16 text-center">
-      <div className="flex size-16 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-500/12 to-violet-500/12 text-indigo-600 ring-1 ring-inset ring-indigo-500/10">
+    <div className="flex flex-col items-center justify-center gap-3 px-6 py-14 text-center">
+      <div className="flex size-16 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 text-indigo-500 dark:from-indigo-500/15 dark:to-violet-500/15">
         {icon}
       </div>
-      <div className="text-base font-black text-slate-700">{title}</div>
-      {desc && <div className="max-w-xs text-[13px] leading-6 text-slate-500">{desc}</div>}
+      <div className="text-base font-bold text-slate-700 dark:text-slate-200">{title}</div>
+      {desc && <div className="max-w-xs text-[13px] leading-6 text-slate-400">{desc}</div>}
       {action}
     </div>
   );
@@ -380,15 +379,15 @@ export function Seg<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <div className="flex rounded-xl bg-slate-100 p-1">
+    <div className="flex rounded-xl border border-slate-200 bg-slate-100/70 p-1 dark:border-white/10 dark:bg-white/5">
       {options.map((o) => (
         <button
           key={o.value}
           onClick={() => onChange(o.value)}
           className={`flex-1 rounded-lg px-2 py-1.5 text-[12px] font-bold transition ${
             value === o.value
-              ? "bg-white text-indigo-700 shadow-[0_1px_3px_rgb(18_24_40/0.12)]"
-              : "text-slate-500 hover:text-slate-700"
+              ? "bg-white text-indigo-700 shadow dark:bg-white/15 dark:text-indigo-200"
+              : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
           }`}
         >
           {o.label}
@@ -402,13 +401,13 @@ export function Toggle({ checked, onChange, label }: { checked: boolean; onChang
   return (
     <button
       onClick={() => onChange(!checked)}
-      className="flex items-center gap-2.5 text-sm font-bold text-slate-600"
+      className="flex items-center gap-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300"
     >
       <span
-        className={`relative h-6 w-11 rounded-full transition ${checked ? "bg-indigo-600" : "bg-slate-300"}`}
+        className={`relative h-6 w-11 rounded-full transition ${checked ? "bg-indigo-600" : "bg-slate-300 dark:bg-white/15"}`}
       >
         <span
-          className={`absolute top-0.5 size-5 rounded-full bg-white shadow-[0_1px_3px_rgb(0_0_0/0.25)] transition-all ${checked ? "left-[1.4rem]" : "left-0.5"}`}
+          className={`absolute top-0.5 size-5 rounded-full bg-white shadow transition-all ${checked ? "left-[1.4rem]" : "left-0.5"}`}
         />
       </span>
       {label}
@@ -418,11 +417,11 @@ export function Toggle({ checked, onChange, label }: { checked: boolean; onChang
 
 export function Stat({ label, value, icon, tone }: { label: string; value: string | number; icon: ReactNode; tone: string }) {
   return (
-    <div className="card flex items-center gap-3.5 p-4 transition hover:-translate-y-0.5">
+    <div className="card flex items-center gap-3.5 p-4">
       <div className={`flex size-11 shrink-0 items-center justify-center rounded-2xl ${tone}`}>{icon}</div>
       <div className="min-w-0">
-        <div className="text-xl font-black tabular-nums text-slate-800">{fa(value)}</div>
-        <div className="truncate text-[12px] font-bold text-slate-500">{label}</div>
+        <div className="text-xl font-black text-slate-800 dark:text-slate-100">{fa(value)}</div>
+        <div className="truncate text-[12px] font-semibold text-slate-400">{label}</div>
       </div>
     </div>
   );
@@ -430,23 +429,22 @@ export function Stat({ label, value, icon, tone }: { label: string; value: strin
 
 export function Splash() {
   return (
-    <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-7 bg-[#0b0f24]">
-      <div className="ink-grid pointer-events-none absolute inset-0" />
-      <div className="splash-logo relative flex size-24 items-center justify-center rounded-[1.75rem] bg-gradient-to-br from-indigo-500 via-violet-600 to-sky-500 shadow-[0_20px_50px_-12px_rgb(124_58_237/0.7)]">
+    <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-6 bg-gradient-to-br from-slate-50 via-indigo-50/60 to-violet-50 dark:from-slate-950 dark:via-indigo-950/40 dark:to-slate-950">
+      <div className="splash-logo relative flex size-24 items-center justify-center rounded-[2rem] bg-gradient-to-br from-indigo-600 to-violet-600 shadow-2xl shadow-indigo-600/40">
         <svg viewBox="0 0 24 24" className="size-12 text-white" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M22 10L12 5 2 10l10 5 10-5z" />
           <path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5" />
           <path d="M22 10v6" />
         </svg>
-        <div className="absolute inset-0 rounded-[1.75rem] bg-gradient-to-br from-white/25 to-transparent" />
+        <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-white/25 to-transparent" />
       </div>
-      <div className="relative text-center">
-        <div className="text-3xl font-black tracking-tight text-white">هَمدِل</div>
-        <div className="mt-1.5 text-[13px] font-semibold text-indigo-200/70">دبیرستان شاهد شهیدان فهیمی</div>
+      <div className="text-center">
+        <div className="text-2xl font-black tracking-tight text-slate-800 dark:text-white">هَمدِل</div>
+        <div className="mt-1 text-[13px] font-semibold text-slate-400">دبیرستان شاهد شهیدان فهیمی</div>
       </div>
-      <div className="relative flex gap-1.5">
+      <div className="flex gap-1.5">
         {[0, 1, 2].map((i) => (
-          <span key={i} className="splash-dot size-2 rounded-full bg-sky-300" style={{ animationDelay: `${i * 0.15}s` }} />
+          <span key={i} className="splash-dot size-2 rounded-full bg-indigo-500" style={{ animationDelay: `${i * 0.15}s` }} />
         ))}
       </div>
     </div>
@@ -472,7 +470,7 @@ export function Confirm({
 }) {
   return (
     <Modal open={open} onClose={onClose} title={title}>
-      {desc && <p className="mb-5 text-sm leading-7 text-slate-500">{desc}</p>}
+      {desc && <p className="mb-5 text-sm leading-7 text-slate-500 dark:text-slate-400">{desc}</p>}
       <div className="flex justify-end gap-2">
         <Btn kind="ghost" onClick={onClose}>انصراف</Btn>
         <Btn kind={danger ? "danger" : "primary"} onClick={() => { onYes(); onClose(); }}>{yesLabel}</Btn>

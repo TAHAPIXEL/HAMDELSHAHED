@@ -9,16 +9,24 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#4f46e5",
-  viewportFit: "cover",
-  width: "device-width",
-  initialScale: 1,
+  themeColor: "#6366f1",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="fa" dir="rtl" suppressHydrationWarning>
-      <body className="antialiased">{children}</body>
+      <head>
+        <link
+          rel="preload"
+          href="/fonts/abar/AbarMid-Regular.woff"
+          as="font"
+          type="font/woff"
+          crossOrigin="anonymous"
+        />
+      </head>
+      <body className="bg-slate-50 text-slate-900 antialiased">
+        {children}
+      </body>
     </html>
   );
 }

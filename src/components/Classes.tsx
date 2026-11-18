@@ -71,7 +71,7 @@ export default function Classes({
       <div className="h-full overflow-y-auto p-4 sm:p-6">
         <div className="mx-auto max-w-4xl">
           {!staff && (
-            <div className="anim-fade-up mb-4 rounded-2xl bg-indigo-50/80 px-4 py-3 text-[12.5px] font-semibold leading-6 text-indigo-700">
+            <div className="anim-fade-up mb-4 rounded-2xl bg-indigo-50/80 px-4 py-3 text-[12.5px] font-semibold leading-6 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300">
               کلاس شما در زیر نمایش داده شده است؛ با انتخاب آن، گروه‌ها، آزمون‌ها و تکالیف کلاس را می‌بینید.
             </div>
           )}
@@ -90,7 +90,7 @@ export default function Classes({
                   <div className={`mb-4 flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg ${gradeGrad[g]}`}>
                     <GraduationCap className="size-6" />
                   </div>
-                  <div className="text-base font-black text-slate-800">کلاس {className(g, s)}</div>
+                  <div className="text-base font-black text-slate-800 dark:text-slate-100">کلاس {className(g, s)}</div>
                   <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] font-semibold text-slate-400">
                     {staff && <span className="flex items-center gap-1"><Users className="size-3.5" /> {fa(members)} دانش‌آموز</span>}
                     <span className="flex items-center gap-1"><ClipboardList className="size-3.5" /> {fa(exams)} آزمون</span>
@@ -151,13 +151,13 @@ export default function Classes({
         </div>
 
         {/* تب‌ها */}
-        <div className="mb-5 flex gap-1.5 rounded-2xl bg-slate-100 p-1.5">
+        <div className="mb-5 flex gap-1.5 rounded-2xl bg-slate-100 p-1.5 dark:bg-white/5">
           {visibleTabs.map((t) => (
             <button
               key={t.v}
               onClick={() => setTab(t.v)}
               className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-[12.5px] font-bold transition ${
-                activeTab === t.v ? "bg-white text-indigo-700 shadow-sm" : "text-slate-500"
+                activeTab === t.v ? "bg-white text-indigo-700 shadow-sm dark:bg-white/15 dark:text-indigo-200" : "text-slate-500"
               }`}
             >
               {t.icon}
@@ -182,7 +182,7 @@ export default function Classes({
                   {c.type === "channel" ? <Megaphone className="size-5" /> : <Users className="size-5" />}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 text-sm font-black text-slate-800">
+                  <div className="flex items-center gap-2 text-sm font-black text-slate-800 dark:text-slate-100">
                     <span className="truncate">{c.title}</span>
                     {c.locked && c.type === "group" && <Lock className="size-3.5 shrink-0 text-amber-500" />}
                   </div>
@@ -192,7 +192,7 @@ export default function Classes({
                 </div>
                 <button
                   onClick={() => onOpenChat(c.id)}
-                  className="flex items-center gap-1 rounded-xl bg-indigo-50 px-3.5 py-2 text-[12px] font-black text-indigo-700 transition hover:bg-indigo-100"
+                  className="flex items-center gap-1 rounded-xl bg-indigo-50 px-3.5 py-2 text-[12px] font-black text-indigo-700 transition hover:bg-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20"
                 >
                   ورود
                   <ChevronLeft className="size-3.5" />
@@ -217,7 +217,7 @@ export default function Classes({
                   <div key={m.id} className="card flex items-center gap-3 p-3.5">
                     <Avatar user={m} size={42} />
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-[13.5px] font-black text-slate-800">{m.firstName} {m.lastName}</div>
+                      <div className="truncate text-[13.5px] font-black text-slate-800 dark:text-slate-100">{m.firstName} {m.lastName}</div>
                       <div className="text-[11px] font-semibold text-slate-400" dir="ltr">{m.phone}</div>
                     </div>
                   </div>
@@ -239,7 +239,7 @@ export default function Classes({
                   <ClipboardList className="size-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-black text-slate-800">{e.title}</div>
+                  <div className="truncate text-sm font-black text-slate-800 dark:text-slate-100">{e.title}</div>
                   <div className="mt-0.5 text-[11.5px] font-semibold text-slate-400">
                     {fa(e.questions.length)} سؤال • {fa(e.durationMin)} دقیقه
                   </div>
@@ -266,7 +266,7 @@ export default function Classes({
                       <BookOpen className="size-5" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-black text-slate-800">{h.title}</div>
+                      <div className="truncate text-sm font-black text-slate-800 dark:text-slate-100">{h.title}</div>
                       <div className="mt-0.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11.5px] font-semibold text-slate-400">
                         {h.due && (
                           <span className="flex items-center gap-1">
@@ -279,7 +279,7 @@ export default function Classes({
                     </div>
                     {h.closed ? <Chip>بسته</Chip> : <Chip tone="green">باز</Chip>}
                   </div>
-                  {h.description && <p className="mt-2.5 whitespace-pre-wrap text-[12.5px] leading-7 text-slate-500">{h.description}</p>}
+                  {h.description && <p className="mt-2.5 whitespace-pre-wrap text-[12.5px] leading-7 text-slate-500 dark:text-slate-400">{h.description}</p>}
                   {sub && (
                     <div className="mt-2.5">
                       {sub.status === "approved" ? (

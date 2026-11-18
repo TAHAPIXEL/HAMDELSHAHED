@@ -52,22 +52,22 @@ function StudentAttendance({ user }: { user: User }) {
         <div className="stagger mb-5 grid grid-cols-3 gap-3">
           <div className="card flex flex-col items-center gap-1.5 p-4">
             <UserCheck2 className="size-6 text-emerald-500" />
-            <div className="text-xl font-black text-slate-800">{fa(count("present"))}</div>
+            <div className="text-xl font-black text-slate-800 dark:text-slate-100">{fa(count("present"))}</div>
             <div className="text-[11px] font-bold text-slate-400">روز حاضر</div>
           </div>
           <div className="card flex flex-col items-center gap-1.5 p-4">
             <UserX2 className="size-6 text-rose-500" />
-            <div className="text-xl font-black text-slate-800">{fa(count("absent"))}</div>
+            <div className="text-xl font-black text-slate-800 dark:text-slate-100">{fa(count("absent"))}</div>
             <div className="text-[11px] font-bold text-slate-400">روز غایب</div>
           </div>
           <div className="card flex flex-col items-center gap-1.5 p-4">
             <AlarmClock className="size-6 text-amber-500" />
-            <div className="text-xl font-black text-slate-800">{fa(count("excused"))}</div>
+            <div className="text-xl font-black text-slate-800 dark:text-slate-100">{fa(count("excused"))}</div>
             <div className="text-[11px] font-bold text-slate-400">روز مرخصی</div>
           </div>
         </div>
 
-        <div className="mb-3 rounded-2xl bg-indigo-50 px-4 py-3 text-[12.5px] font-semibold leading-6 text-indigo-800">
+        <div className="mb-3 rounded-2xl bg-indigo-50 px-4 py-3 text-[12.5px] font-semibold leading-6 text-indigo-800 dark:bg-indigo-500/10 dark:text-indigo-200">
           هر روزی که وارد سایت شوید، حضور شما به‌صورت خودکار ثبت می‌شود. کادر مدرسه می‌توانند آن را اصلاح کنند.
         </div>
 
@@ -77,11 +77,11 @@ function StudentAttendance({ user }: { user: User }) {
         <div className="stagger space-y-2">
           {recs.map((r) => (
             <div key={r.id} className="card flex items-center gap-3.5 p-4">
-              <div className={`flex size-10 shrink-0 items-center justify-center rounded-2xl ${r.status === "present" ? "bg-emerald-100 text-emerald-600" : r.status === "absent" ? "bg-rose-100 text-rose-600" : "bg-amber-100 text-amber-600"}`}>
+              <div className={`flex size-10 shrink-0 items-center justify-center rounded-2xl ${r.status === "present" ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15" : r.status === "absent" ? "bg-rose-100 text-rose-600 dark:bg-rose-500/15" : "bg-amber-100 text-amber-600 dark:bg-amber-500/15"}`}>
                 {r.status === "present" ? <UserCheck2 className="size-5" /> : r.status === "absent" ? <UserX2 className="size-5" /> : <AlarmClock className="size-5" />}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-[13.5px] font-black text-slate-800">{dateKeyFa(r.date)}</div>
+                <div className="text-[13.5px] font-black text-slate-800 dark:text-slate-100">{dateKeyFa(r.date)}</div>
                 <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] font-semibold text-slate-400">
                   {r.loginAt && <span>ورود: {faTime(r.loginAt)}</span>}
                   {r.auto && <span>ثبت خودکار</span>}
@@ -137,7 +137,7 @@ function StaffAttendance({ user }: { user: User }) {
         {/* فیلترها */}
         <div className="card mb-5 grid gap-3 p-4 sm:grid-cols-3">
           <div>
-            <span className="mb-1.5 block text-[12px] font-bold text-slate-500">تاریخ (شمسی)</span>
+            <span className="mb-1.5 block text-[12px] font-bold text-slate-500 dark:text-slate-400">تاریخ (شمسی)</span>
             <div className="grid grid-cols-3 gap-1.5">
               <select className={`${inputCls} !px-2 text-center !text-[12px]`} value={jd} onChange={(e) => setJd(Number(e.target.value))}>
                 {Array.from({ length: jDays }, (_, i) => i + 1).map((d) => (
@@ -157,7 +157,7 @@ function StaffAttendance({ user }: { user: User }) {
             </div>
           </div>
           <label className="block">
-            <span className="mb-1.5 block text-[12px] font-bold text-slate-500">پایه</span>
+            <span className="mb-1.5 block text-[12px] font-bold text-slate-500 dark:text-slate-400">پایه</span>
             <select className={inputCls} value={grade} onChange={(e) => { setGrade(Number(e.target.value) as Grade); setSection("1"); }}>
               {([7, 8, 9] as Grade[]).map((g) => (
                 <option key={g} value={g}>پایه {className(g, "1").split(" ")[0]}</option>
@@ -165,7 +165,7 @@ function StaffAttendance({ user }: { user: User }) {
             </select>
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-[12px] font-bold text-slate-500">شعبه</span>
+            <span className="mb-1.5 block text-[12px] font-bold text-slate-500 dark:text-slate-400">شعبه</span>
             <select className={inputCls} value={section} onChange={(e) => setSection(e.target.value)}>
               {SECTIONS[grade].map((s) => (
                 <option key={s} value={s}>شعبه {s}</option>
@@ -203,13 +203,13 @@ function StaffAttendance({ user }: { user: User }) {
               <div key={s.id} className="card flex flex-wrap items-center gap-3 p-3.5">
                 <Avatar user={s} size={42} />
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-[13.5px] font-black text-slate-800">{s.firstName} {s.lastName}</div>
+                  <div className="truncate text-[13.5px] font-black text-slate-800 dark:text-slate-100">{s.firstName} {s.lastName}</div>
                   <div className="mt-0.5 text-[11px] font-semibold text-slate-400">
                     {rec?.loginAt ? `ورود امروز: ${faTime(rec.loginAt)}` : "امروز وارد نشده"}
                     {rec?.auto ? " • ثبت خودکار" : rec ? " • ثبت دستی" : ""}
                   </div>
                 </div>
-                <div className="flex rounded-xl border border-slate-200 bg-slate-50 p-1">
+                <div className="flex rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-white/10 dark:bg-white/5">
                   {(
                     [
                       { v: "present", l: "حاضر", on: "bg-emerald-500 text-white" },
@@ -221,7 +221,7 @@ function StaffAttendance({ user }: { user: User }) {
                       key={o.v}
                       onClick={() => setStatus(s.id, o.v)}
                       className={`rounded-lg px-3 py-1.5 text-[12px] font-black transition ${
-                        rec?.status === o.v ? o.on : "text-slate-500 hover:text-slate-700"
+                        rec?.status === o.v ? o.on : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
                       }`}
                     >
                       {o.l}

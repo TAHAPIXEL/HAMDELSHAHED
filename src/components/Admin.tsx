@@ -115,7 +115,7 @@ export default function Admin({ user }: { user: User }) {
           </div>
         )}
         {isDev && (
-          <div className="anim-fade-up mb-5 flex items-center gap-3 rounded-2xl bg-gradient-to-l from-slate-800 to-slate-900 px-5 py-4 text-white">
+          <div className="anim-fade-up mb-5 flex items-center gap-3 rounded-2xl bg-gradient-to-l from-slate-800 to-slate-900 px-5 py-4 text-white dark:from-indigo-950 dark:to-slate-900">
             <Crown className="size-6 shrink-0 text-amber-400" />
             <div>
               <div className="text-sm font-black">ورود مدیر ارشد</div>
@@ -125,13 +125,13 @@ export default function Admin({ user }: { user: User }) {
         )}
 
         {/* تب‌ها */}
-        <div className="mb-6 flex gap-1.5 overflow-x-auto rounded-2xl bg-slate-100 p-1.5">
+        <div className="mb-6 flex gap-1.5 overflow-x-auto rounded-2xl bg-slate-100 p-1.5 dark:bg-white/5">
           {tabs.filter((t) => t.show).map((t) => (
             <button
               key={t.v}
               onClick={() => setTab(t.v)}
               className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-[12.5px] font-bold transition ${
-                tab === t.v ? "bg-white text-indigo-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                tab === t.v ? "bg-white text-indigo-700 shadow-sm dark:bg-white/15 dark:text-indigo-200" : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
               }`}
             >
               {t.icon}
@@ -165,25 +165,25 @@ function Dash() {
   return (
     <div className="space-y-6">
       <div className="stagger grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="دانش‌آموزان" value={s.students} icon={<GraduationCap className="size-5.5" />} tone="bg-indigo-100 text-indigo-600" />
-        <Stat label="کادر مدرسه" value={s.staff} icon={<School className="size-5.5" />} tone="bg-emerald-100 text-emerald-600" />
-        <Stat label="حاضران امروز" value={s.presentToday} icon={<Users className="size-5.5" />} tone="bg-teal-100 text-teal-600" />
-        <Stat label="پیام‌ها" value={s.messages} icon={<MessagesSquare className="size-5.5" />} tone="bg-violet-100 text-violet-600" />
-        <Stat label="گروه‌ها" value={s.groups} icon={<Users className="size-5.5" />} tone="bg-sky-100 text-sky-600" />
-        <Stat label="کانال‌ها" value={s.channels} icon={<Megaphone className="size-5.5" />} tone="bg-amber-100 text-amber-600" />
-        <Stat label="آزمون‌ها" value={s.exams} icon={<ClipboardList className="size-5.5" />} tone="bg-fuchsia-100 text-fuchsia-600" />
-        <Stat label="اطلاعیه‌ها" value={s.notices} icon={<Megaphone className="size-5.5" />} tone="bg-rose-100 text-rose-600" />
+        <Stat label="دانش‌آموزان" value={s.students} icon={<GraduationCap className="size-5.5" />} tone="bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300" />
+        <Stat label="کادر مدرسه" value={s.staff} icon={<School className="size-5.5" />} tone="bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300" />
+        <Stat label="حاضران امروز" value={s.presentToday} icon={<Users className="size-5.5" />} tone="bg-teal-100 text-teal-600 dark:bg-teal-500/15 dark:text-teal-300" />
+        <Stat label="پیام‌ها" value={s.messages} icon={<MessagesSquare className="size-5.5" />} tone="bg-violet-100 text-violet-600 dark:bg-violet-500/15 dark:text-violet-300" />
+        <Stat label="گروه‌ها" value={s.groups} icon={<Users className="size-5.5" />} tone="bg-sky-100 text-sky-600 dark:bg-sky-500/15 dark:text-sky-300" />
+        <Stat label="کانال‌ها" value={s.channels} icon={<Megaphone className="size-5.5" />} tone="bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300" />
+        <Stat label="آزمون‌ها" value={s.exams} icon={<ClipboardList className="size-5.5" />} tone="bg-fuchsia-100 text-fuchsia-600 dark:bg-fuchsia-500/15 dark:text-fuchsia-300" />
+        <Stat label="اطلاعیه‌ها" value={s.notices} icon={<Megaphone className="size-5.5" />} tone="bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300" />
       </div>
 
       <div className="card p-5">
-        <div className="mb-4 text-sm font-black text-slate-700">آخرین عضویت‌ها</div>
+        <div className="mb-4 text-sm font-black text-slate-700 dark:text-slate-200">آخرین عضویت‌ها</div>
         {recent.length === 0 && <Empty icon={<Users className="size-7" />} title="هنوز کاربری ثبت‌نام نکرده" />}
         <div className="space-y-1">
           {recent.map((u) => (
             <div key={u.id} className="flex items-center gap-3 rounded-xl px-2 py-2">
               <Avatar user={u} size={36} />
               <div className="min-w-0 flex-1">
-                <div className="truncate text-[13px] font-bold text-slate-700">{u.firstName} {u.lastName}</div>
+                <div className="truncate text-[13px] font-bold text-slate-700 dark:text-slate-200">{u.firstName} {u.lastName}</div>
                 <div className="text-[11px] font-semibold text-slate-400">
                   {roleFa(u)}{u.grade ? ` • ${className(u.grade, u.section!)}` : ""} • {faDate(u.createdAt)}
                 </div>
@@ -264,7 +264,7 @@ function UsersTab({ actor }: { actor: User }) {
             <button onClick={() => setDetail(u)} className="flex min-w-0 w-full items-center gap-3 text-right">
               <Avatar user={u} size={42} />
               <div className="min-w-0">
-                <div className="truncate text-[13.5px] font-black text-slate-800">{u.firstName} {u.lastName}</div>
+                <div className="truncate text-[13.5px] font-black text-slate-800 dark:text-slate-100">{u.firstName} {u.lastName}</div>
                 <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] font-semibold text-slate-400">
                   <span dir="ltr">{u.phone}</span>
                   <Chip tone={u.role === "student" ? "indigo" : "violet"}>{roleFa(u)}</Chip>
@@ -275,7 +275,7 @@ function UsersTab({ actor }: { actor: User }) {
             {/* اکشن‌ها — در گوشی به ردیف بعدی می‌روند و از صفحه بیرون نمی‌زنند */}
             <div className="mt-3 flex flex-wrap items-center gap-2">
               {canViewPasswords(actor) && (
-                <div className="flex min-w-0 max-w-full flex-1 items-center gap-1 rounded-xl bg-slate-50 px-3 py-2 text-[11.5px] sm:flex-none">
+                <div className="flex min-w-0 max-w-full flex-1 items-center gap-1 rounded-xl bg-slate-50 px-3 py-2 text-[11.5px] dark:bg-white/5 sm:flex-none">
                   <span className="shrink-0 text-[10px] font-bold text-slate-400">رمز:</span>
                   <SecretReveal value={u.password} />
                 </div>
@@ -283,7 +283,7 @@ function UsersTab({ actor }: { actor: User }) {
               {canChangePasswords(actor) && (
                 <button
                   onClick={() => setPwdUser(u)}
-                  className="flex items-center gap-1.5 rounded-xl bg-amber-50 px-3 py-2 text-[12px] font-black text-amber-700 transition hover:bg-amber-100"
+                  className="flex items-center gap-1.5 rounded-xl bg-amber-50 px-3 py-2 text-[12px] font-black text-amber-700 transition hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-300"
                 >
                   <KeyRound className="size-3.5" />
                   تغییر رمز
@@ -292,7 +292,7 @@ function UsersTab({ actor }: { actor: User }) {
               {canDeleteUsers(actor, u) && (
                 <button
                   onClick={() => setDelUser(u)}
-                  className="flex items-center gap-1.5 rounded-xl bg-rose-50 px-3 py-2 text-[12px] font-black text-rose-600 transition hover:bg-rose-100"
+                  className="flex items-center gap-1.5 rounded-xl bg-rose-50 px-3 py-2 text-[12px] font-black text-rose-600 transition hover:bg-rose-100 dark:bg-rose-500/10 dark:text-rose-300"
                 >
                   <Trash2 className="size-3.5" />
                   حذف
@@ -349,9 +349,9 @@ function PasswordModal({ user, onClose }: { user: User; onClose: () => void }) {
 // بیرون از کامپوننت تعریف می‌شود تا با هر به‌روزرسانی دوباره ساخته نشود (رفع چشمک‌زدن)
 function DetailItem({ label, value, ltr }: { label: string; value?: string; ltr?: boolean }) {
   return (
-    <div className="rounded-xl bg-slate-50 px-3.5 py-3">
+    <div className="rounded-xl bg-slate-50 px-3.5 py-3 dark:bg-white/5">
       <div className="text-[10.5px] font-bold text-slate-400">{label}</div>
-      <div className={`user-text mt-0.5 text-[13px] font-black text-slate-700 ${ltr ? "text-left" : ""}`} dir={ltr ? "ltr" : undefined}>
+      <div className={`user-text mt-0.5 text-[13px] font-black text-slate-700 dark:text-slate-200 ${ltr ? "text-left" : ""}`} dir={ltr ? "ltr" : undefined}>
         {value || "—"}
       </div>
     </div>
@@ -365,7 +365,7 @@ function UserDetailModal({ user, viewer, onClose }: { user: User; viewer: User; 
       <div className="mb-4 flex items-center gap-3.5">
         <Avatar user={user} size={60} ring />
         <div>
-          <div className="text-base font-black text-slate-800">{user.firstName} {user.lastName}</div>
+          <div className="text-base font-black text-slate-800 dark:text-slate-100">{user.firstName} {user.lastName}</div>
           <div className="mt-1 flex gap-1.5">
             <Chip tone={user.role === "student" ? "indigo" : "violet"}>{roleFa(user)}</Chip>
             {user.grade && <Chip>{className(user.grade, user.section!)}</Chip>}
@@ -393,7 +393,7 @@ function UserDetailModal({ user, viewer, onClose }: { user: User; viewer: User; 
               <>
                 <DetailItem label="تاریخ تولد" value={user.birthDate ? fa(user.birthDate) : undefined} />
                 <DetailItem label="نام پدر" value={user.fatherName} />
-                <div className="rounded-xl bg-amber-50 px-3.5 py-3 text-[11.5px] font-bold leading-6 text-amber-700 sm:col-span-2">
+                <div className="rounded-xl bg-amber-50 px-3.5 py-3 text-[11.5px] font-bold leading-6 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300 sm:col-span-2">
                   کد ملی و آدرس منزل دانش‌آموزان برای نقش شما نمایش داده نمی‌شود.
                 </div>
               </>
@@ -433,7 +433,7 @@ function AddStaff() {
 
   return (
     <div className="card mx-auto max-w-xl p-5">
-      <div className="mb-4 flex items-center gap-2 text-sm font-black text-slate-700">
+      <div className="mb-4 flex items-center gap-2 text-sm font-black text-slate-700 dark:text-slate-200">
         <UserRoundPlus className="size-5 text-indigo-500" />
         افزودن عضو جدید کادر مدرسه
       </div>
@@ -458,7 +458,7 @@ function AddStaff() {
                 key={o.v}
                 onClick={() => setRole(o.v)}
                 className={`rounded-xl border px-2 py-2.5 text-[12px] font-black transition ${
-                  role === o.v ? "border-indigo-400 bg-indigo-50 text-indigo-700" : "border-slate-200 text-slate-500"
+                  role === o.v ? "border-indigo-400 bg-indigo-50 text-indigo-700 dark:border-indigo-400/50 dark:bg-indigo-500/10 dark:text-indigo-300" : "border-slate-200 text-slate-500 dark:border-white/10"
                 }`}
               >
                 {o.l}
@@ -477,7 +477,7 @@ function AddStaff() {
         <Field label="عکس پروفایل (اختیاری)">
           <div className="flex items-center gap-3">
             <Avatar user={{ id: phone || "x", firstName: firstName || "؟", lastName: "", avatar }} size={46} />
-            <button onClick={() => fileRef.current?.click()} className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 px-3 py-3 text-[12.5px] font-bold text-slate-500 transition hover:border-indigo-300">
+            <button onClick={() => fileRef.current?.click()} className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 px-3 py-3 text-[12.5px] font-bold text-slate-500 transition hover:border-indigo-300 dark:border-white/10">
               <Camera className="size-4" />
               {avatar ? "تغییر عکس" : "انتخاب عکس"}
             </button>
@@ -534,7 +534,7 @@ function ChatsTab({ actor }: { actor: User }) {
             {c.type === "channel" ? <Megaphone className="size-4.5" /> : <Users className="size-4.5" />}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 truncate text-[13.5px] font-black text-slate-800">
+            <div className="flex items-center gap-2 truncate text-[13.5px] font-black text-slate-800 dark:text-slate-100">
               {c.title}
               {c.locked && c.type === "group" && <Lock className="size-3.5 text-amber-500" />}
             </div>
@@ -545,14 +545,14 @@ function ChatsTab({ actor }: { actor: User }) {
           {c.type === "group" && manage && (
             <button
               onClick={() => toggleLock(c)}
-              className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-black transition ${c.locked ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+              className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-black transition ${c.locked ? "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300" : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/10 dark:text-slate-300"}`}
             >
               {c.locked ? <Unlock className="size-3.5" /> : <Lock className="size-3.5" />}
               {c.locked ? "رفع محدودیت" : "فقط کادر"}
             </button>
           )}
           {manage && (
-            <button onClick={() => setDel(c)} className="flex items-center gap-1.5 rounded-xl bg-rose-50 px-3 py-2 text-[12px] font-black text-rose-600 transition hover:bg-rose-100">
+            <button onClick={() => setDel(c)} className="flex items-center gap-1.5 rounded-xl bg-rose-50 px-3 py-2 text-[12px] font-black text-rose-600 transition hover:bg-rose-100 dark:bg-rose-500/10 dark:text-rose-300">
               <Trash2 className="size-3.5" />
               حذف
             </button>
@@ -622,7 +622,7 @@ function ContentTab({ actor }: { actor: User }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-1.5 rounded-2xl bg-slate-100 p-1.5">
+      <div className="flex gap-1.5 rounded-2xl bg-slate-100 p-1.5 dark:bg-white/5">
         {(
           [
             { v: "exams", l: "آزمون‌ها", i: <ClipboardList className="size-4" />, n: exams.length },
@@ -634,12 +634,12 @@ function ContentTab({ actor }: { actor: User }) {
             key={t.v}
             onClick={() => setKind(t.v)}
             className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-[12.5px] font-bold transition ${
-              kind === t.v ? "bg-white text-indigo-700 shadow-sm" : "text-slate-500"
+              kind === t.v ? "bg-white text-indigo-700 shadow-sm dark:bg-white/15 dark:text-indigo-200" : "text-slate-500"
             }`}
           >
             {t.i}
             {t.l}
-            <span className="rounded-full bg-slate-200 px-1.5 text-[10px] font-black text-slate-500">{fa(t.n)}</span>
+            <span className="rounded-full bg-slate-200 px-1.5 text-[10px] font-black text-slate-500 dark:bg-white/10 dark:text-slate-300">{fa(t.n)}</span>
           </button>
         ))}
       </div>
@@ -653,7 +653,7 @@ function ContentTab({ actor }: { actor: User }) {
                 <ClipboardList className="size-4.5" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="truncate text-[13.5px] font-black text-slate-800">{e.title}</div>
+                <div className="truncate text-[13.5px] font-black text-slate-800 dark:text-slate-100">{e.title}</div>
                 <div className="mt-0.5 text-[11px] font-semibold text-slate-400">
                   {className(e.grade, e.section)} • {fa(e.questions.length)} سؤال • طراح: {authorName(e.createdBy)} • {fa(DB.subs().filter((s) => s.examId === e.id).length)} پاسخ
                 </div>
@@ -686,7 +686,7 @@ function ContentTab({ actor }: { actor: User }) {
                 <BookOpen className="size-4.5" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="truncate text-[13.5px] font-black text-slate-800">{h.title}</div>
+                <div className="truncate text-[13.5px] font-black text-slate-800 dark:text-slate-100">{h.title}</div>
                 <div className="mt-0.5 text-[11px] font-semibold text-slate-400">
                   {className(h.grade, h.section)}
                   {h.due ? ` • موعد: ${fa(h.due)}` : ""} • {authorName(h.createdBy)} • {fa(DB.hwsubs().filter((s) => s.homeworkId === h.id).length)} تحویل
@@ -717,7 +717,7 @@ function ContentTab({ actor }: { actor: User }) {
                 <Megaphone className="size-4.5" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="truncate text-[13.5px] font-black text-slate-800">{n.title}</div>
+                <div className="truncate text-[13.5px] font-black text-slate-800 dark:text-slate-100">{n.title}</div>
                 <div className="mt-0.5 text-[11px] font-semibold text-slate-400">
                   {authorName(n.createdBy)} • {faDate(n.createdAt)} •{" "}
                   {n.audience === "all" ? "همه" : n.audience === "students" ? "دانش‌آموزان" : "کادر"}
@@ -779,23 +779,23 @@ function AttendanceReportTab() {
     <div className="space-y-4">
       <div className="text-[12px] font-bold text-slate-400">وضعیت امروز — {dateKeyFa(today)}</div>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="کل دانش‌آموزان" value={totals.total} icon={<Users className="size-5.5" />} tone="bg-indigo-100 text-indigo-600" />
-        <Stat label="حاضر امروز" value={totals.present} icon={<UserCheck2 className="size-5.5" />} tone="bg-emerald-100 text-emerald-600" />
-        <Stat label="غایب امروز" value={totals.absent} icon={<UserX2 className="size-5.5" />} tone="bg-rose-100 text-rose-600" />
-        <Stat label="مرخصی امروز" value={totals.excused} icon={<AlarmClock className="size-5.5" />} tone="bg-amber-100 text-amber-600" />
+        <Stat label="کل دانش‌آموزان" value={totals.total} icon={<Users className="size-5.5" />} tone="bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300" />
+        <Stat label="حاضر امروز" value={totals.present} icon={<UserCheck2 className="size-5.5" />} tone="bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300" />
+        <Stat label="غایب امروز" value={totals.absent} icon={<UserX2 className="size-5.5" />} tone="bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300" />
+        <Stat label="مرخصی امروز" value={totals.excused} icon={<AlarmClock className="size-5.5" />} tone="bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300" />
       </div>
 
       <div className="card overflow-hidden p-0">
-        <div className="border-b border-slate-100 px-5 py-3.5 text-sm font-black text-slate-700">
+        <div className="border-b border-slate-100 px-5 py-3.5 text-sm font-black text-slate-700 dark:border-white/5 dark:text-slate-200">
           تفکیک کلاس‌ها
         </div>
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-slate-100 dark:divide-white/5">
           {rows.map((r) => {
             const pct = r.total > 0 ? Math.round((r.present / r.total) * 100) : 0;
             return (
               <div key={r.key} className="flex flex-wrap items-center gap-3 px-5 py-3.5">
-                <div className="min-w-24 text-[13px] font-black text-slate-700">{r.label}</div>
-                <div className="relative h-2 min-w-32 flex-1 overflow-hidden rounded-full bg-slate-100">
+                <div className="min-w-24 text-[13px] font-black text-slate-700 dark:text-slate-200">{r.label}</div>
+                <div className="relative h-2 min-w-32 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10">
                   <div className="absolute inset-y-0 right-0 rounded-full bg-gradient-to-l from-emerald-500 to-teal-500 transition-all" style={{ width: `${pct}%` }} />
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5">
@@ -831,16 +831,16 @@ function PermPicker({
 }) {
   return (
     <div>
-      <div className="mb-2 text-[12px] font-bold text-slate-500">{label}</div>
-      <div className="max-h-56 space-y-1 overflow-y-auto rounded-2xl border border-slate-200 p-2">
+      <div className="mb-2 text-[12px] font-bold text-slate-500 dark:text-slate-400">{label}</div>
+      <div className="max-h-56 space-y-1 overflow-y-auto rounded-2xl border border-slate-200 p-2 dark:border-white/10">
         {students.map((s) => (
           <button
             key={s.id}
             onClick={() => onChange(s.id)}
-            className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 transition ${value === s.id ? "bg-indigo-50 ring-1 ring-indigo-300" : "hover:bg-slate-50"}`}
+            className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 transition ${value === s.id ? "bg-indigo-50 ring-1 ring-indigo-300 dark:bg-indigo-500/10" : "hover:bg-slate-50 dark:hover:bg-white/5"}`}
           >
             <Avatar user={s} size={30} />
-            <span className="truncate text-[12.5px] font-bold text-slate-700">{s.firstName} {s.lastName}</span>
+            <span className="truncate text-[12.5px] font-bold text-slate-700 dark:text-slate-200">{s.firstName} {s.lastName}</span>
             <span className="mr-auto text-[10px] font-semibold text-slate-400">{s.grade ? className(s.grade, s.section!) : ""}</span>
           </button>
         ))}
@@ -884,7 +884,7 @@ function PermsTab({ actor }: { actor: User }) {
   return (
     <div className="grid gap-5 lg:grid-cols-2">
       <div className="card p-5">
-        <div className="mb-3 flex items-center gap-2 text-sm font-black text-slate-700">
+        <div className="mb-3 flex items-center gap-2 text-sm font-black text-slate-700 dark:text-slate-200">
           <Handshake className="size-5 text-indigo-500" />
           صدور مجوز گفتگوی شخصی بین دو دانش‌آموز
         </div>
@@ -899,11 +899,11 @@ function PermsTab({ actor }: { actor: User }) {
         <Btn className="mt-4 w-full" disabled={!manage} onClick={grant}>صدور مجوز چت</Btn>
       </div>
       <div className="card p-5">
-        <div className="mb-3 text-sm font-black text-slate-700">مجوزهای فعال — {fa(perms.length)}</div>
+        <div className="mb-3 text-sm font-black text-slate-700 dark:text-slate-200">مجوزهای فعال — {fa(perms.length)}</div>
         {perms.length === 0 && <Empty icon={<Handshake className="size-7" />} title="مجوزی نیست" desc="با صدور مجوز، یک چت شخصی بین دو دانش‌آموز ساخته می‌شود" />}
         <div className="space-y-2">
           {perms.map((p) => (
-            <div key={p.id} className="flex items-center gap-2 rounded-xl bg-slate-50 px-3.5 py-3 text-[12.5px] font-bold text-slate-600">
+            <div key={p.id} className="flex items-center gap-2 rounded-xl bg-slate-50 px-3.5 py-3 text-[12.5px] font-bold text-slate-600 dark:bg-white/5 dark:text-slate-300">
               <span className="truncate">{name(p.a)}</span>
               <Handshake className="size-4 shrink-0 text-indigo-400" />
               <span className="truncate">{name(p.b)}</span>
@@ -941,8 +941,8 @@ function PartSelector({
   const allOn = parts.length > 0 && parts.every((p) => selected.has(p.key));
   const activeCls =
     tone === "emerald"
-      ? "border-emerald-400 bg-emerald-50/70 ring-2 ring-emerald-500/15"
-      : "border-indigo-400 bg-indigo-50/70 ring-2 ring-indigo-500/15";
+      ? "border-emerald-400 bg-emerald-50/70 ring-2 ring-emerald-500/15 dark:border-emerald-400/50 dark:bg-emerald-500/10"
+      : "border-indigo-400 bg-indigo-50/70 ring-2 ring-indigo-500/15 dark:border-indigo-400/50 dark:bg-indigo-500/10";
   const boxCls = tone === "emerald" ? "border-emerald-500 bg-emerald-500" : "border-indigo-500 bg-indigo-500";
 
   return (
@@ -962,17 +962,17 @@ function PartSelector({
               key={p.key}
               onClick={() => onToggle(p.key)}
               className={`flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-right transition ${
-                on ? activeCls : "border-slate-200 hover:border-slate-300"
+                on ? activeCls : "border-slate-200 hover:border-slate-300 dark:border-white/10"
               }`}
             >
-              <span className={`flex size-5 shrink-0 items-center justify-center rounded-md border-2 transition ${on ? `${boxCls} text-white` : "border-slate-300"}`}>
+              <span className={`flex size-5 shrink-0 items-center justify-center rounded-md border-2 transition ${on ? `${boxCls} text-white` : "border-slate-300 dark:border-white/20"}`}>
                 {on && <Check className="size-3" />}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-[12.5px] font-black text-slate-700">{p.label}</span>
+                <span className="block truncate text-[12.5px] font-black text-slate-700 dark:text-slate-200">{p.label}</span>
                 <span className="block truncate text-[10.5px] text-slate-400">{p.hint}</span>
               </span>
-              <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-black text-slate-500">
+              <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-black text-slate-500 dark:bg-white/10 dark:text-slate-300">
                 {fa(n)}
               </span>
             </button>
@@ -1102,7 +1102,7 @@ function DataTab({ actor }: { actor: User }) {
       <div className="card p-5">
         <div className="mb-1 flex items-center gap-2.5">
           <Download className="size-6 text-indigo-500" />
-          <div className="text-sm font-black text-slate-800">پشتیبان‌گیری از داده‌ها</div>
+          <div className="text-sm font-black text-slate-800 dark:text-slate-100">پشتیبان‌گیری از داده‌ها</div>
         </div>
         <p className="mb-4 text-[12.5px] font-semibold leading-6 text-slate-400">
           انتخاب کنید از چه بخش‌هایی پشتیبان گرفته شود؛ خروجی یک فایل JSON است.
@@ -1123,7 +1123,7 @@ function DataTab({ actor }: { actor: User }) {
       <div className="card p-5">
         <div className="mb-1 flex items-center gap-2.5">
           <Upload className="size-6 text-emerald-500" />
-          <div className="text-sm font-black text-slate-800">وارد کردن فایل پشتیبان</div>
+          <div className="text-sm font-black text-slate-800 dark:text-slate-100">وارد کردن فایل پشتیبان</div>
         </div>
         <p className="mb-4 text-[12.5px] font-semibold leading-6 text-slate-400">
           فایل پشتیبان را انتخاب کنید؛ سپس مشخص می‌کنید کدام بخش‌ها وارد شوند.
@@ -1136,20 +1136,20 @@ function DataTab({ actor }: { actor: User }) {
       </div>
 
       {/* عملیات خطرناک */}
-      <div className="card border-rose-200 p-5">
+      <div className="card border-rose-200 p-5 dark:border-rose-500/20">
         <div className="mb-4 flex items-center gap-2.5">
           <ShieldAlert className="size-6 text-rose-500" />
-          <div className="text-sm font-black text-slate-800">عملیات خطرناک</div>
+          <div className="text-sm font-black text-slate-800 dark:text-slate-100">عملیات خطرناک</div>
         </div>
         {!allowed && (
-          <div className="mb-3 rounded-xl bg-slate-50 px-4 py-3 text-[12px] font-bold text-slate-500">
+          <div className="mb-3 rounded-xl bg-slate-50 px-4 py-3 text-[12px] font-bold text-slate-500 dark:bg-white/5">
             این بخش فقط برای مدیر و معاون آموزشی فعال است.
           </div>
         )}
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-2xl border border-slate-200 p-4">
+          <div className="rounded-2xl border border-slate-200 p-4 dark:border-white/10">
             <MessagesSquare className="mb-2 size-6 text-amber-500" />
-            <div className="text-[13px] font-black text-slate-800">پاک کردن کل پیام‌ها</div>
+            <div className="text-[13px] font-black text-slate-800 dark:text-slate-100">پاک کردن کل پیام‌ها</div>
             <p className="mb-3 mt-1 text-[11.5px] font-semibold leading-6 text-slate-400">
               همه متن‌ها، تصاویر و نظرسنجی‌های همه گفتگوها حذف می‌شود. گروه‌ها، کاربران و بقیه اطلاعات باقی می‌مانند.
             </p>
@@ -1158,9 +1158,9 @@ function DataTab({ actor }: { actor: User }) {
               پاک کردن پیام‌ها ({fa(counts.messages)})
             </Btn>
           </div>
-          <div className="rounded-2xl border border-rose-200 p-4">
+          <div className="rounded-2xl border border-rose-200 p-4 dark:border-rose-500/20">
             <TriangleAlert className="mb-2 size-6 text-rose-500" />
-            <div className="text-[13px] font-black text-slate-800">بازنشانی کامل سامانه</div>
+            <div className="text-[13px] font-black text-slate-800 dark:text-slate-100">بازنشانی کامل سامانه</div>
             <p className="mb-3 mt-1 text-[11.5px] font-semibold leading-6 text-slate-400">
               همه داده‌ها برای همیشه پاک می‌شود. نیازمند رمز پاک‌سازی و تأیید دو مرحله‌ای است.
             </p>
@@ -1176,9 +1176,9 @@ function DataTab({ actor }: { actor: User }) {
       <Modal open={!!pending} onClose={() => setPending(null)} title="بازیابی از فایل پشتیبان" wide icon={<Upload className="size-5 text-emerald-500" />}>
         {pending && (
           <div className="space-y-4">
-            <div className="flex items-center gap-2.5 rounded-2xl bg-slate-50 px-4 py-3">
+            <div className="flex items-center gap-2.5 rounded-2xl bg-slate-50 px-4 py-3 dark:bg-white/5">
               <FileJson className="size-5 shrink-0 text-emerald-500" />
-              <span className="truncate text-[12.5px] font-black text-slate-700" dir="ltr">{pending.name}</span>
+              <span className="truncate text-[12.5px] font-black text-slate-700 dark:text-slate-200" dir="ltr">{pending.name}</span>
             </div>
 
             <PartSelector
@@ -1196,29 +1196,29 @@ function DataTab({ actor }: { actor: User }) {
                   onClick={() => setMode("merge")}
                   className={`w-full rounded-2xl border px-4 py-3 text-right transition ${
                     mode === "merge"
-                      ? "border-emerald-400 bg-emerald-50/70 ring-2 ring-emerald-500/15"
-                      : "border-slate-200 hover:border-slate-300"
+                      ? "border-emerald-400 bg-emerald-50/70 ring-2 ring-emerald-500/15 dark:border-emerald-400/50 dark:bg-emerald-500/10"
+                      : "border-slate-200 hover:border-slate-300 dark:border-white/10"
                   }`}
                 >
-                  <div className="text-[13px] font-black text-slate-700">افزودن به داده‌های فعلی (پیشنهادی)</div>
+                  <div className="text-[13px] font-black text-slate-700 dark:text-slate-200">افزودن به داده‌های فعلی (پیشنهادی)</div>
                   <div className="mt-0.5 text-[11px] text-slate-400">فقط رکوردهای جدید اضافه می‌شود؛ موارد تکراری رد می‌شوند.</div>
                 </button>
                 <button
                   onClick={() => setMode("replace")}
                   className={`w-full rounded-2xl border px-4 py-3 text-right transition ${
                     mode === "replace"
-                      ? "border-amber-400 bg-amber-50/70 ring-2 ring-amber-500/15"
-                      : "border-slate-200 hover:border-slate-300"
+                      ? "border-amber-400 bg-amber-50/70 ring-2 ring-amber-500/15 dark:border-amber-400/50 dark:bg-amber-500/10"
+                      : "border-slate-200 hover:border-slate-300 dark:border-white/10"
                   }`}
                 >
-                  <div className="text-[13px] font-black text-slate-700">جایگزینی داده‌های فعلی</div>
+                  <div className="text-[13px] font-black text-slate-700 dark:text-slate-200">جایگزینی داده‌های فعلی</div>
                   <div className="mt-0.5 text-[11px] text-slate-400">فقط بخش‌های انتخاب‌شده با محتوای فایل جایگزین می‌شوند.</div>
                 </button>
               </div>
             </div>
 
             {mode === "replace" && (
-              <div className="rounded-2xl bg-amber-50 px-4 py-3 text-[12px] font-bold leading-6 text-amber-700">
+              <div className="rounded-2xl bg-amber-50 px-4 py-3 text-[12px] font-bold leading-6 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
                 توجه: داده‌های فعلی بخش‌های انتخاب‌شده از بین می‌رود. پیشنهاد می‌شود ابتدا پشتیبان جدید بگیرید.
               </div>
             )}
@@ -1237,11 +1237,11 @@ function DataTab({ actor }: { actor: User }) {
       {/* مودال پاک کردن پیام‌ها */}
       <Modal open={purgeOpen} onClose={resetPurge} title="پاک کردن کل پیام‌ها" icon={<Trash2 className="size-5 text-rose-500" />}>
         <div className="space-y-4">
-          <div className="rounded-2xl bg-rose-50 px-4 py-3.5 text-[12.5px] font-bold leading-7 text-rose-700">
+          <div className="rounded-2xl bg-rose-50 px-4 py-3.5 text-[12.5px] font-bold leading-7 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300">
             {fa(counts.messages)} پیام شامل همه متن‌ها، تصاویر و نظرسنجی‌ها برای همیشه حذف می‌شود.
             گروه‌ها، کانال‌ها، کاربران، آزمون‌ها و تکالیف دست‌نخورده باقی می‌مانند.
           </div>
-          <div className="rounded-2xl bg-slate-50 px-4 py-3 text-[12px] font-semibold leading-6 text-slate-500">
+          <div className="rounded-2xl bg-slate-50 px-4 py-3 text-[12px] font-semibold leading-6 text-slate-500 dark:bg-white/5 dark:text-slate-400">
             پیشنهاد: پیش از ادامه، از بخش «پیام‌ها» یک فایل پشتیبان بگیرید.
           </div>
           <Field label="برای تأیید، عبارت «حذف پیام‌ها» را بنویسید" required error={purgeErr}>
@@ -1267,17 +1267,17 @@ function DataTab({ actor }: { actor: User }) {
           <div className="flex items-center gap-2">
             {[1, 2].map((s) => (
               <div key={s} className="flex flex-1 items-center gap-2">
-                <span className={`flex size-7 items-center justify-center rounded-full text-[11px] font-black transition ${wipeStep >= s ? "bg-rose-500 text-white" : "bg-slate-200 text-slate-500"}`}>
+                <span className={`flex size-7 items-center justify-center rounded-full text-[11px] font-black transition ${wipeStep >= s ? "bg-rose-500 text-white" : "bg-slate-200 text-slate-500 dark:bg-white/10"}`}>
                   {fa(s)}
                 </span>
-                <span className={`h-1 flex-1 rounded-full transition ${wipeStep > s ? "bg-rose-500" : "bg-slate-200"}`} />
+                <span className={`h-1 flex-1 rounded-full transition ${wipeStep > s ? "bg-rose-500" : "bg-slate-200 dark:bg-white/10"}`} />
               </div>
             ))}
           </div>
 
           {wipeStep === 1 ? (
             <>
-              <div className="rounded-2xl bg-rose-50 px-4 py-3.5 text-[12.5px] font-bold leading-7 text-rose-700">
+              <div className="rounded-2xl bg-rose-50 px-4 py-3.5 text-[12.5px] font-bold leading-7 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300">
                 مرحله ۱ از ۲ — برای ادامه، رمز پاک‌سازی سامانه را وارد کنید. این عملیات غیرقابل بازگشت است.
               </div>
               <Field label="رمز پاک‌سازی" required error={wipeErr}>
@@ -1292,11 +1292,11 @@ function DataTab({ actor }: { actor: User }) {
             </>
           ) : (
             <>
-              <div className="rounded-2xl bg-rose-50 px-4 py-3.5 text-[12.5px] font-bold leading-7 text-rose-700">
+              <div className="rounded-2xl bg-rose-50 px-4 py-3.5 text-[12.5px] font-bold leading-7 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300">
                 مرحله ۲ از ۲ — تأیید نهایی. تمام کاربران، گفتگوها، پیام‌ها، آزمون‌ها، تکالیف، حضور و غیاب و اطلاعیه‌ها
                 برای همیشه حذف می‌شود.
               </div>
-              <div className="rounded-2xl bg-slate-50 px-4 py-3 text-[12px] font-semibold leading-6 text-slate-500">
+              <div className="rounded-2xl bg-slate-50 px-4 py-3 text-[12px] font-semibold leading-6 text-slate-500 dark:bg-white/5 dark:text-slate-400">
                 پیشنهاد: پیش از ادامه، یک فایل پشتیبان کامل دانلود کنید.
               </div>
               <Field label="برای تأیید، عبارت «پاک کن» را بنویسید" required error={wipeErr}>
@@ -1374,7 +1374,7 @@ function AddStudent() {
 
   return (
     <div className="card mx-auto max-w-xl p-5">
-      <div className="mb-4 flex items-center gap-2 text-sm font-black text-slate-700">
+      <div className="mb-4 flex items-center gap-2 text-sm font-black text-slate-700 dark:text-slate-200">
         <GraduationCap className="size-5 text-indigo-500" />
         افزودن دانش‌آموز جدید
       </div>
@@ -1428,7 +1428,7 @@ function AddStudent() {
         <Field label="عکس پروفایل (اختیاری)">
           <div className="flex items-center gap-3">
             <Avatar user={{ id: f.phone || "x", firstName: f.firstName || "؟", lastName: "", avatar }} size={46} />
-            <button onClick={() => fileRef.current?.click()} className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 px-3 py-3 text-[12.5px] font-bold text-slate-500 transition hover:border-indigo-300">
+            <button onClick={() => fileRef.current?.click()} className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 px-3 py-3 text-[12.5px] font-bold text-slate-500 transition hover:border-indigo-300 dark:border-white/10">
               <Camera className="size-4" />
               {avatar ? "تغییر عکس" : "انتخاب عکس"}
             </button>
