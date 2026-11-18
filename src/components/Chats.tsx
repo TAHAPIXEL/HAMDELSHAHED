@@ -9,6 +9,7 @@ import {
   Megaphone,
   MessagesSquare,
   Plus,
+  MessageSquarePlus,
   X,
   Check,
   CheckCheck,
@@ -89,6 +90,7 @@ export default function Chats({
   const [showDm, setShowDm] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
+  const [tab, setTab] = useState<"all" | "group" | "channel" | "direct">("all");
   const [createType, setCreateType] = useState<"group" | "channel">("group");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmBulk, setConfirmBulk] = useState(false);
@@ -128,7 +130,16 @@ export default function Chats({
     if (activeChatId && activeChatActivity) markSeen(user.id, activeChatId, activeChatActivity);
   }, [activeChatId, activeChatActivity, user.id, chats.length]);
 
-  const filtered = chats.filter((c) => chatTitle(c, user).includes(query.trim()));
+  const tabs: { key: "all" | "group" | "channel" | "direct"; label: string }[] = [
+    { key: "all", label: "تمامی گفتگوها" },
+    { key: "group", label: "گروه‌ها" },
+    { key: "channel", label: "کانال‌ها" },
+    { key: "direct", label: "شخصی" },
+  ];
+  const tabCount = (k: "all" | "group" | "channel" | "direct") => (k === "all" ? chats.length : chats.filter((c) => c.type === k).length);
+  const filtered = chats.filter(
+    (c) => (tab === "all" || c.type === tab) && chatTitle(c, user).includes(query.trim()),
+  );
 
   const fabItems = [
     { key: "dm", label: "گفتگوی شخصی", icon: <UserRoundPlus className="size-4" />, run: () => setShowDm(true), show: true },
@@ -149,12 +160,37 @@ export default function Chats({
           <div className="relative">
             <Search className="absolute right-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
             <input
-              className={`${inputCls} pr-10`}
+              className={`${inputCls} !rounded-full pr-10`}
               placeholder="جست‌وجوی گفتگو..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
           </div>
+          {!selectMode && (
+            <div dir="ltr" className="flex items-center gap-1 rounded-full bg-slate-100 p-1 dark:bg-white/5">
+              {tabs.map((t) => {
+                const active = tab === t.key;
+                return (
+                  <button
+                    key={t.key}
+                    onClick={() => setTab(t.key)}
+                    className={`flex min-w-0 flex-auto items-center justify-center gap-1 whitespace-nowrap rounded-full px-1.5 py-1.5 text-[11px] font-bold transition ${
+                      active ? "bg-white text-[#3b7ae0] shadow-sm dark:bg-white/10 dark:text-[#7fb0ff]" : "text-slate-500 dark:text-slate-400"
+                    }`}
+                  >
+                    {t.label}
+                    <span
+                      className={`shrink-0 rounded-full px-1.5 text-[10px] font-black leading-4 ${
+                        active ? "bg-[#4f8ff0] text-white" : "bg-slate-300/80 text-white dark:bg-white/15"
+                      }`}
+                    >
+                      {fa(tabCount(t.key))}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
           {selectMode && (
             <div className="flex items-center gap-2">
               <Btn kind="ghost" className="!py-2 !text-[12px]" onClick={exitSelect}>
@@ -258,7 +294,7 @@ export default function Chats({
         {!selectMode && (
           <>
             {fabOpen && (
-              <div className="anim-pop absolute bottom-[4.75rem] left-4 z-40 w-60 overflow-hidden rounded-2xl border border-slate-200 bg-white p-1.5 shadow-2xl dark:border-white/10 dark:bg-slate-900">
+              <div className="anim-pop absolute bottom-[4.5rem] left-4 z-40 lg:bottom-20 w-60 overflow-hidden rounded-2xl border border-slate-200 bg-white p-1.5 shadow-2xl dark:border-white/10 dark:bg-slate-900">
                 {fabItems.map((it) => (
                   <button
                     key={it.key}
@@ -277,9 +313,9 @@ export default function Chats({
               onClick={() => setFabOpen((o) => !o)}
               aria-label="ساخت گفتگو"
               aria-expanded={fabOpen}
-              className="absolute bottom-4 left-4 z-40 flex size-14 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-600/30 transition active:scale-95"
+              className="absolute bottom-2 left-4 z-40 flex size-14 items-center justify-center rounded-full bg-[#4f8ff0] text-white shadow-lg shadow-[#4f8ff0]/40 transition active:scale-95 lg:bottom-4"
             >
-              <Plus className={`size-6 transition-transform duration-200 ${fabOpen ? "rotate-45" : ""}`} />
+              {fabOpen ? <X className="size-6" /> : <MessageSquarePlus className="size-6" />}
             </button>
           </>
         )}

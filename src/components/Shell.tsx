@@ -20,6 +20,8 @@ import {
 import {
   DB,
   GRADES,
+  unreadCount,
+  userChats,
   SECTIONS,
   canAdminPanel,
   className,
@@ -107,12 +109,13 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
   const markNoticeRead = (nid: string) => recordNoticeRead(user.id, nid);
 
   // ناوبری پایین موبایل: گفتگوها، کلاس‌ها، تکالیف، آزمون‌ها، پروفایل
-  const bottomItems: { v: View; label: string; icon: React.ReactNode }[] = [
-    { v: "chats", label: "گفتگوها", icon: <MessagesSquare className="size-5" /> },
-    { v: "classes", label: "کلاس‌ها", icon: <LayoutGrid className="size-5" /> },
-    { v: "homework", label: "تکالیف", icon: <BookOpen className="size-5" /> },
-    { v: "exams", label: "آزمون‌ها", icon: <ClipboardList className="size-5" /> },
-    { v: "profile", label: "پروفایل", icon: <UserRound className="size-5" /> },
+  const unreadChatTotal = userChats(user).reduce((n, c) => n + unreadCount(user.id, c), 0);
+  const bottomItems: { v: View; label: string; icon: React.ReactNode; badge: number }[] = [
+    { v: "chats", label: "گفتگوها", icon: <MessagesSquare className="size-5" />, badge: unreadChatTotal },
+    { v: "classes", label: "کلاس‌ها", icon: <LayoutGrid className="size-5" />, badge: 0 },
+    { v: "homework", label: "تکالیف", icon: <BookOpen className="size-5" />, badge: 0 },
+    { v: "exams", label: "آزمون‌ها", icon: <ClipboardList className="size-5" />, badge: 0 },
+    { v: "profile", label: "پروفایل", icon: <UserRound className="size-5" />, badge: 0 },
   ];
   // امکانات داخل منوی سه‌نقطه (بیرون از ناوبری پایین)
   const menuFeatures = nav.filter((n) => n.show && ["attendance", "notices", "admin"].includes(n.v));
@@ -306,14 +309,15 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
       {/* بدنه */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* نوار بالا */}
-        <header className="z-30 flex items-center gap-3 border-b border-slate-200/70 bg-white/80 px-4 py-3 backdrop-blur-xl dark:border-white/5 dark:bg-slate-900/60 sm:px-6">
-          <button onClick={() => setDrawer(true)} className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 lg:hidden" aria-label="منو">
-            <EllipsisVertical className="size-5" />
+        <header dir="ltr" className="z-30 flex items-center gap-3 border-b border-slate-200/70 bg-white/80 px-4 py-3 backdrop-blur-xl dark:border-white/5 dark:bg-slate-900/60 sm:px-6">
+          {/* آواتار (پروفایل) */}
+          <button onClick={() => go("profile")} className="shrink-0 transition active:scale-95" aria-label="پروفایل">
+            <Avatar user={user} size={36} ring />
           </button>
-          <h1 className="text-base font-black text-slate-800 dark:text-slate-100">
+          <h1 className="min-w-0 flex-1 truncate text-base font-black text-slate-800 dark:text-slate-100">
             {view === "classes" && classSel ? `کلاس ${className(classSel.grade, classSel.section)}` : titles[view]}
           </h1>
-          <div className="mr-auto flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             {/* زنگوله اطلاعیه‌ها */}
             <div className="relative" ref={bellRef}>
               <button
@@ -327,7 +331,7 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
                 )}
               </button>
               {bellOpen && (
-                <div className="anim-pop absolute left-0 top-12 w-80 max-w-[86vw] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-slate-900">
+                <div className="anim-pop absolute right-0 top-12 w-80 max-w-[86vw] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-slate-900">
                   <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-white/5">
                     <span className="text-sm font-black">اطلاعیه‌ها</span>
                     {unreadN > 0 && <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white">{fa(unreadN)} خوانده‌نشده</span>}
@@ -364,8 +368,8 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
               )}
             </div>
 
-            <button onClick={() => go("profile")} className="mr-1 transition active:scale-95" aria-label="پروفایل">
-              <Avatar user={user} size={36} ring />
+            <button onClick={() => setDrawer(true)} className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 lg:hidden" aria-label="منو">
+              <EllipsisVertical className="size-5" />
             </button>
           </div>
         </header>
@@ -384,20 +388,29 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
           {view === "profile" && <Profile user={user} onLogout={requestLogout} onGo={go} />}
         </main>
 
-        {/* ناوبری پایین موبایل */}
-        <nav className="z-30 flex items-center justify-around border-t border-slate-200/70 bg-white/90 px-2 py-2 backdrop-blur-xl dark:border-white/5 dark:bg-slate-900/80 lg:hidden">
-          {bottomItems.map((n) => (
-            <button
-              key={n.v}
-              onClick={() => go(n.v)}
-              className={`flex min-w-0 flex-1 flex-col items-center gap-1 rounded-2xl px-1 py-1.5 text-[10px] font-bold transition ${
-                view === n.v ? "text-indigo-600 dark:text-indigo-300" : "text-slate-400"
-              }`}
-            >
-              {n.icon}
-              <span className="truncate">{n.label}</span>
-            </button>
-          ))}
+        {/* ناوبری پایین موبایل — نوار شناور گرد (مانند تلگرام) */}
+        <nav dir="ltr" className="z-30 px-3 pb-3 pt-1 lg:hidden">
+          <div className="flex items-center justify-around rounded-full border border-slate-200/80 bg-white/95 px-2 py-1.5 shadow-xl shadow-slate-900/10 backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/95">
+            {bottomItems.map((n) => (
+              <button
+                key={n.v}
+                onClick={() => go(n.v)}
+                className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-full px-2 py-1.5 text-[10px] font-bold transition ${
+                  view === n.v ? "bg-[#4f8ff0]/15 text-[#3b7ae0] dark:text-[#7fb0ff]" : "text-slate-400"
+                }`}
+              >
+                <span className="relative">
+                  {n.icon}
+                  {n.badge > 0 && (
+                    <span className="absolute -right-2.5 -top-1.5 flex min-w-4 items-center justify-center rounded-full bg-[#4f8ff0] px-1 text-[9px] font-black leading-4 text-white">
+                      {fa(n.badge)}
+                    </span>
+                  )}
+                </span>
+                <span className="truncate">{n.label}</span>
+              </button>
+            ))}
+          </div>
         </nav>
 
         {/* تأیید خروج از حساب — در همه‌ی نقاط برنامه */}
