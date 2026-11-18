@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   Search,
   Send,
@@ -375,9 +375,17 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
   const listRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const stickRef = useRef(true);
+  // زمان آخرین بازدید پیش از باز شدن این گفتگو. markSeen در effect اجرا می‌شود و وضعیت را پاک می‌کند،
+  // پس باید همین‌جا (هنگام mount، قبل از effectها) ثبت شود. ChatWindow با key=chat.id ساخته می‌شود.
+  const [openSeen] = useState(() => DB.seen()[`${user.id}:${chat.id}`] ?? 0);
+  const dividerRef = useRef<HTMLDivElement>(null);
+  // تا وقتی کاربر خودش اسکرول نکرده، با بارگذاری تصاویر بالای لیست، نوار خوانده‌نشده در جای خود بماند
+  const anchorRef = useRef(false);
 
   // بدون memo — هر رندر، تازه‌ترین پیام‌ها (رفع باگ ارسال و نمایش نشدن)
   const messages = chatMessages(chat.id);
+  const unreadMsgs = messages.filter((m) => !m.deleted && m.senderId !== user.id && m.createdAt > openSeen);
+  const firstUnreadId = unreadMsgs[0]?.id;
   // وضعیت خوانده‌شدن: چه کسی آخرین بار گفتگو را باز کرده (برای تیک‌های پیام)
   const seenMap = DB.seen();
   const directOtherId = chat.type === "direct" ? chat.memberIds.find((id) => id !== user.id) : undefined;
@@ -395,9 +403,28 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
     if (stickRef.current) listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
   }, [messages.length, chat.lastActivity]);
 
-  useEffect(() => {
-    listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
+  // بالای نوار «خوانده‌نشده» قرار می‌گیرد؛ اگر نخوانده‌ای نیست، به آخرین پیام می‌رود.
+  // useLayoutEffect تا قبل از نقاشی اجرا شود و پرش دیده نشود.
+  const keepAtDivider = () => {
+    const list = listRef.current;
+    const div = dividerRef.current;
+    if (!list || !div) return;
+    const top = div.getBoundingClientRect().top - list.getBoundingClientRect().top + list.scrollTop;
+    list.scrollTop = Math.max(0, top - 12);
+  };
+  useLayoutEffect(() => {
+    if (dividerRef.current) {
+      stickRef.current = false;
+      anchorRef.current = true;
+      keepAtDivider();
+    } else {
+      listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
+    }
   }, [chat.id]);
+
+  const releaseAnchor = () => {
+    anchorRef.current = false;
+  };
 
   const jumpToMessage = (id: string) => {
     const el = document.getElementById(`msg-${id}`);
@@ -433,6 +460,7 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
     setText("");
     setImage(undefined);
     stickRef.current = true;
+    anchorRef.current = false;
   };
 
   const doDelete = (m: Message) => {
@@ -546,7 +574,14 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
       })()}
 
       {/* پیام‌ها */}
-      <div ref={listRef} onScroll={onScroll} className="chat-bg min-h-0 flex-1 space-y-2 overflow-y-auto px-3 py-4 sm:px-6">
+      <div
+        ref={listRef}
+        onScroll={onScroll}
+        onWheel={releaseAnchor}
+        onTouchMove={releaseAnchor}
+        onPointerDown={releaseAnchor}
+        className="chat-bg min-h-0 flex-1 space-y-2 overflow-y-auto px-3 py-4 sm:px-6"
+      >
         {messages.length === 0 && (
           <Empty icon={<MessagesSquare className="size-7" />} title="گفتگو را شروع کنید" desc="اولین پیام را ارسال کنید" />
         )}
@@ -563,6 +598,16 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
                   <span className="rounded-full bg-slate-200/70 px-4 py-1 text-[11px] font-bold text-slate-500 backdrop-blur dark:bg-white/10 dark:text-slate-300">
                     {day}
                   </span>
+                </div>
+              )}
+              {m.id === firstUnreadId && (
+                <div
+                  ref={dividerRef}
+                  role="separator"
+                  aria-label="پیام‌های خوانده‌نشده"
+                  className="-mx-3 my-3 bg-indigo-50 py-1.5 text-center text-[12px] font-bold text-indigo-600 sm:-mx-6 dark:bg-indigo-500/15 dark:text-indigo-300"
+                >
+                  {fa(unreadMsgs.length)} پیام خوانده‌نشده
                 </div>
               )}
               <div className={`group flex items-end gap-2 ${mine ? "flex-row-reverse" : ""} msg-in`}>
@@ -605,7 +650,14 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
                           className="mb-1.5 block overflow-hidden rounded-xl"
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={m.image} alt="تصویر پیام" className="max-h-64 w-full rounded-xl object-cover transition hover:opacity-90" />
+                          <img
+                            src={m.image}
+                            alt="تصویر پیام"
+                            onLoad={() => {
+                              if (anchorRef.current) keepAtDivider();
+                            }}
+                            className="max-h-64 w-full rounded-xl object-cover transition hover:opacity-90"
+                          />
                         </button>
                       )}
                       {m.text && <div className="user-text whitespace-pre-wrap break-words text-[14px] leading-7">{m.text}</div>}
