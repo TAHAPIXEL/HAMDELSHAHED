@@ -294,6 +294,7 @@ export default function Chats({
         {/* دکمه‌ی شناور «+» بالای ناوبری پایین — ساخت گفتگو */}
         {!selectMode && (
           <>
+            {fabOpen && <div className="absolute inset-0 z-30" onClick={() => setFabOpen(false)} />}
             {fabOpen && (
               <div className="anim-pop absolute bottom-[4.5rem] left-4 z-40 lg:bottom-20 w-60 overflow-hidden rounded-2xl border border-slate-200 bg-white p-1.5 shadow-2xl dark:border-white/10 dark:bg-slate-900">
                 {fabItems.map((it) => (
@@ -321,8 +322,6 @@ export default function Chats({
           </>
         )}
       </div>
-
-      {fabOpen && <div className="fixed inset-0 z-30" onClick={() => setFabOpen(false)} />}
 
       {/* پنجره چت */}
       <div className={`min-w-0 flex-1 flex-col ${active ? "flex" : "hidden sm:flex"}`}>
@@ -1374,7 +1373,7 @@ function CreateChatWizard({
   const steps = ["اطلاعات", "دانش‌آموزان", "کادر مدرسه", "تأیید"];
 
   return (
-    <Modal open onClose={onClose} title={`ساخت ${kind} جدید`} icon={<Plus className="size-5 text-indigo-500" />}>
+    <Modal page open onClose={onClose} title={`ساخت ${kind} جدید`} icon={<Plus className="size-5 text-indigo-500" />}>
       {/* نوار مراحل */}
       <div className="mb-5 flex items-center gap-1.5">
         {steps.map((label, i) => (
@@ -1544,7 +1543,7 @@ function NewDmModal({ user, onClose, onOpen }: { user: User; onClose: () => void
   };
 
   return (
-    <Modal open onClose={onClose} title="شروع گفتگوی شخصی" icon={<UserRoundPlus className="size-5 text-indigo-500" />}>
+    <Modal page open onClose={onClose} title="شروع گفتگوی شخصی" icon={<UserRoundPlus className="size-5 text-indigo-500" />}>
       <div className="relative mb-4">
         <Search className="absolute right-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
         <input className={`${inputCls} pr-10`} placeholder="جست‌وجوی نام..." value={q} onChange={(e) => setQ(e.target.value)} />

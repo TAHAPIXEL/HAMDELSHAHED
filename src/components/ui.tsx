@@ -9,7 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { X, CheckCircle2, AlertTriangle, Info, Loader2, Eye, EyeOff, Copy } from "lucide-react";
+import { X, CheckCircle2, AlertTriangle, Info, Loader2, Eye, EyeOff, Copy, ArrowRight } from "lucide-react";
 import { fa, type User } from "@/lib/model";
 
 // ----------------------------------------------------------------------------
@@ -151,6 +151,7 @@ export function Modal({
   children,
   wide = false,
   icon,
+  page = false,
 }: {
   open: boolean;
   onClose: () => void;
@@ -158,6 +159,8 @@ export function Modal({
   children: ReactNode;
   wide?: boolean;
   icon?: ReactNode;
+  /** صفحه‌ی کامل (تمام صفحه، بدون پایین‌کشویی) با دکمه‌ی بازگشت */
+  page?: boolean;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -166,6 +169,28 @@ export function Modal({
     return () => window.removeEventListener("keydown", h);
   }, [open, onClose]);
   if (!open) return null;
+  if (page) {
+    return (
+      <div role="dialog" aria-modal="true" aria-label={title} className="fixed inset-0 z-[90] flex flex-col bg-white dark:bg-slate-900">
+        <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3.5 sm:px-6 dark:border-white/5">
+          <button
+            onClick={onClose}
+            className="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 dark:text-slate-300 dark:hover:bg-white/10"
+            aria-label="بازگشت"
+          >
+            <ArrowRight className="size-5" />
+          </button>
+          <div className="flex min-w-0 items-center gap-2.5 font-bold text-slate-800 dark:text-slate-100">
+            {icon}
+            <span className="truncate">{title}</span>
+          </div>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6">
+          <div className="mx-auto w-full max-w-2xl">{children}</div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="fixed inset-0 z-[90] flex items-end justify-center p-0 sm:items-center sm:p-6">
       <div className="modal-bg absolute inset-0 bg-slate-950/50 backdrop-blur-sm" onClick={onClose} />
