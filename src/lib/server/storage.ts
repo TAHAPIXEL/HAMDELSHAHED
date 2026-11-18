@@ -80,8 +80,30 @@ const EXT: Record<string, string> = {
   "image/gif": "gif",
 };
 
+/**
+ * وضعیت سطل تصاویر برای پایش (بدون هیچ رمز یا آدرس محرمانه).
+ * فقط می‌گوید سطل در دسترس است و عمومی است یا نه؛ فایلی نمی‌نویسد.
+ */
+export async function storageStatus(): Promise<{ ok: boolean; bucket: string; public?: boolean; error?: string }> {
+  try {
+    const s = storageClient();
+    const { data, error } = await s.storage.getBucket(BUCKET);
+    if (error || !data) {
+      return { ok: false, bucket: BUCKET, error: error?.message ?? "bucket not found" };
+    }
+    return { ok: true, bucket: BUCKET, public: data.public };
+  } catch (err) {
+    return { ok: false, bucket: BUCKET, error: err instanceof Error ? err.message : "unknown" };
+  }
+}
+
 export async function storeImage(bytes: Uint8Array, mime: string): Promise<{ path: string; url: string }> {
-  await ensureBucket();
+  try {
+    await ensureBucket();
+  } catch (err) {
+    console.error("[storage bucket]", err instanceof Error ? err.message : err);
+    throw new HttpError(503, "فضای ذخیره‌ی تصاویر در دسترس نیست؛ کمی بعد دوباره تلاش کنید.");
+  }
   const s = storageClient();
   const now = new Date();
   const path = `${now.getUTCFullYear()}/${String(now.getUTCMonth() + 1).padStart(2, "0")}/${randomUUID()}.${EXT[mime]}`;
