@@ -115,12 +115,28 @@ export function Avatar({
       style={{ width: size, height: size, fontSize: size * 0.42 }}
     >
       {user?.avatar ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={user.avatar} alt={name} className="absolute inset-0 h-full w-full object-cover" />
+        <AvatarImage key={user.avatar} src={user.avatar} alt={name} fallback={initial} />
       ) : (
         initial
       )}
     </div>
+  );
+}
+
+/** عکس پروفایل؛ اگر فایل در دسترس نباشد، به‌جای تصویر شکسته حروف اول نام نمایش داده می‌شود */
+function AvatarImage({ src, alt, fallback }: { src: string; alt: string; fallback: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) return <>{fallback}</>;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt={alt}
+      loading="lazy"
+      decoding="async"
+      onError={() => setFailed(true)}
+      className="absolute inset-0 h-full w-full object-cover"
+    />
   );
 }
 

@@ -277,6 +277,14 @@ async function main() {
     assert.equal((await req("POST", "/api/upload", { form: f })).status, 415);
   });
 
+  await check("avatar must be a stored image: foreign URL is rejected, clearing is allowed", async () => {
+    const base = { id: studentA.id, role: "student", firstName: "رضا", lastName: "ویرایش", phone: studentA.phone, password: "1234", grade: 7, section: "1", createdAt: 1 };
+    const bad = await req("POST", "/api/state/sync", { token: tokenA, body: { ops: [{ c: "users", id: studentA.id, d: { ...base, avatar: "https://evil.example/x.png" } }] } });
+    assert.equal(bad.status, 400);
+    const clear = await req("POST", "/api/state/sync", { token: tokenA, body: { ops: [{ c: "users", id: studentA.id, d: { ...base, avatar: "" } }] } });
+    assert.equal(clear.status, 200);
+  });
+
   await check("upload requires a session", async () => {
     const f = new FormData();
     f.append("file", new Blob(["x"], { type: "image/png" }), "a.png");

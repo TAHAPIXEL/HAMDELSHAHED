@@ -45,6 +45,19 @@ function ensureBucket(): Promise<void> {
   return bucketReady;
 }
 
+/** پیشوند آدرس عمومی فایل‌های این سطل؛ هر تصویر معتبر باید با این پیشوند شروع شود */
+export function storedImagePrefix(): string | null {
+  const base = process.env.SUPABASE_URL?.trim().replace(/\/+$/, "");
+  return base ? `${base}/storage/v1/object/public/${BUCKET}/` : null;
+}
+
+/** آیا آدرس، فایلی است که از همین سامانه در فضای ابری ذخیره شده است؟ */
+export function isStoredImageUrl(url: unknown): url is string {
+  const prefix = storedImagePrefix();
+  return typeof url === "string" && !!prefix && url.length <= 1000 && url.startsWith(prefix)
+    && url.length > prefix.length;
+}
+
 /** تشخیص نوع تصویر از روی امضای فایل (نه از روی نام یا MIME ارسالی) */
 export function sniffImage(b: Uint8Array): string | null {
   if (b.length >= 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "image/jpeg";

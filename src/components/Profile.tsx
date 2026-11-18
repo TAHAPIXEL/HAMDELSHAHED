@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import {
   Camera,
+  Loader2,
   LogOut,
   Pencil,
   Lock,
@@ -41,6 +42,16 @@ import {
   type User,
 } from "@/lib/model";
 import { Avatar, Btn, Chip, Field, Modal, SecretReveal, inputCls, useDbTick, useToast } from "./ui";
+
+/** ذخیره‌ی آدرس عکس (که قبلاً در فضای ابری ذخیره شده) در پروفایل کاربر؛ اگر کاربر پیدا نشود false */
+function saveAvatarUrl(userId: string, url: string): boolean {
+  const users = DB.users();
+  const idx = users.findIndex((u) => u.id === userId);
+  if (idx < 0) return false;
+  users[idx] = { ...users[idx], avatar: url };
+  DB.saveUsers(users);
+  return true;
+}
 
 // ⚠️ مهم: این کامپوننت بیرون از Profile تعریف شده تا با هر به‌روزرسانی دوباره ساخته نشود
 // (تعریف داخلی باعث چشمک‌زدن کارت‌ها می‌شد)
@@ -114,6 +125,7 @@ function EditProfileModal({ userId, onClose }: { userId: string; onClose: () => 
   const [fatherName, setFatherName] = useState(me?.fatherName ?? "");
   const [address, setAddress] = useState(me?.address ?? "");
   const [avatar, setAvatar] = useState<string | undefined>(me?.avatar);
+  const [photoBusy, setPhotoBusy] = useState(false);
   const [err, setErr] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const isStudent = me?.role === "student";
@@ -142,6 +154,11 @@ function EditProfileModal({ userId, onClose }: { userId: string; onClose: () => 
     setBusy(true);
     const users = DB.users();
     const idx = users.findIndex((u) => u.id === me.id);
+    if (idx < 0) {
+      setBusy(false);
+      toast("error", "حساب شما پیدا نشد؛ یک بار خارج و دوباره وارد شوید.");
+      return;
+    }
     users[idx] = {
       ...users[idx],
       firstName: firstName.trim(),
@@ -216,9 +233,10 @@ function EditProfileModal({ userId, onClose }: { userId: string; onClose: () => 
             <Avatar user={{ id: me.id, firstName: firstName || "؟", lastName: "", avatar }} size={46} />
             <button
               onClick={() => fileRef.current?.click()}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 px-3 py-3 text-[12.5px] font-bold text-slate-500 transition hover:border-indigo-300 hover:text-indigo-600"
+              disabled={photoBusy}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 px-3 py-3 text-[12.5px] font-bold text-slate-500 transition hover:border-indigo-300 hover:text-indigo-600 disabled:opacity-60"
             >
-              <Camera className="size-4" />
+              {photoBusy ? <Loader2 className="size-4 animate-spin" /> : <Camera className="size-4" />}
               {avatar ? "تغییر عکس" : "انتخاب عکس"}
             </button>
             <input
@@ -229,10 +247,18 @@ function EditProfileModal({ userId, onClose }: { userId: string; onClose: () => 
               onChange={async (e) => {
                 const f = e.target.files?.[0];
                 if (f) {
+                  setPhotoBusy(true);
                   try {
-                    setAvatar(await uploadImage(f, 420, 0.75));
+                    // عکس بلافاصله ذخیره می‌شود (مثل دکمه‌ی دوربین کارت پروفایل)،
+                    // تا با خطای فرم‌های دیگر گم نشود
+                    const url = await uploadImage(f, 420, 0.75);
+                    if (!saveAvatarUrl(userId, url)) throw new Error("حساب شما پیدا نشد؛ یک بار خارج و دوباره وارد شوید.");
+                    setAvatar(url);
+                    toast("success", "عکس پروفایل به‌روز شد");
                   } catch (err) {
                     toast("error", (err as Error).message || "بارگذاری تصویر ممکن نشد");
+                  } finally {
+                    setPhotoBusy(false);
                   }
                 }
                 e.target.value = "";
@@ -302,13 +328,8 @@ export default function Profile({
     setChanging(true);
     try {
       const data = await uploadImage(f, 420, 0.75);
-      const users = DB.users();
-      const idx = users.findIndex((u) => u.id === me.id);
-      if (idx >= 0) {
-        users[idx] = { ...users[idx], avatar: data };
-        DB.saveUsers(users);
-        toast("success", "عکس پروفایل به‌روز شد");
-      }
+      if (!saveAvatarUrl(me.id, data)) throw new Error("حساب شما پیدا نشد؛ یک بار خارج و دوباره وارد شوید.");
+      toast("success", "عکس پروفایل به‌روز شد");
     } catch (err) {
       toast("error", (err as Error).message || "بارگذاری تصویر ممکن نشد");
     } finally {
