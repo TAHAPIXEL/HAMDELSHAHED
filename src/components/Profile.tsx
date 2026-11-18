@@ -59,14 +59,14 @@ function InfoRow({
 }) {
   if (!value || value === "—") return null;
   return (
-    <div className="flex items-start gap-3 rounded-2xl bg-slate-50 px-4 py-5 transition hover:bg-slate-100/80 dark:bg-white/5 dark:hover:bg-white/[0.07]">
-      <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-white text-indigo-500 shadow-sm ring-1 ring-slate-200/60 dark:bg-white/10 dark:ring-white/10">
+    <div className="flex items-start gap-3 rounded-2xl bg-slate-50 px-4 py-5 transition hover:bg-slate-100/80">
+      <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-white text-indigo-500 shadow-sm ring-1 ring-slate-200/60">
         {icon}
       </span>
       <div className="min-w-0 flex-1">
         <div className="text-[10.5px] font-bold text-slate-400">{label}</div>
         {/* نمایش کامل متن بدون بریدن — حتی اگر خیلی طولانی باشد */}
-        <div className={`user-text mt-1 text-[13.5px] font-black leading-6.5 text-slate-700 dark:text-slate-200 ${ltr ? "text-left" : ""}`} dir={ltr ? "ltr" : undefined}>
+        <div className={`user-text mt-1 text-[13.5px] font-black leading-6.5 text-slate-700 ${ltr ? "text-left" : ""}`} dir={ltr ? "ltr" : undefined}>
           {value}
         </div>
       </div>
@@ -79,7 +79,7 @@ function MiniStat({ icon, value, label, tone }: { icon: React.ReactNode; value: 
   return (
     <div className="flex flex-col items-center gap-1 py-1">
       <span className={`flex size-8 items-center justify-center rounded-xl ${tone}`}>{icon}</span>
-      <div className="text-lg font-black text-slate-800 dark:text-slate-100">{fa(value)}</div>
+      <div className="text-lg font-black text-slate-800">{fa(value)}</div>
       <div className="text-[10.5px] font-bold text-slate-400">{label}</div>
     </div>
   );
@@ -91,10 +91,10 @@ function QuickAction({ icon, label, onClick }: { icon: React.ReactNode; label: s
       onClick={onClick}
       className="card group flex flex-col items-center gap-2 !rounded-2xl p-4 transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-900/5"
     >
-      <span className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 text-indigo-500 transition group-hover:from-indigo-600 group-hover:to-violet-600 group-hover:text-white dark:from-indigo-500/15 dark:to-violet-500/15">
+      <span className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 text-indigo-500 transition group-hover:from-indigo-600 group-hover:to-violet-600 group-hover:text-white">
         {icon}
       </span>
-      <span className="text-[12px] font-black text-slate-600 dark:text-slate-300">{label}</span>
+      <span className="text-[12px] font-black text-slate-600">{label}</span>
     </button>
   );
 }
@@ -329,21 +329,21 @@ export default function Profile({
   if (me.role === "student") {
     const recs = DB.attendance().filter((r) => r.studentId === me.id);
     stats = [
-      { icon: <UserCheck2 className="size-4" />, value: recs.filter((r) => r.status === "present").length, label: "روز حاضر", tone: "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300" },
-      { icon: <UserX2 className="size-4" />, value: recs.filter((r) => r.status === "absent").length, label: "روز غایب", tone: "bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300" },
-      { icon: <AlarmClock className="size-4" />, value: recs.filter((r) => r.status === "excused").length, label: "روز مرخصی", tone: "bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300" },
+      { icon: <UserCheck2 className="size-4" />, value: recs.filter((r) => r.status === "present").length, label: "روز حاضر", tone: "bg-emerald-100 text-emerald-600" },
+      { icon: <UserX2 className="size-4" />, value: recs.filter((r) => r.status === "absent").length, label: "روز غایب", tone: "bg-rose-100 text-rose-600" },
+      { icon: <AlarmClock className="size-4" />, value: recs.filter((r) => r.status === "excused").length, label: "روز مرخصی", tone: "bg-amber-100 text-amber-600" },
     ];
   } else if (isDev) {
     stats = [
-      { icon: <UserRound className="size-4" />, value: DB.users().length, label: "کاربر سامانه", tone: "bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300" },
-      { icon: <MessagesSquare className="size-4" />, value: DB.messages().length, label: "پیام ارسالی کل", tone: "bg-violet-100 text-violet-600 dark:bg-violet-500/15 dark:text-violet-300" },
-      { icon: <ClipboardList className="size-4" />, value: DB.exams().length, label: "آزمون سامانه", tone: "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300" },
+      { icon: <UserRound className="size-4" />, value: DB.users().length, label: "کاربر سامانه", tone: "bg-indigo-100 text-indigo-600" },
+      { icon: <MessagesSquare className="size-4" />, value: DB.messages().length, label: "پیام ارسالی کل", tone: "bg-violet-100 text-violet-600" },
+      { icon: <ClipboardList className="size-4" />, value: DB.exams().length, label: "آزمون سامانه", tone: "bg-emerald-100 text-emerald-600" },
     ];
   } else {
     stats = [
-      { icon: <MessagesSquare className="size-4" />, value: DB.messages().filter((m) => m.senderId === me.id && !m.deleted).length, label: "پیام ارسالی", tone: "bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300" },
-      { icon: <Megaphone className="size-4" />, value: DB.chats().filter((c) => c.createdBy === me.id && c.type !== "direct").length, label: "گروه/کانال ساخته", tone: "bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300" },
-      { icon: <ClipboardList className="size-4" />, value: DB.exams().filter((e) => e.createdBy === me.id).length, label: "آزمون طراحی‌شده", tone: "bg-violet-100 text-violet-600 dark:bg-violet-500/15 dark:text-violet-300" },
+      { icon: <MessagesSquare className="size-4" />, value: DB.messages().filter((m) => m.senderId === me.id && !m.deleted).length, label: "پیام ارسالی", tone: "bg-indigo-100 text-indigo-600" },
+      { icon: <Megaphone className="size-4" />, value: DB.chats().filter((c) => c.createdBy === me.id && c.type !== "direct").length, label: "گروه/کانال ساخته", tone: "bg-amber-100 text-amber-600" },
+      { icon: <ClipboardList className="size-4" />, value: DB.exams().filter((e) => e.createdBy === me.id).length, label: "آزمون طراحی‌شده", tone: "bg-violet-100 text-violet-600" },
     ];
   }
 
@@ -361,13 +361,13 @@ export default function Profile({
 
           <div className="relative flex flex-col items-center px-6 pb-6">
             <div className="-mt-14 mb-3 rounded-full bg-gradient-to-br from-indigo-500/40 to-violet-500/40 p-[3px] shadow-xl">
-              <div className="relative rounded-full bg-white p-1 dark:bg-slate-900">
+              <div className="relative rounded-full bg-white p-1">
                 <Avatar user={me} size={96} />
                 {!isDev && (
                   <button
                     onClick={() => fileRef.current?.click()}
                     disabled={changing}
-                    className="absolute bottom-1 left-1 rounded-full bg-white p-2.5 text-slate-600 shadow-lg ring-1 ring-slate-200 transition hover:scale-105 hover:text-indigo-600 active:scale-95 dark:bg-slate-800 dark:text-slate-300 dark:ring-white/10"
+                    className="absolute bottom-1 left-1 rounded-full bg-white p-2.5 text-slate-600 shadow-lg ring-1 ring-slate-200 transition hover:scale-105 hover:text-indigo-600 active:scale-95"
                     aria-label="تغییر عکس پروفایل"
                     title="تغییر عکس پروفایل"
                   >
@@ -378,7 +378,7 @@ export default function Profile({
               </div>
             </div>
 
-            <div className="text-xl font-black text-slate-800 dark:text-white">
+            <div className="text-xl font-black text-slate-800">
               {me.firstName} {me.lastName}
             </div>
             <div className="mt-2 flex flex-wrap items-center justify-center gap-1.5">
@@ -392,7 +392,7 @@ export default function Profile({
             </div>
 
             {/* آمار کوچک */}
-            <div className="mt-6 grid w-full grid-cols-3 divide-x divide-x-reverse divide-slate-100 rounded-2xl bg-slate-50/70 py-3 dark:divide-white/5 dark:bg-white/[0.03]">
+            <div className="mt-6 grid w-full grid-cols-3 divide-x divide-x-reverse divide-slate-100 rounded-2xl bg-slate-50/70 py-3">
               {stats.map((s, i) => (
                 <MiniStat key={i} {...s} />
               ))}
@@ -414,7 +414,7 @@ export default function Profile({
         {/* اطلاعات حساب */}
         <div className="card anim-fade-up mb-5 p-5">
           <div className="mb-3.5 flex items-center justify-between gap-2">
-            <div className="text-[13px] font-black text-slate-700 dark:text-slate-200">اطلاعات حساب کاربری</div>
+            <div className="text-[13px] font-black text-slate-700">اطلاعات حساب کاربری</div>
             {!isDev && (
               <Btn kind="soft" className="!py-2 !text-[12px]" onClick={() => setEditOpen(true)}>
                 <Pencil className="size-3.5" />
@@ -431,7 +431,7 @@ export default function Profile({
               action={
                 <button
                   onClick={copyPhone}
-                  className="rounded-lg p-1.5 text-slate-300 transition hover:bg-white hover:text-indigo-500 dark:hover:bg-white/10"
+                  className="rounded-lg p-1.5 text-slate-300 transition hover:bg-white hover:text-indigo-500"
                   aria-label="کپی شماره"
                   title="کپی شماره"
                 >
@@ -440,8 +440,8 @@ export default function Profile({
               }
             />
             {me.password && (
-              <div className="flex items-start gap-3 rounded-2xl bg-slate-50 px-4 py-5 transition hover:bg-slate-100/80 dark:bg-white/5 dark:hover:bg-white/[0.07]">
-                <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-white text-indigo-500 shadow-sm ring-1 ring-slate-200/60 dark:bg-white/10 dark:ring-white/10">
+              <div className="flex items-start gap-3 rounded-2xl bg-slate-50 px-4 py-5 transition hover:bg-slate-100/80">
+                <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-white text-indigo-500 shadow-sm ring-1 ring-slate-200/60">
                   <KeyRound className="size-4" />
                 </span>
                 <div className="min-w-0 flex-1">
@@ -463,14 +463,14 @@ export default function Profile({
           </div>
         </div>
 
-        <div className="anim-fade-up rounded-2xl bg-slate-100 px-4 py-3.5 text-[12.5px] font-semibold leading-6 text-slate-500 dark:bg-white/5 dark:text-slate-400">
+        <div className="anim-fade-up rounded-2xl bg-slate-100 px-4 py-3.5 text-[12.5px] font-semibold leading-6 text-slate-500">
           <KeyRound className="ml-1 inline size-4 text-slate-400" />
           تغییر رمز عبور فقط توسط مدیر و معاونان آموزشی و پرورشی از «پنل مدیریت» انجام می‌شود.
         </div>
 
         <button
           onClick={onLogout}
-          className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-rose-50 py-3.5 text-sm font-black text-rose-600 transition hover:bg-rose-100 active:scale-[0.99] dark:bg-rose-500/10 dark:text-rose-300 dark:hover:bg-rose-500/20"
+          className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-rose-50 py-3.5 text-sm font-black text-rose-600 transition hover:bg-rose-100 active:scale-[0.99]"
         >
           <LogOut className="size-5" />
           خروج از حساب کاربری

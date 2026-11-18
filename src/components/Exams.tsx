@@ -96,7 +96,7 @@ export default function Exams({ user }: { user: User }) {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[15px] font-black text-slate-800 dark:text-slate-100">{e.title}</span>
+                      <span className="text-[15px] font-black text-slate-800">{e.title}</span>
                       {e.status === "published" ? (
                         <Chip tone="green">فعال</Chip>
                       ) : e.status === "draft" ? (
@@ -112,7 +112,7 @@ export default function Exams({ user }: { user: User }) {
                     </div>
                   </div>
                 </div>
-                {e.description && <p className="user-text mt-3 text-[13px] leading-6 text-slate-500 dark:text-slate-400">{e.description}</p>}
+                {e.description && <p className="user-text mt-3 text-[13px] leading-6 text-slate-500">{e.description}</p>}
 
                 {/* اکشن‌های دانش‌آموز */}
                 {user.role === "student" && (
@@ -290,7 +290,7 @@ function ExamBuilder({ exam, user, onClose }: { exam: Exam | null; user: User; o
             </select>
           </Field>
           <Field label="کلاس مقصد">
-            <div className="rounded-xl bg-indigo-50 px-3.5 py-2.5 text-[13px] font-black text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300">
+            <div className="rounded-xl bg-indigo-50 px-3.5 py-2.5 text-[13px] font-black text-indigo-700">
               {className(grade, section)}
             </div>
           </Field>
@@ -300,9 +300,9 @@ function ExamBuilder({ exam, user, onClose }: { exam: Exam | null; user: User; o
         </Field>
 
         {/* سؤال‌ها */}
-        <div className="rounded-2xl border border-slate-200 p-4 dark:border-white/10">
+        <div className="rounded-2xl border border-slate-200 p-4">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <div className="text-sm font-black text-slate-700 dark:text-slate-200">
+            <div className="text-sm font-black text-slate-700">
               سؤال‌ها — {fa(questions.length)} سؤال ، {fa(questions.reduce((a, q) => a + q.score, 0))} نمره
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -320,14 +320,14 @@ function ExamBuilder({ exam, user, onClose }: { exam: Exam | null; user: User; o
 
           <div className="space-y-3">
             {questions.length === 0 && (
-              <div className="rounded-xl bg-slate-50 py-6 text-center text-[12.5px] font-semibold text-slate-400 dark:bg-white/5">
+              <div className="rounded-xl bg-slate-50 py-6 text-center text-[12.5px] font-semibold text-slate-400">
                 هنوز سؤالی اضافه نشده است
               </div>
             )}
             {questions.map((q, i) => (
-              <div key={q.id} className="rounded-xl bg-slate-50 p-3.5 dark:bg-white/5">
+              <div key={q.id} className="rounded-xl bg-slate-50 p-3.5">
                 <div className="mb-2.5 flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-[12px] font-black text-indigo-600 dark:text-indigo-300">
+                  <span className="flex items-center gap-2 text-[12px] font-black text-indigo-600">
                     سؤال {fa(i + 1)} <Chip tone="indigo">{qTypeFa[q.type]}</Chip>
                   </span>
                   <div className="flex items-center gap-2">
@@ -360,7 +360,7 @@ function ExamBuilder({ exam, user, onClose }: { exam: Exam | null; user: User; o
                   <div className="mt-2.5 grid gap-2 sm:grid-cols-2">
                     {(q.options ?? []).map((o, oi) => (
                       <div key={oi} className="flex items-center gap-2">
-                        <span className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-white text-[11px] font-black text-slate-500 ring-1 ring-slate-200 dark:bg-white/10 dark:ring-white/10">
+                        <span className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-white text-[11px] font-black text-slate-500 ring-1 ring-slate-200">
                           {["الف", "ب", "ج", "د"][oi]}
                         </span>
                         <input
@@ -445,17 +445,17 @@ function ExamRunner({ exam, user, onClose, onDone }: { exam: Exam; user: User; o
   const danger = left < 60;
 
   return (
-    <div className="fixed inset-0 z-[85] flex flex-col bg-slate-50 dark:bg-slate-950">
+    <div className="fixed inset-0 z-[85] flex flex-col bg-slate-50">
       {/* هدر آزمون */}
-      <div className="border-b border-slate-200/70 bg-white/90 px-4 py-3 backdrop-blur-xl dark:border-white/5 dark:bg-slate-900/70 sm:px-6">
+      <div className="border-b border-slate-200/70 bg-white/90 px-4 py-3 backdrop-blur-xl sm:px-6">
         <div className="mx-auto flex max-w-3xl items-center gap-3">
           <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-black text-slate-800 dark:text-slate-100">{exam.title}</div>
+            <div className="truncate text-sm font-black text-slate-800">{exam.title}</div>
             <div className="mt-0.5 text-[11.5px] font-semibold text-slate-400">
               پاسخ‌داده‌شده: {fa(answered)} از {fa(exam.questions.length)}
             </div>
           </div>
-          <div className={`flex items-center gap-1.5 rounded-2xl px-4 py-2 text-sm font-black tabular-nums ${danger ? "animate-pulse bg-rose-100 text-rose-600 dark:bg-rose-500/15" : "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300"}`}>
+          <div className={`flex items-center gap-1.5 rounded-2xl px-4 py-2 text-sm font-black tabular-nums ${danger ? "animate-pulse bg-rose-100 text-rose-600" : "bg-indigo-50 text-indigo-700"}`}>
             <Clock3 className="size-4.5" />
             {fa(String(mm).padStart(2, "0"))}:{fa(String(ss).padStart(2, "0"))}
           </div>
@@ -470,14 +470,14 @@ function ExamRunner({ exam, user, onClose, onDone }: { exam: Exam; user: User; o
       <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
         <div className="mx-auto max-w-3xl space-y-4">
           {exam.description && (
-            <div className="rounded-2xl bg-amber-50 px-4 py-3 text-[13px] font-semibold leading-7 text-amber-800 dark:bg-amber-500/10 dark:text-amber-200">
+            <div className="rounded-2xl bg-amber-50 px-4 py-3 text-[13px] font-semibold leading-7 text-amber-800">
               {exam.description}
             </div>
           )}
           {exam.questions.map((q, i) => (
             <div key={q.id} className="card p-5">
               <div className="mb-3 flex items-start justify-between gap-3">
-                <div className="text-[14.5px] font-bold leading-8 text-slate-800 dark:text-slate-100">
+                <div className="text-[14.5px] font-bold leading-8 text-slate-800">
                   <span className="ml-1 inline-flex size-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-[12px] font-black text-white">
                     {fa(i + 1)}
                   </span>
@@ -497,14 +497,14 @@ function ExamRunner({ exam, user, onClose, onDone }: { exam: Exam; user: User; o
                         onClick={() => set(q.id, val)}
                         className={`flex items-center gap-2.5 rounded-xl border px-3.5 py-3 text-right transition ${
                           on
-                            ? "border-indigo-400 bg-indigo-50 ring-2 ring-indigo-500/15 dark:border-indigo-400/50 dark:bg-indigo-500/10"
-                            : "border-slate-200 hover:border-slate-300 dark:border-white/10 dark:hover:border-white/20"
+                            ? "border-indigo-400 bg-indigo-50 ring-2 ring-indigo-500/15"
+                            : "border-slate-200 hover:border-slate-300"
                         }`}
                       >
-                        <span className={`flex size-6 shrink-0 items-center justify-center rounded-full text-[11px] font-black ${on ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-500 dark:bg-white/10"}`}>
+                        <span className={`flex size-6 shrink-0 items-center justify-center rounded-full text-[11px] font-black ${on ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-500"}`}>
                           {["الف", "ب", "ج", "د"][oi]}
                         </span>
-                        <span className="text-[13px] font-bold text-slate-700 dark:text-slate-200">{o}</span>
+                        <span className="text-[13px] font-bold text-slate-700">{o}</span>
                       </button>
                     );
                   })}
@@ -522,9 +522,9 @@ function ExamRunner({ exam, user, onClose, onDone }: { exam: Exam; user: User; o
                         className={`flex-1 rounded-xl border px-4 py-3 text-sm font-black transition ${
                           on
                             ? o === "صحیح"
-                              ? "border-emerald-400 bg-emerald-50 text-emerald-700 ring-2 ring-emerald-500/15 dark:border-emerald-400/50 dark:bg-emerald-500/10 dark:text-emerald-300"
-                              : "border-rose-400 bg-rose-50 text-rose-700 ring-2 ring-rose-500/15 dark:border-rose-400/50 dark:bg-rose-500/10 dark:text-rose-300"
-                            : "border-slate-200 text-slate-500 dark:border-white/10"
+                              ? "border-emerald-400 bg-emerald-50 text-emerald-700 ring-2 ring-emerald-500/15"
+                              : "border-rose-400 bg-rose-50 text-rose-700 ring-2 ring-rose-500/15"
+                            : "border-slate-200 text-slate-500"
                         }`}
                       >
                         {o}
@@ -564,7 +564,7 @@ function ExamRunner({ exam, user, onClose, onDone }: { exam: Exam; user: User; o
       </div>
 
       <Modal open={confirmSubmit} onClose={() => setConfirmSubmit(false)} title="ثبت پاسخ‌ها" icon={<AlertTriangle className="size-5 text-amber-500" />}>
-        <p className="mb-2 text-sm leading-7 text-slate-600 dark:text-slate-300">
+        <p className="mb-2 text-sm leading-7 text-slate-600">
           {fa(answered)} سؤال از {fa(exam.questions.length)} سؤال را پاسخ داده‌اید. بعد از ثبت، امکان تغییر پاسخ‌ها نیست.
         </p>
         <p className="mb-5 text-[12.5px] font-semibold text-slate-400">پاسخ‌ها برای دبیر ارسال و توسط ایشان تصحیح می‌شود.</p>
@@ -603,10 +603,10 @@ function SubmissionsModal({
           {subs.map((s) => {
             const st = studentOf(s.studentId);
             return (
-              <div key={s.id} className="flex items-center gap-3 rounded-2xl border border-slate-100 p-3 dark:border-white/5">
+              <div key={s.id} className="flex items-center gap-3 rounded-2xl border border-slate-100 p-3">
                 <Avatar user={st ?? null} size={40} />
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-[13.5px] font-black text-slate-800 dark:text-slate-100">
+                  <div className="truncate text-[13.5px] font-black text-slate-800">
                     {st ? `${st.firstName} ${st.lastName}` : "دانش‌آموز"}
                   </div>
                   <div className="mt-0.5 text-[11px] font-semibold text-slate-400">
@@ -678,15 +678,15 @@ function ResultModal({ exam, sub, viewer, onClose }: { exam: Exam; sub: Submissi
       )}
       <div className="space-y-3">
         {exam.questions.map((q, i) => (
-          <div key={q.id} className="rounded-2xl bg-slate-50 p-4 dark:bg-white/5">
+          <div key={q.id} className="rounded-2xl bg-slate-50 p-4">
             <div className="mb-2 flex items-start justify-between gap-2">
-              <div className="text-[13.5px] font-bold leading-7 text-slate-800 dark:text-slate-100">
+              <div className="text-[13.5px] font-bold leading-7 text-slate-800">
                 <span className="ml-1 text-indigo-500">{fa(i + 1)}.</span>
                 {q.text}
               </div>
               <Chip tone="slate">{qTypeFa[q.type]} • {fa(q.score)} نمره</Chip>
             </div>
-            <div className="user-text rounded-xl bg-white px-3.5 py-2.5 text-[13px] leading-7 text-slate-600 ring-1 ring-slate-200/70 dark:bg-white/5 dark:text-slate-300 dark:ring-white/10">
+            <div className="user-text rounded-xl bg-white px-3.5 py-2.5 text-[13px] leading-7 text-slate-600 ring-1 ring-slate-200/70">
               <span className="ml-1 text-[11px] font-black text-slate-400">پاسخ:</span>
               {answerLabel(q)}
             </div>
@@ -730,7 +730,7 @@ function ResultModal({ exam, sub, viewer, onClose }: { exam: Exam; sub: Submissi
         </div>
       ) : (
         sub.feedback && (
-          <div className="mt-4 rounded-2xl bg-indigo-50 px-4 py-3 text-[13px] font-semibold leading-7 text-indigo-800 dark:bg-indigo-500/10 dark:text-indigo-200">
+          <div className="mt-4 rounded-2xl bg-indigo-50 px-4 py-3 text-[13px] font-semibold leading-7 text-indigo-800">
             نظر دبیر: {sub.feedback}
           </div>
         )

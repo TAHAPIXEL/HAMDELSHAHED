@@ -66,13 +66,13 @@ export default function Notices({ user }: { user: User }) {
             return (
               <div key={n.id} className={`card overflow-hidden transition ${unread ? "ring-1 ring-indigo-400/40" : ""}`}>
                 <button onClick={() => open(n)} className="flex w-full items-center gap-3.5 p-4 text-right">
-                  <div className={`flex size-11 shrink-0 items-center justify-center rounded-2xl ${unread ? "bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-600/25" : "bg-slate-100 text-slate-400 dark:bg-white/10"}`}>
+                  <div className={`flex size-11 shrink-0 items-center justify-center rounded-2xl ${unread ? "bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-600/25" : "bg-slate-100 text-slate-400"}`}>
                     <Megaphone className="size-5" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       {unread && <span className="size-2 shrink-0 rounded-full bg-rose-500" />}
-                      <span className="truncate text-sm font-black text-slate-800 dark:text-slate-100">{n.title}</span>
+                      <span className="truncate text-sm font-black text-slate-800">{n.title}</span>
                     </div>
                     <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] font-semibold text-slate-400">
                       <span>{staffName(n.createdBy)}</span>
@@ -87,12 +87,12 @@ export default function Notices({ user }: { user: User }) {
                   </div>
                 </button>
                 {open_ && (
-                  <div className="anim-fade-up border-t border-slate-100 px-5 py-4 dark:border-white/5">
+                  <div className="anim-fade-up border-t border-slate-100 px-5 py-4">
                     {n.image && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={n.image} alt={n.title} className="mb-3 max-h-72 w-full rounded-2xl object-cover" />
                     )}
-                    <p className="user-text whitespace-pre-wrap text-sm leading-8 text-slate-600 dark:text-slate-300">{n.body}</p>
+                    <p className="user-text whitespace-pre-wrap text-sm leading-8 text-slate-600">{n.body}</p>
                     {(n.createdBy === user.id || canAdminPanel(user)) && (
                       <div className="mt-4 flex justify-end">
                         <Btn kind="danger" onClick={() => setDel(n)}>
@@ -171,8 +171,8 @@ function NewNoticeModal({ user, onClose }: { user: User; onClose: () => void }) 
                 onClick={() => setAudience(o.v)}
                 className={`rounded-xl border px-3 py-2.5 text-[13px] font-bold transition ${
                   audience === o.v
-                    ? "border-indigo-400 bg-indigo-50 text-indigo-700 dark:border-indigo-400/50 dark:bg-indigo-500/10 dark:text-indigo-300"
-                    : "border-slate-200 text-slate-500 dark:border-white/10"
+                    ? "border-indigo-400 bg-indigo-50 text-indigo-700"
+                    : "border-slate-200 text-slate-500"
                 }`}
               >
                 {o.l}
@@ -192,7 +192,7 @@ function NewNoticeModal({ user, onClose }: { user: User; onClose: () => void }) 
           ) : (
             <button
               onClick={() => fileRef.current?.click()}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 px-3 py-4 text-[13px] font-bold text-slate-500 transition hover:border-indigo-300 hover:text-indigo-600 dark:border-white/10"
+              className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 px-3 py-4 text-[13px] font-bold text-slate-500 transition hover:border-indigo-300 hover:text-indigo-600"
             >
               <ImagePlus className="size-4.5" />
               افزودن تصویر
