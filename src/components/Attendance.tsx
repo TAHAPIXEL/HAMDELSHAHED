@@ -66,7 +66,7 @@ function StudentAttendance({ user }: { user: User }) {
           <div className="card flex flex-col items-center gap-1.5 p-4">
             <AlarmClock className="size-6 text-amber-500" />
             <div className="text-xl font-black text-slate-800 dark:text-slate-100">{fa(count("excused"))}</div>
-            <div className="text-[11px] font-bold text-slate-400">روز مرخصی</div>
+            <div className="text-[11px] font-bold text-slate-400">روز موجه</div>
           </div>
         </div>
 
@@ -186,7 +186,7 @@ function StaffAttendance({ user }: { user: User }) {
         <div className="mb-4 flex flex-wrap items-center gap-2 text-[12px] font-bold">
           <Chip tone="green">حاضر: {fa(counts.present)}</Chip>
           <Chip tone="red">غایب: {fa(counts.absent)}</Chip>
-          <Chip tone="amber">مرخصی: {fa(counts.excused)}</Chip>
+          <Chip tone="amber">موجه: {fa(counts.excused)}</Chip>
           <Chip>بدون ثبت: {fa(counts.none)}</Chip>
           {savedTick > 0 && (
             <span key={savedTick} className="anim-fade-up mr-auto flex items-center gap-1 text-[11px] font-bold text-emerald-600">
@@ -224,7 +224,7 @@ function StaffAttendance({ user }: { user: User }) {
                     [
                       { v: "present", l: "حاضر", on: "bg-emerald-500 text-white" },
                       { v: "absent", l: "غایب", on: "bg-rose-500 text-white" },
-                      { v: "excused", l: "مرخصی", on: "bg-amber-500 text-white" },
+                      { v: "excused", l: "موجه", on: "bg-amber-500 text-white" },
                     ] as const
                   ).map((o) => (
                     <button

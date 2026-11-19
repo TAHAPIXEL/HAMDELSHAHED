@@ -94,7 +94,7 @@ async function test(name, fn) {
 
 const period = (kind, d) => reports.periodFor(kind, jy, jm, d);
 
-await test("ماهانه: جمع حاضر/غایب/مرخصی کلاس با داده‌ی خام یکی است", async () => {
+await test("ماهانه: جمع حاضر/غایب/موجه کلاس با داده‌ی خام یکی است", async () => {
   const rep = reports.buildAttendanceReport(7, "1", period("month", 1));
   assert.equal(rep.days.length, 30);
   const raw = (c) => Object.values(pattern).join("").split("").filter((x) => x === c).length;

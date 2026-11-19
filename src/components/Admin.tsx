@@ -782,7 +782,7 @@ function AttendanceReportTab() {
         <Stat label="کل دانش‌آموزان" value={totals.total} icon={<Users className="size-5.5" />} tone="bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300" />
         <Stat label="حاضر امروز" value={totals.present} icon={<UserCheck2 className="size-5.5" />} tone="bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300" />
         <Stat label="غایب امروز" value={totals.absent} icon={<UserX2 className="size-5.5" />} tone="bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300" />
-        <Stat label="مرخصی امروز" value={totals.excused} icon={<AlarmClock className="size-5.5" />} tone="bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300" />
+        <Stat label="موجه امروز" value={totals.excused} icon={<AlarmClock className="size-5.5" />} tone="bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300" />
       </div>
 
       <div className="card overflow-hidden p-0">
@@ -801,7 +801,7 @@ function AttendanceReportTab() {
                 <div className="flex flex-wrap items-center gap-1.5">
                   <Chip tone="green">حاضر {fa(r.present)}</Chip>
                   <Chip tone="red">غایب {fa(r.absent)}</Chip>
-                  <Chip tone="amber">مرخصی {fa(r.excused)}</Chip>
+                  <Chip tone="amber">موجه {fa(r.excused)}</Chip>
                   <Chip>کل {fa(r.total)}</Chip>
                 </div>
               </div>

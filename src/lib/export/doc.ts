@@ -55,7 +55,7 @@ export function attendanceDoc(grade: 7 | 8 | 9, section: string, period: ReportP
   const hasData = rep.days.length > 0 && rep.rows.length > 0;
   const dayCols = rep.days.map((d, i) => ({ label: d.label, idx: i }));
 
-  const headers = ["ردیف", "نام و نام خانوادگی", ...dayCols.map((d) => d.label), "حاضر", "غایب", "مرخصی", "درصد حضور"];
+  const headers = ["ردیف", "نام و نام خانوادگی", ...dayCols.map((d) => d.label), "حاضر", "غایب", "موجه", "درصد حضور"];
   const widths = [6, 26, ...dayCols.map(() => (many ? 3.2 : 9)), 8, 8, 8, 9];
 
   const rows: Cell[][] = rep.rows.map((r) => [
@@ -80,7 +80,7 @@ export function attendanceDoc(grade: 7 | 8 | 9, section: string, period: ReportP
 
   const kindLabel = period.kind === "day" ? "روزانه" : period.kind === "week" ? "هفتگی" : "ماهانه";
   const notes = [FOOTER];
-  if (many) notes.unshift("راهنما: ح = حاضر، غ = غایب، م = مرخصی، – = ثبت‌نشده");
+  if (many) notes.unshift("راهنما: ح = حاضر، غ = غایب، م = موجه، – = ثبت‌نشده");
   if (!hasData) notes.unshift("برای این بازه هیچ حضور و غیابی برای این کلاس ثبت نشده است.");
 
   return {
@@ -97,7 +97,7 @@ export function attendanceDoc(grade: 7 | 8 | 9, section: string, period: ReportP
     summary: [
       { label: "حاضر", value: fa(rep.totals.present), tone: "ok" },
       { label: "غایب", value: fa(rep.totals.absent), tone: "bad" },
-      { label: "مرخصی", value: fa(rep.totals.excused), tone: "warn" },
+      { label: "موجه", value: fa(rep.totals.excused), tone: "warn" },
       { label: "درصد حضور کلاس", value: pct(rep.totals.rate), tone: "strong" },
     ],
     tables: hasData ? [{ heading: "جدول حضور و غیاب", headers, rows, widths, totalRow }] : [],
@@ -174,7 +174,7 @@ export function reportCardDoc(studentId: string, jy: number, jm: number): Export
       { label: "روزهای درسی", value: fmtDays(a.schoolDays) },
       { label: "حاضر", value: fmtDays(a.present), tone: "ok" },
       { label: "غایب", value: fmtDays(a.absent), tone: "bad" },
-      { label: "مرخصی", value: fmtDays(a.excused), tone: "warn" },
+      { label: "موجه", value: fmtDays(a.excused), tone: "warn" },
       { label: "درصد حضور", value: pct(a.rate), tone: "strong" },
       { label: "میانگین نمرات", value: card.average === null ? dash : pct(card.average), tone: "strong" },
     ],

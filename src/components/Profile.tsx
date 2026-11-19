@@ -352,7 +352,7 @@ export default function Profile({
     stats = [
       { icon: <UserCheck2 className="size-4" />, value: recs.filter((r) => r.status === "present").length, label: "روز حاضر", tone: "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300" },
       { icon: <UserX2 className="size-4" />, value: recs.filter((r) => r.status === "absent").length, label: "روز غایب", tone: "bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300" },
-      { icon: <AlarmClock className="size-4" />, value: recs.filter((r) => r.status === "excused").length, label: "روز مرخصی", tone: "bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300" },
+      { icon: <AlarmClock className="size-4" />, value: recs.filter((r) => r.status === "excused").length, label: "روز موجه", tone: "bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300" },
     ];
   } else if (isDev) {
     stats = [

@@ -480,7 +480,7 @@ export const qTypeFa: Record<QuestionType, string> = {
 export const attFa: Record<AttStatus, string> = {
   present: "حاضر",
   absent: "غایب",
-  excused: "مرخصی",
+  excused: "موجه",
 };
 
 export function faDateTime(ts: number): string {
