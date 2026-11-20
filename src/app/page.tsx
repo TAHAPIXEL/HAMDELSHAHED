@@ -37,6 +37,13 @@ export default function Page() {
     setUser(null);
   };
 
+  // «تلاش دوباره» نشست ذخیره‌شده را پاک می‌کند و صفحه‌ی ورود را نشان می‌دهد
+  // (بارگذاری مجدد با همان نشست نامعتبر، همان خطا را دوباره می‌آورد).
+  const retryToLogin = () => {
+    setLoadError("");
+    handleLogout();
+  };
+
   return (
     <ToastProvider>
       {!ready ? (
@@ -44,7 +51,7 @@ export default function Page() {
       ) : loadError ? (
         <div className="flex min-h-dvh flex-col items-center justify-center gap-4 p-6 text-center">
           <p className="text-sm font-bold text-rose-600">{loadError}</p>
-          <button className="btn-primary" onClick={() => window.location.reload()}>
+          <button className="btn-primary" onClick={retryToLogin}>
             تلاش دوباره
           </button>
         </div>
