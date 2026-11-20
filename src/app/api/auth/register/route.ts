@@ -3,7 +3,7 @@ import { query } from "@/db";
 import { REGISTRABLE_ROLES, isManagerRole } from "@/lib/collections";
 import { verifyStaffKey } from "@/lib/secrets";
 import { HttpError, NO_STORE, clientIp, errorResponse, rateLimit, readJson } from "@/lib/server/http";
-import { isStoredImageUrl } from "@/lib/server/storage";
+import { isInlineAvatar, isStoredImageUrl } from "@/lib/server/storage";
 import { viewerFromRequest } from "@/lib/server/session";
 
 export const dynamic = "force-dynamic";
@@ -77,7 +77,7 @@ export async function POST(req: Request) {
       record.staffRole = staffRole;
     }
     if (typeof input.avatar === "string" && input.avatar) {
-      if (!isStoredImageUrl(input.avatar)) {
+      if (!isInlineAvatar(input.avatar) && !isStoredImageUrl(input.avatar)) {
         throw new HttpError(400, "آدرس تصویر پروفایل نامعتبر است.");
       }
       record.avatar = input.avatar;

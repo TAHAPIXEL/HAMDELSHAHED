@@ -34,7 +34,7 @@ import {
   fa,
   faDate,
   faDateTime,
-  uploadImage,
+  avatarDataUrl,
   isStaff,
   JALALI_MONTHS,
   jalaaliDaysOfMonth,
@@ -251,7 +251,7 @@ function EditProfileModal({ userId, onClose }: { userId: string; onClose: () => 
                   try {
                     // عکس بلافاصله ذخیره می‌شود (مثل دکمه‌ی دوربین کارت پروفایل)،
                     // تا با خطای فرم‌های دیگر گم نشود
-                    const url = await uploadImage(f, 420, 0.75);
+                    const url = await avatarDataUrl(f);
                     if (!saveAvatarUrl(userId, url)) throw new Error("حساب شما پیدا نشد؛ یک بار خارج و دوباره وارد شوید.");
                     setAvatar(url);
                     toast("success", "عکس پروفایل به‌روز شد");
@@ -327,7 +327,7 @@ export default function Profile({
     if (isDev) return toast("info", "حساب مدیر ارشد عکس ندارد");
     setChanging(true);
     try {
-      const data = await uploadImage(f, 420, 0.75);
+      const data = await avatarDataUrl(f);
       if (!saveAvatarUrl(me.id, data)) throw new Error("حساب شما پیدا نشد؛ یک بار خارج و دوباره وارد شوید.");
       toast("success", "عکس پروفایل به‌روز شد");
     } catch (err) {

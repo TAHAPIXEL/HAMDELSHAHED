@@ -834,6 +834,16 @@ function compressToDataURL(file: File, max: number, quality: number): Promise<st
 }
 
 /**
+ * عکس پروفایل: کوچک (۱۲۸ پیکسل، JPEG) و به‌صورت داده‌ی درون‌خطی.
+ * همین روش برای تصاویر پیام‌ها هم به‌درستی برای همه نمایش داده می‌شود؛ آدرس فضای ابری لازم نیست.
+ */
+export async function avatarDataUrl(file: File): Promise<string> {
+  const dataUrl = await compressToDataURL(file, 128, 0.8);
+  if (dataUrl.length > 40_000) throw new Error("تصویر پس از فشرده‌سازی هنوز بزرگ است؛ تصویر دیگری انتخاب کنید");
+  return dataUrl;
+}
+
+/**
  * فشرده‌سازی تصویر در مرورگر و ذخیره در فضای ابری (Supabase Storage).
  * خروجی آدرس عمومی تصویر است که در رکوردها ذخیره می‌شود.
  */

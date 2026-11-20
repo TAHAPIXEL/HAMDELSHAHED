@@ -299,6 +299,22 @@ async function main() {
     assert.equal(clear.status, 200);
   });
 
+  await check("inline avatar: real image bytes saved, forged or oversized rejected, other students see it", async () => {
+    const base = { id: studentA.id, role: "student", firstName: "رضا", lastName: "ویرایش", phone: studentA.phone, password: "1234", grade: 7, section: "1", createdAt: 1 };
+    const jpegB64 = Buffer.from("ffd8ffe000104a46494600010100000100010000ffdb", "hex").toString("base64");
+    const good = `data:image/jpeg;base64,${jpegB64}`;
+    const ok = await req("POST", "/api/state/sync", { token: tokenA, body: { ops: [{ c: "users", id: studentA.id, d: { ...base, avatar: good } }] } });
+    assert.equal(ok.status, 200);
+    const forged = `data:image/jpeg;base64,${Buffer.from("not an image at all").toString("base64")}`;
+    assert.equal((await req("POST", "/api/state/sync", { token: tokenA, body: { ops: [{ c: "users", id: studentA.id, d: { ...base, avatar: forged } }] } })).status, 400);
+    const huge = `data:image/jpeg;base64,${jpegB64}${"A".repeat(41000)}`;
+    assert.equal((await req("POST", "/api/state/sync", { token: tokenA, body: { ops: [{ c: "users", id: studentA.id, d: { ...base, avatar: huge } }] } })).status, 400);
+    const sb = await req("GET", "/api/state", { token: tokenB });
+    const seenByB = sb.json.rows.find((r) => r.c === "users" && r.id === studentA.id);
+    assert.equal(seenByB.d.avatar, good, "another student receives the avatar");
+    await req("POST", "/api/state/sync", { token: tokenA, body: { ops: [{ c: "users", id: studentA.id, d: { ...base, avatar: "" } }] } });
+  });
+
   await check("upload requires a session", async () => {
     const f = new FormData();
     f.append("file", new Blob(["x"], { type: "image/png" }), "a.png");

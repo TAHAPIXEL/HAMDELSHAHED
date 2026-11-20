@@ -14,7 +14,7 @@ import {
   type CollectionKey,
 } from "@/lib/collections";
 import { HttpError } from "./http";
-import { isStoredImageUrl } from "./storage";
+import { isInlineAvatar, isStoredImageUrl } from "./storage";
 import type { Viewer } from "./session";
 
 export interface RecordRow {
@@ -250,7 +250,13 @@ async function enforceRules(viewer: Viewer, ops: SyncOp[]): Promise<void> {
         }
         const next = op.d as Record<string, unknown>;
         if (next.role === "developer") throw new HttpError(403, "نقش مدیر ارشد قابل تخصیص نیست.");
-        if (next.avatar !== undefined && next.avatar !== null && next.avatar !== "" && !isStoredImageUrl(next.avatar)) {
+        if (
+          next.avatar !== undefined &&
+          next.avatar !== null &&
+          next.avatar !== "" &&
+          !isInlineAvatar(next.avatar) &&
+          !isStoredImageUrl(next.avatar)
+        ) {
           throw new HttpError(400, "آدرس تصویر پروفایل نامعتبر است.");
         }
         if (manager) break;

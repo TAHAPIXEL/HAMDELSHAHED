@@ -17,7 +17,7 @@ import {
   SECTIONS,
   className,
   fa,
-  uploadImage,
+  avatarDataUrl,
   gradeFa,
   jalaaliDaysOfMonth,
   login,
@@ -104,7 +104,7 @@ export default function Auth({ onAuth }: { onAuth: (u: User) => void }) {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      setAvatar(await uploadImage(file, 420, 0.75, "registration"));
+      setAvatar(await avatarDataUrl(file));
     } catch (err) {
       toast("error", (err as Error).message || "بارگذاری تصویر ممکن نشد");
     }

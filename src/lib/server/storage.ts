@@ -58,6 +58,21 @@ export function isStoredImageUrl(url: unknown): url is string {
     && url.length > prefix.length;
 }
 
+/**
+ * عکس پروفایل به‌صورت داده‌ی درون‌خطی (data URL کوچک، ۱۲۸ پیکسلی) ذخیره می‌شود،
+ * مثل تصاویر پیام‌ها. این مسیر مستقل از آدرس عمومی فضای ابری است که برای بعضی فایل‌ها خطا می‌داد.
+ */
+export const AVATAR_MAX_CHARS = 40_000;
+
+/** آیا مقدار، عکس پروفایل درون‌خطی معتبر است؟ (نوع فایل از روی بایت‌ها بررسی می‌شود) */
+export function isInlineAvatar(url: unknown): url is string {
+  if (typeof url !== "string" || url.length > AVATAR_MAX_CHARS) return false;
+  const m = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/]+={0,2})$/.exec(url);
+  if (!m) return false;
+  const bytes = new Uint8Array(Buffer.from(m[2], "base64"));
+  return sniffImage(bytes) !== null;
+}
+
 /** تشخیص نوع تصویر از روی امضای فایل (نه از روی نام یا MIME ارسالی) */
 export function sniffImage(b: Uint8Array): string | null {
   if (b.length >= 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "image/jpeg";
