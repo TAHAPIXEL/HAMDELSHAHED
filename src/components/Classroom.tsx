@@ -22,6 +22,14 @@ export function roomOfUser(u: User | null): string | null {
   return `${u.grade}-${u.section}`;
 }
 
+/** چیدمان شبکه‌ی تصاویر: یک تصویر تمام‌عرض، دو تصویر کنار هم، و بیشتر به صورت شبکه */
+function shareGridClass(n: number): string {
+  if (n <= 1) return "grid-cols-1";
+  if (n === 2) return "grid-cols-1 md:grid-cols-2";
+  if (n <= 4) return "grid-cols-1 sm:grid-cols-2";
+  return "grid-cols-2 xl:grid-cols-3";
+}
+
 interface RoomInfo {
   live: boolean;
   teacherName: string;
@@ -40,6 +48,7 @@ export function ClassroomPage({ open, onClose, user }: { open: boolean; onClose:
   const [chooser, setChooser] = useState(false);
   const [cameras, setCameras] = useState<{ id: string; label: string }[]>([]);
   const [mobile] = useState(() => typeof window !== "undefined" && isMobileDevice());
+  const [screenOk] = useState(() => typeof window !== "undefined" && canShareScreen());
   const [chatText, setChatText] = useState("");
   const toast = useToast();
 
@@ -171,7 +180,7 @@ export function ClassroomPage({ open, onClose, user }: { open: boolean; onClose:
             <Btn kind="soft" onClick={() => pick("camera-front")}>
               <Camera className="size-4" /> دوربین جلو
             </Btn>
-            {canShareScreen() && (
+            {screenOk && (
               <Btn kind="soft" onClick={() => pick("screen")}>
                 <Monitor className="size-4" /> صفحه‌ی گوشی
               </Btn>
@@ -193,8 +202,10 @@ export function ClassroomPage({ open, onClose, user }: { open: boolean; onClose:
           انصراف
         </Btn>
       </div>
-      {mobile && !canShareScreen() && (
-        <p className="mt-2 text-xs text-slate-500">اشتراک صفحه‌ی گوشی روی این مرورگر پشتیبانی نمی‌شود؛ از Chrome اندروید استفاده کنید.</p>
+      {mobile && !screenOk && (
+        <p className="mt-3 text-xs leading-6 text-slate-500 dark:text-slate-400">
+          مرورگرهای موبایل اجازه‌ی ضبط صفحه‌ی گوشی را نمی‌دهند. برای نشان دادن صفحه‌ی گوشی یا تبلت، دوربین پشت را به سمت صفحه بگیرید.
+        </p>
       )}
     </div>
   );
@@ -203,8 +214,8 @@ export function ClassroomPage({ open, onClose, user }: { open: boolean; onClose:
     <Modal open={open} onClose={onClose} title="کلاس آنلاین" page icon={<Radio className="size-5" />}>
       <div className="flex flex-col gap-4">
         {teacher ? (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold text-slate-500">کلاس:</span>
+          <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
+            <span className="shrink-0 text-xs font-bold text-slate-500">کلاس:</span>
             {GRADES.flatMap((g) =>
               SECTIONS[g].map((s) => {
                 const id = `${g}-${s}`;
@@ -215,7 +226,7 @@ export function ClassroomPage({ open, onClose, user }: { open: boolean; onClose:
                     type="button"
                     onClick={() => setRoom(id)}
                     disabled={connectedElsewhere && !active}
-                    className={`rounded-full px-3 py-1 text-xs font-bold transition disabled:opacity-40 ${
+                    className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold transition disabled:opacity-40 ${
                       active ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300"
                     }`}
                   >
@@ -244,7 +255,7 @@ export function ClassroomPage({ open, onClose, user }: { open: boolean; onClose:
                 {live && info?.teacherName ? <Chip tone="indigo">مدرس: {info.teacherName}</Chip> : null}
                 {phaseText && <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-300">{phaseText}</span>}
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap">
                 {teacher && !live && (
                   <Btn onClick={goLive} loading={busy}>
                     <Power className="size-4" /> شروع کلاس
@@ -308,12 +319,6 @@ export function ClassroomPage({ open, onClose, user }: { open: boolean; onClose:
                     </Btn>
                   </>
                 )}
-                {connectedHere && (
-                  <Btn kind={snap.audioBlocked ? "soft" : "ghost"} onClick={enableSound} loading={busy}>
-                    {snap.audioBlocked ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
-                    {snap.audioBlocked ? "باز کردن صدا" : "صدای کلاس"}
-                  </Btn>
-                )}
               </div>
             </div>
 
@@ -335,9 +340,9 @@ export function ClassroomPage({ open, onClose, user }: { open: boolean; onClose:
               <button
                 type="button"
                 onClick={enableSound}
-                className="mt-3 w-full rounded-xl bg-indigo-600 px-3 py-3 text-sm font-bold text-white"
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-3 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-600/20"
               >
-                صدای کلاس قطع است — برای شنیدن صدای مدرس اینجا بزنید
+                <VolumeX className="size-4" /> صدای کلاس قطع است — برای شنیدن صدای مدرس اینجا بزنید
               </button>
             )}
           </section>
@@ -353,14 +358,18 @@ export function ClassroomPage({ open, onClose, user }: { open: boolean; onClose:
 
         {connectedHere && showChooser}
 
+        <div className={connectedHere ? "grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]" : "contents"}>
+        <div className="flex min-w-0 flex-col gap-4">
         {connectedHere && snap.shares.length > 0 && (
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className={`grid gap-2 ${shareGridClass(snap.shares.length)}`}>
             {snap.shares.map((s) => (
-              <ShareTile key={s.key} share={s} />
+              <ShareTile key={s.key} share={s} large={snap.shares.length === 1} />
             ))}
           </div>
         )}
 
+        </div>
+        <div className="flex min-w-0 flex-col gap-4">
         {connectedHere && isTeacherHere && hands.length > 0 && (
           <section className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4 dark:border-amber-500/20 dark:bg-amber-500/5">
             <h3 className="mb-2 flex items-center gap-2 text-sm font-bold text-amber-800 dark:text-amber-200">
@@ -384,7 +393,7 @@ export function ClassroomPage({ open, onClose, user }: { open: boolean; onClose:
             <h3 className="mb-3 flex items-center gap-2 text-sm font-bold">
               <Users className="size-4" /> حاضران ({snap.peers.length})
             </h3>
-            <ul className="grid gap-2 sm:grid-cols-2">
+            <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
               {snap.peers.map((p) => (
                 <li
                   key={p.identity}
@@ -452,12 +461,14 @@ export function ClassroomPage({ open, onClose, user }: { open: boolean; onClose:
             )}
           </section>
         )}
+        </div>
+        </div>
       </div>
     </Modal>
   );
 }
 
-function ShareTile({ share }: { share: Share }) {
+function ShareTile({ share, large }: { share: Share; large: boolean }) {
   const ref = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     const el = ref.current;
@@ -468,7 +479,7 @@ function ShareTile({ share }: { share: Share }) {
     };
   }, [share.track]);
   return (
-    <div className="relative aspect-video overflow-hidden rounded-2xl bg-black">
+    <div className={`relative aspect-video overflow-hidden rounded-2xl bg-black ${large ? "max-h-[70vh]" : ""}`}>
       <video ref={ref} autoPlay playsInline muted={share.isSelf} className="size-full object-contain" />
       <span className="absolute bottom-2 right-2 rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-bold text-white">
         {share.name} · {share.source === "screen" ? "صفحه" : "دوربین"}
@@ -487,7 +498,7 @@ function ChatList({ messages }: { messages: { id: string; name: string; text: st
     return <p className="text-sm text-slate-500">هنوز پیامی نیست.</p>;
   }
   return (
-    <div className="flex max-h-72 flex-col gap-2 overflow-y-auto pr-1">
+    <div className="flex max-h-60 flex-col gap-2 overflow-y-auto pr-1 sm:max-h-80">
       {messages.map((m) => (
         <div key={m.id} className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${m.mine ? "self-end bg-indigo-600 text-white" : "self-start bg-slate-100 dark:bg-white/10"}`}>
           {!m.mine && <div className="mb-0.5 text-[11px] font-bold opacity-70">{m.name}</div>}
