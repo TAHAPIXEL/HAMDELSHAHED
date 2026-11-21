@@ -3,7 +3,7 @@
 //  تمام اسکریپت‌ها idempotent هستند و با قفل advisory از اجرای هم‌زمان جلوگیری می‌شود.
 // ----------------------------------------------------------------------------
 
-export const SCHEMA_VERSION = "2026-11-17-v2";
+export const SCHEMA_VERSION = "2026-11-20-v3";
 
 export const SCHEMA_SQL = `
 begin;
@@ -48,6 +48,43 @@ create table if not exists hamdel_media (
 
 -- دسترسی مستقیم از کلیدهای عمومی (anon / authenticated) به جداول بسته است؛
 -- فقط سرور با اتصال مستقیم PostgreSQL به داده‌ها دسترسی دارد.
+-- کلاس آنلاین: وضعیت اتاق هر کلاس (شناسه‌ی اتاق «پایه-شعبه»، مثلاً 9-1)
+create table if not exists hamdel_live_rooms (
+  room_id    text primary key,
+  teacher_id text not null,
+  live       boolean not null default false,
+  started_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- حاضرین کلاس آنلاین: دست بالا، اجازه‌ی صحبت و آخرین زمان دیده‌شدن
+create table if not exists hamdel_live_members (
+  room_id   text not null,
+  user_id   text not null,
+  name      text not null default '',
+  hand      boolean not null default false,
+  speaking  boolean not null default false,
+  joined_at timestamptz not null default now(),
+  last_seen timestamptz not null default now(),
+  primary key (room_id, user_id)
+);
+
+-- پیام‌های سیگنال‌دهی WebRTC (پیشنهاد، پاسخ، ICE) بین مدرس و هر دانش‌آموز.
+-- پس از خوانده‌شدن حذف می‌شوند.
+create table if not exists hamdel_signals (
+  id         bigserial primary key,
+  room_id    text not null,
+  from_id    text not null,
+  to_id      text not null,
+  kind       text not null,
+  payload    jsonb not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists hamdel_signals_to_idx on hamdel_signals (to_id, id);
+
+alter table hamdel_live_rooms enable row level security;
+alter table hamdel_live_members enable row level security;
+alter table hamdel_signals enable row level security;
 alter table hamdel_records enable row level security;
 alter table hamdel_sessions enable row level security;
 alter table hamdel_media enable row level security;

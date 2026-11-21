@@ -16,6 +16,7 @@ import {
   UserRound,
   ChevronLeft,
   BookOpen,
+  Radio,
 } from "lucide-react";
 import {
   DB,
@@ -43,6 +44,7 @@ import Chats from "./Chats";
 import Classes from "./Classes";
 import Exams from "./Exams";
 import Attendance from "./Attendance";
+import { ClassroomPage } from "./Classroom";
 import Notices from "./Notices";
 import Admin from "./Admin";
 import Profile from "./Profile";
@@ -67,6 +69,7 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
   const [view, setView] = useState<View>("chats");
   const [classSel, setClassSel] = useState<{ grade: Grade; section: string } | null>(null);
   const [drawer, setDrawer] = useState(false);
+  const [classroomOpen, setClassroomOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
   const bellRef = useRef<HTMLDivElement>(null);
   const [openChatId, setOpenChatId] = useState<string | null>(null);
@@ -246,6 +249,16 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
       <div className="flex min-h-0 flex-1 flex-col">
         <div className="px-5 pb-2 pt-4 text-[11px] font-black tracking-wide text-slate-400">امکانات</div>
         <div className="max-h-[40%] shrink-0 space-y-1 overflow-y-auto px-3 pb-3">
+          <button
+            onClick={() => {
+              setDrawer(false);
+              setClassroomOpen(true);
+            }}
+            className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/5"
+          >
+            <Radio className="size-5" />
+            کلاس آنلاین
+          </button>
           {menuFeatures.map((n) => (
             <button
               key={n.v}
@@ -387,6 +400,8 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
           {view === "admin" && <Admin user={user} />}
           {view === "profile" && <Profile user={user} onLogout={requestLogout} onGo={go} />}
         </main>
+
+        <ClassroomPage open={classroomOpen} onClose={() => setClassroomOpen(false)} user={user} />
 
         {/* ناوبری پایین موبایل — نوار شناور گرد (مانند تلگرام) */}
         <nav dir="ltr" className="z-30 px-3 pb-3 pt-1 lg:hidden">
