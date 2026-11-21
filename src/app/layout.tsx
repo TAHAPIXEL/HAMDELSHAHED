@@ -6,6 +6,14 @@ export const metadata: Metadata = {
   title: "هَمدِل | دبیرستان شاهد شهیدان فهیمی",
   description:
     "سامانه گفت‌وگو، آزمون آنلاین، تکالیف، حضور و غیاب و اطلاعیه‌های دبیرستان شاهد شهیدان فهیمی",
+  // لوگو از public/ سرو می‌شود (مسیرهای app/icon.* روی Vercel خطای 500 می‌دادند)
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-192.png", type: "image/png", sizes: "192x192" },
+    ],
+    apple: { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+  },
 };
 
 export const viewport: Viewport = {
