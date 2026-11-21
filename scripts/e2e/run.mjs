@@ -22,6 +22,10 @@ const env = {
   NEXT_TELEMETRY_DISABLED: "1",
 };
 delete env.SUPABASE_URL;
+// کلاس آنلاین: سرور LiveKit ساختگی محلی (برای تست منطق و توکن‌ها)
+env.LIVEKIT_URL = `ws://127.0.0.1:${Number(process.env.E2E_LK_PORT ?? 7880)}`;
+env.LIVEKIT_API_KEY = "devkey";
+env.LIVEKIT_API_SECRET = "e2e-livekit-secret-0123456789abcdef";
 delete env.SUPABASE_SERVICE_ROLE_KEY;
 
 const children = [];
@@ -76,6 +80,8 @@ try {
 
   execSync("npx next build", { cwd: root, env, stdio: "inherit" });
 
+  start("node", ["scripts/e2e/livekit-stub.mjs"], "livekit");
+  await waitForPort(Number(process.env.E2E_LK_PORT ?? 7880), 30000);
   start("npx", ["next", "start", "-p", String(PORT), "-H", "127.0.0.1"], "next");
   await waitForPort(PORT, 120000);
 
