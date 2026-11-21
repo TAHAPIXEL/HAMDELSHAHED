@@ -35,8 +35,13 @@ export async function createSession(userId: string, dev: boolean): Promise<strin
 export async function viewerFromRequest(req: Request): Promise<Viewer | null> {
   const token = bearerToken(req);
   if (!token) return null;
-  const { rows } = await query<{ user_id: string; is_dev: boolean }>(
-    `select user_id, is_dev from hamdel_sessions where token_hash = $1 and expires_at > now()`,
+  // یک رفت‌وبرگشت به پایگاه‌داده: نشست و کاربر با هم خوانده می‌شوند
+  const { rows } = await query<{ user_id: string; is_dev: boolean; data: Record<string, unknown> | null }>(
+    `select s.user_id, s.is_dev, u.data
+       from hamdel_sessions s
+       left join hamdel_records u
+         on u.collection = 'users' and u.id = s.user_id and u.deleted = false
+      where s.token_hash = $1 and s.expires_at > now()`,
     [hashToken(token)],
   );
   const session = rows[0];
@@ -44,11 +49,7 @@ export async function viewerFromRequest(req: Request): Promise<Viewer | null> {
   if (session.is_dev) {
     return { id: DEV_USER_ID, role: "developer", dev: true, name: "مدیر ارشد" };
   }
-  const user = await query<{ data: Record<string, unknown> }>(
-    `select data from hamdel_records where collection = 'users' and id = $1 and deleted = false`,
-    [session.user_id],
-  );
-  const data = user.rows[0]?.data;
+  const data = session.data;
   if (!data) return null;
   return {
     id: session.user_id,
