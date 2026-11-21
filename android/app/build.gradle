@@ -16,8 +16,18 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            storeFile file(System.getenv("HAMDEL_KEYSTORE") ?: "release.p12")
+            storePassword System.getenv("HAMDEL_KEYSTORE_PASSWORD") ?: ""
+            keyAlias System.getenv("HAMDEL_KEY_ALIAS") ?: "hamdel"
+            keyPassword System.getenv("HAMDEL_KEY_PASSWORD") ?: ""
+        }
+    }
     buildTypes {
         release {
+            signingConfig signingConfigs.release
+            debuggable false
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
