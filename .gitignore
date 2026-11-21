@@ -1,0 +1,29 @@
+# وابستگی‌ها
+/node_modules
+/.pnp
+.pnp.*
+
+# خروجی Next.js
+/.next/
+/out/
+/build
+next-env.d.ts
+*.tsbuildinfo
+
+# پایگاه‌داده‌ی محلی PGlite
+/.data
+/data
+
+# متغیرهای محیطی
+.env
+.env.local
+.env.*.local
+
+# سیستم و ابزارها
+.DS_Store
+*.log
+npm-debug.log*
+.vercel
+coverage
+
+.e2e-build
