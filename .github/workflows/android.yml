@@ -1,0 +1,70 @@
+name: اپ اندروید (APK)
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "android/**"
+      - "capacitor.config.json"
+      - "native-www/**"
+      - "src/lib/native.ts"
+      - "src/lib/live.ts"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/android.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-apk
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: نصب وابستگی‌ها
+        run: npm ci --legacy-peer-deps
+
+      - name: همگام‌سازی Capacitor
+        run: npx cap sync android
+
+      - name: ساخت APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: ذخیره‌ی APK در خروجی همین اجرا
+        uses: actions/upload-artifact@v4
+        with:
+          name: hamdel-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: انتشار در Release ثابت (فقط از main)
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk hamdel.apk
+          if ! gh release view android-latest >/dev/null 2>&1; then
+            gh release create android-latest --prerelease --title "اپ اندروید هَمدِل" \
+              --notes "آخرین نسخه‌ی اپ اندروید. فایل hamdel.apk را دانلود و نصب کنید."
+          fi
+          gh release upload android-latest hamdel.apk --clobber
+          gh release edit android-latest --notes "آخرین ساخت: ${GITHUB_SHA::7} — نسخه‌ی ${GITHUB_RUN_NUMBER}"

@@ -17,6 +17,7 @@ import {
   type VideoCaptureOptions,
 } from "livekit-client";
 import { api } from "@/lib/store";
+import { installNativeScreenShare, isNativeApp } from "@/lib/native";
 
 const TOPIC = "classroom";
 const MAX_CHAT = 300;
@@ -104,6 +105,7 @@ export function isMobileDevice(): boolean {
 }
 
 export function canShareScreen(): boolean {
+  if (isNativeApp()) return true;
   return typeof navigator !== "undefined" && !!navigator.mediaDevices?.getDisplayMedia;
 }
 
@@ -470,7 +472,8 @@ class LiveSession {
     try {
       if (source === "screen") {
         await local.setCameraEnabled(false);
-        await local.setScreenShareEnabled(true, { audio: true });
+        // در اپ اندروید صدای سیستم ضبط نمی‌شود؛ فقط تصویر
+        await local.setScreenShareEnabled(true, { audio: !isNativeApp() });
       } else {
         await local.setScreenShareEnabled(false);
         await local.setCameraEnabled(true, camOptions(source, deviceId));
@@ -516,5 +519,8 @@ export async function listCameras(): Promise<{ id: string; label: string }[]> {
 
 /** یک نمونه‌ی سراسری: بستن صفحه‌ی کلاس، اتصال را قطع نمی‌کند */
 export const liveSession = new LiveSession();
+
+// در اپ اندروید، اشتراک صفحه‌ی گوشی از مسیر بومی انجام می‌شود
+installNativeScreenShare();
 
 export type { LocalParticipant };

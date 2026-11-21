@@ -1,0 +1,14 @@
+{
+  "appId": "ir.hamdel.app",
+  "appName": "هَمدِل",
+  "webDir": "native-www",
+  "server": {
+    "url": "https://hamdelshahed.vercel.app",
+    "cleartext": false,
+    "androidScheme": "https"
+  },
+  "android": {
+    "backgroundColor": "#ffffff",
+    "allowMixedContent": false
+  }
+}
