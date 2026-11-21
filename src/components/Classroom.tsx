@@ -17,6 +17,9 @@ import type { User } from "@/lib/model";
 import { Btn, Chip, Empty, Modal, useToast } from "./ui";
 
 /** شناسه‌ی اتاق کلاس = «پایه-شعبه» */
+/** فایل APK آخرین نسخه‌ی اندروید (از GitHub Release) */
+const ANDROID_APK_URL = "https://github.com/TAHAPIXEL/HAMDELSHAHED/releases/download/android-latest/hamdel.apk";
+
 export function roomOfUser(u: User | null): string | null {
   if (!u?.grade || !u?.section) return null;
   return `${u.grade}-${u.section}`;
@@ -204,7 +207,10 @@ export function ClassroomPage({ open, onClose, user }: { open: boolean; onClose:
       </div>
       {mobile && !screenOk && (
         <p className="mt-3 text-xs leading-6 text-slate-500 dark:text-slate-400">
-          مرورگرهای موبایل اجازه‌ی ضبط صفحه‌ی گوشی را نمی‌دهند. برای نشان دادن صفحه‌ی گوشی یا تبلت، دوربین پشت را به سمت صفحه بگیرید.
+          برای نشان دادن صفحه‌ی گوشی، برنامه‌ی اندروید هَمدِل را نصب کنید.{" "}
+          <a href={ANDROID_APK_URL} className="font-bold text-indigo-600 underline dark:text-indigo-300">
+            دانلود برنامه
+          </a>
         </p>
       )}
     </div>

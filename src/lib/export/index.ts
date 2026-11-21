@@ -3,6 +3,7 @@
 // ----------------------------------------------------------------------------
 
 import type { ExportDoc } from "./doc";
+import { saveFile } from "@/lib/native";
 
 export type ExportFormat = "pdf" | "word" | "excel";
 export const FORMAT_LABEL: Record<ExportFormat, string> = { pdf: "PDF", word: "Word", excel: "Excel" };
@@ -15,18 +16,11 @@ export async function exportDocument(doc: ExportDoc, format: ExportFormat): Prom
       : format === "word"
         ? await (await import("./word")).renderWord(doc)
         : await (await import("./excel")).renderExcel(doc);
-  saveBlob(blob, `${doc.file}.${EXT[format]}`);
+  await saveBlob(blob, `${doc.file}.${EXT[format]}`);
 }
 
-export function saveBlob(blob: Blob, name: string) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = name;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 4000);
+export async function saveBlob(blob: Blob, name: string): Promise<void> {
+  await saveFile(blob, name);
 }
 
 export type { ExportDoc } from "./doc";

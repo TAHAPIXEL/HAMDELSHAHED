@@ -1,5 +1,6 @@
 "use client";
 
+import { saveFile } from "@/lib/native";
 import { useMemo, useRef, useState } from "react";
 import {
   LayoutDashboard,
@@ -1018,16 +1019,11 @@ function DataTab({ actor }: { actor: User }) {
     apply(n);
   };
 
-  const download = () => {
+  const download = async () => {
     if (expSel.size === 0) return toast("error", "حداقل یک بخش را برای پشتیبان‌گیری انتخاب کنید");
     const keys = ALL_BACKUP_KEYS.filter((k) => expSel.has(k));
     const blob = new Blob([exportSelected(keys)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const aEl = document.createElement("a");
-    aEl.href = url;
-    aEl.download = `hamdel-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    aEl.click();
-    URL.revokeObjectURL(url);
+    await saveFile(blob, `hamdel-backup-${new Date().toISOString().slice(0, 10)}.json`);
     toast("success", `فایل پشتیبان با ${fa(keys.length)} بخش دانلود شد`);
   };
 
