@@ -1,0 +1,67 @@
+name: اپ ویندوز (نصب‌کننده)
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "desktop/**"
+      - ".github/workflows/windows.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: windows-installer
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      - name: نصب وابستگی‌ها
+        working-directory: desktop
+        run: npm ci
+
+      - name: ساخت نصب‌کننده‌ی ویندوز
+        working-directory: desktop
+        run: npm run dist
+
+      - name: آماده‌سازی فایل نصب
+        run: |
+          set -e
+          SETUP="$(ls desktop/dist/HAMDEL-Setup-*.exe | head -n 1)"
+          test -n "$SETUP"
+          cp "$SETUP" HAMDEL-Setup.exe
+          ls -la HAMDEL-Setup.exe
+
+      - name: ذخیره‌ی فایل نصب
+        uses: actions/upload-artifact@v4
+        with:
+          name: hamdel-windows
+          path: HAMDEL-Setup.exe
+
+      - name: انتشار در Release ثابت (فقط از main)
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          if ! gh release view windows-latest >/dev/null 2>&1; then
+            gh release create windows-latest --prerelease --title "اپ ویندوز هَمدِل" \
+              --notes "آخرین نسخه‌ی اپ ویندوز. فایل HAMDEL-Setup.exe را دانلود و نصب کنید."
+          fi
+          gh release upload windows-latest HAMDEL-Setup.exe --clobber
+          gh release edit windows-latest --notes "آخرین ساخت: ${GITHUB_SHA::7} — نسخه‌ی ${GITHUB_RUN_NUMBER}"

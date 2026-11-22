@@ -27,3 +27,7 @@ npm-debug.log*
 coverage
 
 .e2e-build
+
+# اپ ویندوز (desktop)
+/desktop/node_modules/
+/desktop/dist/
