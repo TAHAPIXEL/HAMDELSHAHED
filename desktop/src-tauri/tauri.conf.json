@@ -26,15 +26,22 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis"],
+    "targets": [
+      "nsis"
+    ],
     "category": "Education",
     "shortDescription": "هَمدِل — سامانه‌ی آموزشی مدرسه‌ی شاهد",
     "longDescription": "نسخه‌ی دسکتاپ سایت هَمدِل برای ویندوز.",
-    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
     "windows": {
       "nsis": {
-        "installMode": "currentUser",
-        "languages": ["PersianFarsi", "English"]
+        "installMode": "currentUser"
       }
     }
   }
