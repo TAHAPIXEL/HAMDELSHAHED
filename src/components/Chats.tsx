@@ -161,7 +161,7 @@ export default function Chats({
     <div className="flex h-full">
       {/* لیست چت‌ها */}
       <div
-        className={`relative flex w-full flex-col border-l border-slate-200/70 bg-white/60 backdrop-blur-xl dark:border-white/5 dark:bg-slate-900/40 sm:w-80 lg:w-[21rem] ${
+        className={`relative flex w-full flex-col border-l border-line/70 bg-surface/60 backdrop-blur-xl dark:border-white/5 dark:bg-ink/40 sm:w-80 lg:w-[21rem] ${
           active ? "hidden sm:flex" : "flex"
         }`}
       >
@@ -176,7 +176,7 @@ export default function Chats({
             />
           </div>
           {!selectMode && (
-            <div dir="ltr" className="flex items-center gap-1 rounded-full bg-slate-100 p-1 dark:bg-white/5">
+            <div dir="ltr" className="flex items-center gap-1 rounded-full bg-surface-2 p-1 dark:bg-white/5">
               {tabs.map((t) => {
                 const active = tab === t.key;
                 return (
@@ -184,13 +184,13 @@ export default function Chats({
                     key={t.key}
                     onClick={() => setTab(t.key)}
                     className={`flex min-w-0 flex-auto items-center justify-center gap-1 whitespace-nowrap rounded-full px-1.5 py-1.5 text-[11px] font-bold transition ${
-                      active ? "bg-white text-[#3f9a52] shadow-sm dark:bg-[#23352a] dark:text-[#58b662]" : "text-slate-500 dark:text-slate-400"
+                      active ? "bg-surface text-accent shadow-sm dark:bg-accent/15 dark:text-accent" : "text-slate-500 dark:text-slate-400"
                     }`}
                   >
                     {t.label}
                     <span
                       className={`shrink-0 rounded-full px-1.5 text-[10px] font-black leading-4 ${
-                        active ? "bg-[#4f8ff0] text-white" : "bg-slate-300/80 text-white dark:bg-white/15"
+                        active ? "bg-accent text-white" : "bg-line-strong/80 text-white dark:bg-white/15"
                       }`}
                     >
                       {fa(tabCount(t.key))}
@@ -255,13 +255,13 @@ export default function Chats({
                       ? "bg-rose-50 ring-1 ring-rose-300 dark:bg-rose-500/10 dark:ring-rose-400/30"
                       : activeId === c.id && !selectMode
                       ? "bg-gradient-to-l from-indigo-600/10 to-violet-600/10 ring-1 ring-indigo-500/20"
-                      : "hover:bg-slate-100/80 dark:hover:bg-white/5"
+                      : "hover:bg-surface-2/80 dark:hover:bg-white/5"
                   }`}
                 >
                   {selectMode && (
                     <span
                       className={`flex size-5 shrink-0 items-center justify-center rounded-md border-2 transition ${
-                        selected.has(c.id) ? "border-rose-500 bg-rose-500 text-white" : "border-slate-300 dark:border-white/20"
+                        selected.has(c.id) ? "border-rose-500 bg-rose-500 text-white" : "border-line-strong dark:border-white/20"
                       }`}
                     >
                       {selected.has(c.id) && <Check className="size-3" />}
@@ -288,7 +288,7 @@ export default function Chats({
                   <div className="flex shrink-0 flex-col items-end gap-1">
                     {last && <span className="text-[10px] font-bold text-slate-400">{faTime(last.createdAt)}</span>}
                     {unread > 0 && (
-                      <span className="flex min-w-5 items-center justify-center rounded-full bg-[#4fa85c] px-1.5 py-0.5 text-[10px] font-black text-white">
+                      <span className="flex min-w-5 items-center justify-center rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-black text-white">
                         {fa(unread)}
                       </span>
                     )}
@@ -304,12 +304,12 @@ export default function Chats({
           <>
             {fabOpen && <div className="absolute inset-0 z-30" onClick={() => setFabOpen(false)} />}
             {fabOpen && (
-              <div className="anim-pop absolute bottom-[4.5rem] left-4 z-40 lg:bottom-20 w-60 overflow-hidden rounded-2xl border border-slate-200 bg-white p-1.5 shadow-2xl dark:border-white/10 dark:bg-slate-900">
+              <div className="anim-pop absolute bottom-[4.5rem] left-4 z-40 lg:bottom-20 w-60 overflow-hidden rounded-2xl border border-line bg-surface p-1.5 shadow-2xl dark:border-white/10 dark:bg-ink">
                 {fabItems.map((it) => (
                   <button
                     key={it.key}
                     onClick={() => { setFabOpen(false); it.run(); }}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-right text-[13.5px] font-bold text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/5"
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-right text-[13.5px] font-bold text-slate-700 transition hover:bg-surface-2 dark:text-slate-200 dark:hover:bg-white/5"
                   >
                     <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
                       {it.icon}
@@ -323,7 +323,7 @@ export default function Chats({
               onClick={() => setFabOpen((o) => !o)}
               aria-label="ساخت گفتگو"
               aria-expanded={fabOpen}
-              className="absolute bottom-3 left-4 z-40 flex size-14 items-center justify-center rounded-full bg-[#4fa85c] text-white shadow-lg shadow-[#4fa85c]/40 transition active:scale-95 lg:bottom-4"
+              className="absolute bottom-3 left-4 z-40 flex size-14 items-center justify-center rounded-full bg-accent text-white shadow-lg shadow-accent/40 transition active:scale-95 lg:bottom-4"
             >
               {fabOpen ? <X className="size-6" /> : <MessageSquarePlus className="size-6" />}
             </button>
@@ -385,21 +385,21 @@ function EmojiPanel({ onPick, onClose }: { onPick: (e: string) => void; onClose:
   const [g, setG] = useState(0);
   const group = EMOJI_GROUPS[g];
   return (
-    <div className="absolute bottom-full left-0 right-0 z-20 mb-2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-slate-900">
-      <div className="flex items-center gap-1 overflow-x-auto border-b border-slate-100 px-2 py-1.5 dark:border-white/5" dir="ltr">
+    <div className="absolute bottom-full left-0 right-0 z-20 mb-2 overflow-hidden rounded-2xl border border-line bg-surface shadow-2xl dark:border-white/10 dark:bg-ink">
+      <div className="flex items-center gap-1 overflow-x-auto border-b border-line px-2 py-1.5 dark:border-white/5" dir="ltr">
         {EMOJI_GROUPS.map((x, i) => (
-          <button key={x.id} onClick={() => setG(i)} title={x.label} aria-label={x.label} className={`grid size-9 shrink-0 place-items-center rounded-xl text-lg transition ${i === g ? "bg-slate-100 dark:bg-white/10" : "opacity-60 hover:opacity-100"}`}>
+          <button key={x.id} onClick={() => setG(i)} title={x.label} aria-label={x.label} className={`grid size-9 shrink-0 place-items-center rounded-xl text-lg transition ${i === g ? "bg-surface-2 dark:bg-white/10" : "opacity-60 hover:opacity-100"}`}>
             {x.icon}
           </button>
         ))}
-        <button onClick={onClose} className="ms-auto grid size-9 shrink-0 place-items-center rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10" aria-label="بستن">
+        <button onClick={onClose} className="ms-auto grid size-9 shrink-0 place-items-center rounded-xl text-slate-400 hover:bg-surface-2 dark:hover:bg-white/10" aria-label="بستن">
           <X className="size-4" />
         </button>
       </div>
       <div className="px-2 pb-1 pt-2 text-[11px] font-bold text-slate-400">{group.label}</div>
       <div className="grid max-h-56 grid-cols-7 gap-0.5 overflow-y-auto px-2 pb-3 sm:grid-cols-9">
         {group.items.split(" ").map((e, i) => (
-          <button key={`${g}-${i}`} onClick={() => onPick(e)} className="grid aspect-square place-items-center rounded-lg text-2xl transition active:scale-90 hover:bg-slate-100 dark:hover:bg-white/10">
+          <button key={`${g}-${i}`} onClick={() => onPick(e)} className="grid aspect-square place-items-center rounded-lg text-2xl transition active:scale-90 hover:bg-surface-2 dark:hover:bg-white/10">
             {e}
           </button>
         ))}
@@ -707,8 +707,8 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
   return (
     <div className="flex h-full flex-col">
       {/* هدر چت */}
-      <div className="z-10 flex items-center gap-3 border-b border-slate-200/70 bg-white/80 px-3 py-2.5 backdrop-blur-xl dark:border-white/5 dark:bg-slate-900/60 sm:px-4">
-        <button onClick={onBack} className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 sm:hidden" aria-label="بازگشت">
+      <div className="z-10 flex items-center gap-3 border-b border-line/70 bg-surface/80 px-3 py-2.5 backdrop-blur-xl dark:border-white/5 dark:bg-ink/60 sm:px-4">
+        <button onClick={onBack} className="rounded-xl p-2 text-slate-500 hover:bg-surface-2 dark:hover:bg-white/10 sm:hidden" aria-label="بازگشت">
           <ChevronRight className="size-5" />
         </button>
         {chat.type === "direct" ? (
@@ -736,13 +736,13 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
         {canLock && (
           <button
             onClick={toggleLock}
-            className={`rounded-xl p-2.5 transition ${chat.locked ? "bg-amber-50 text-amber-600 dark:bg-amber-500/10" : "text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10"}`}
+            className={`rounded-xl p-2.5 transition ${chat.locked ? "bg-amber-50 text-amber-600 dark:bg-amber-500/10" : "text-slate-400 hover:bg-surface-2 dark:hover:bg-white/10"}`}
             title={chat.locked ? "برداشتن محدودیت پیام" : "فقط کادر پیام دهند"}
           >
             {chat.locked ? <Lock className="size-5" /> : <Unlock className="size-5" />}
           </button>
         )}
-        <button onClick={() => setShowInfo(true)} className="rounded-xl p-2.5 text-slate-400 transition hover:bg-slate-100 dark:hover:bg-white/10" aria-label="اطلاعات">
+        <button onClick={() => setShowInfo(true)} className="rounded-xl p-2.5 text-slate-400 transition hover:bg-surface-2 dark:hover:bg-white/10" aria-label="اطلاعات">
           <Info className="size-5" />
         </button>
       </div>
@@ -805,7 +805,7 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
             <div key={m.id} id={`msg-${m.id}`} className="scroll-mt-24">
               {showDay && (
                 <div className="my-4 flex justify-center">
-                  <span className="rounded-full bg-slate-200/70 px-4 py-1 text-[11px] font-bold text-slate-500 backdrop-blur dark:bg-white/10 dark:text-slate-300">
+                  <span className="rounded-full bg-line/70 px-4 py-1 text-[11px] font-bold text-slate-500 backdrop-blur dark:bg-white/10 dark:text-slate-300">
                     {day}
                   </span>
                 </div>
@@ -838,8 +838,8 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
                     !m.deleted && mine ? "cursor-pointer active:scale-[0.99]" : ""
                   } ${
                     mine
-                      ? "bubble-mine bg-[#3a80e3] text-white"
-                      : "bubble-other bg-white text-slate-800 dark:bg-slate-800 dark:text-slate-100"
+                      ? "bubble-mine bubble-mine-c"
+                      : "bubble-other bubble-other-c"
                   }`}
                 >
                   {!mine && chat.type !== "direct" && (
@@ -894,7 +894,7 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
                   {!m.deleted && mine && (
                     <span
                       className={`pointer-events-none absolute top-1/2 hidden -translate-y-1/2 rounded-full p-1.5 opacity-0 transition group-hover:opacity-100 sm:block ${
-                        mine ? "-left-1 -translate-x-full bg-white/80 text-slate-400 dark:bg-slate-800/80" : "-right-1 translate-x-full bg-white/80 text-slate-400 dark:bg-slate-800/80"
+                        mine ? "-left-1 -translate-x-full bg-surface/80 text-slate-400 dark:bg-ink/80" : "-right-1 translate-x-full bg-surface/80 text-slate-400 dark:bg-ink/80"
                       }`}
                     >
                       <MoreHorizontal className="size-3.5" />
@@ -923,20 +923,20 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
             {image && (
               <div className="relative mb-2 inline-block">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={image} alt="پیش‌نمایش" className="h-20 rounded-xl object-cover ring-1 ring-slate-200 dark:ring-white/10" />
+                <img src={image} alt="پیش‌نمایش" className="h-20 rounded-xl object-cover ring-1 ring-line dark:ring-white/10" />
                 <button onClick={() => setImage(undefined)} className="absolute -left-2 -top-2 rounded-full bg-rose-500 p-1 text-white shadow" aria-label="حذف تصویر">
                   <X className="size-3.5" />
                 </button>
               </div>
             )}
-            <div className="relative flex min-h-[52px] flex-row-reverse items-end gap-1 rounded-[26px] bg-slate-100 p-1 dark:bg-[#1b1c21]">
+            <div className="relative flex min-h-[52px] flex-row-reverse items-end gap-1 rounded-[26px] bg-surface-2 p-1 dark:bg-ink">
               {showEmoji && rec === "idle" && <EmojiPanel onPick={(e) => insertAtCursor(taRef.current, e, setText)} onClose={() => setShowEmoji(false)} />}
 
               {/* ایموجی — سمت چپ */}
               {rec === "idle" && (
                 <button
                   onClick={() => setShowEmoji((o) => !o)}
-                  className={`grid size-11 shrink-0 place-items-center rounded-full transition active:scale-90 ${showEmoji ? "text-[#3a80e3]" : "text-slate-400 dark:text-slate-500"}`}
+                  className={`grid size-11 shrink-0 place-items-center rounded-full transition active:scale-90 ${showEmoji ? "text-accent" : "text-slate-400 dark:text-slate-500"}`}
                   aria-label="ایموجی"
                 >
                   <Smile className="size-[26px]" strokeWidth={1.6} />
@@ -985,7 +985,7 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
                 <div className="flex min-h-11 flex-1 flex-row-reverse items-center gap-2 px-2">
                   <span className="size-2.5 shrink-0 animate-pulse rounded-full bg-[#e0524a]" />
                   <span dir="ltr" className="shrink-0 text-[15px] font-medium tabular-nums text-slate-600 dark:text-slate-200">{fmtRec(recMs)}</span>
-                  <button onClick={cancelRec} className="mx-auto px-3 py-2 text-[15px] font-bold text-[#4fa85c] transition active:scale-95">
+                  <button onClick={cancelRec} className="mx-auto px-3 py-2 text-[15px] font-bold text-accent transition active:scale-95">
                     لغو
                   </button>
                 </div>
@@ -997,7 +997,7 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
                   <button onClick={discardPreview} className="grid size-11 shrink-0 place-items-center rounded-full text-slate-400 transition hover:text-rose-500 active:scale-90" aria-label="حذف ویس">
                     <Trash2 className="size-5" />
                   </button>
-                  <div className="flex h-11 min-w-0 flex-1 items-center rounded-full bg-[#4fa85c] px-1.5">
+                  <div className="flex h-11 min-w-0 flex-1 items-center rounded-full bg-accent px-1.5">
                     <VoicePlayer src={preview.url} wave={preview.wave} duration={preview.duration} tone="rec" compact />
                   </div>
                 </>
@@ -1013,7 +1013,7 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
                   <button
                     onClick={submit}
                     disabled={!text.trim() && !image}
-                    className="grid size-11 shrink-0 place-items-center rounded-full bg-[#4c7ef5] text-white shadow-md shadow-[#4c7ef5]/30 transition active:scale-90 disabled:opacity-40"
+                    className="grid size-11 shrink-0 place-items-center rounded-full bg-accent text-white shadow-md shadow-accent/30 transition active:scale-90 disabled:opacity-40"
                     aria-label="ارسال"
                   >
                     <Send className="size-5" />
@@ -1021,13 +1021,13 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
                 ))}
 
               {rec === "locked" && (
-                <button onClick={finishRec} className="grid size-11 shrink-0 place-items-center rounded-full bg-[#4fa85c] text-white shadow-md shadow-[#4fa85c]/30 transition active:scale-90" aria-label="پایان و پیش‌نمایش">
+                <button onClick={finishRec} className="grid size-11 shrink-0 place-items-center rounded-full bg-accent text-white shadow-md shadow-accent/30 transition active:scale-90" aria-label="پایان و پیش‌نمایش">
                   <Send className="size-5" />
                 </button>
               )}
 
               {rec === "preview" && (
-                <button onClick={sendPreview} className="grid size-11 shrink-0 place-items-center rounded-full bg-[#4fa85c] text-white shadow-md shadow-[#4fa85c]/30 transition active:scale-90" aria-label="ارسال ویس">
+                <button onClick={sendPreview} className="grid size-11 shrink-0 place-items-center rounded-full bg-accent text-white shadow-md shadow-accent/30 transition active:scale-90" aria-label="ارسال ویس">
                   <Send className="size-5" />
                 </button>
               )}
@@ -1036,7 +1036,7 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
                 <div className="relative grid size-11 shrink-0 place-items-center">
                   {rec === "hold" && (
                     <span
-                      className="pointer-events-none absolute inset-x-0 bottom-full mb-3 mx-auto flex w-max flex-col items-center gap-1 rounded-full bg-[#23252b] px-2.5 py-2.5 text-slate-200 shadow-lg"
+                      className="pointer-events-none absolute inset-x-0 bottom-full mb-3 mx-auto flex w-max flex-col items-center gap-1 rounded-full bg-ink px-2.5 py-2.5 text-slate-200 shadow-lg"
                       style={{ transform: `translateY(${dragY}px)` }}
                     >
                       <Lock className="size-4" />
@@ -1051,8 +1051,8 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
                     onContextMenu={(e) => e.preventDefault()}
                     className={`grid size-11 touch-none select-none place-items-center rounded-full text-white transition duration-200 ${
                       rec === "hold"
-                        ? "scale-[1.3] bg-[#4fa85c] shadow-lg shadow-[#4fa85c]/40 ring-[7px] ring-[#4fa85c]/25"
-                        : "bg-[#4c7ef5] shadow-md shadow-[#4c7ef5]/30 active:scale-95"
+                        ? "scale-[1.3] bg-accent shadow-lg shadow-accent/40 ring-[7px] ring-accent/25"
+                        : "bg-accent shadow-md shadow-accent/30 active:scale-95"
                     }`}
                     aria-label="ضبط ویس"
                   >
@@ -1096,10 +1096,10 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
 
       {/* نمایش تصویر بزرگ */}
       {viewer && (
-        <div className="fixed inset-0 z-[95] flex items-center justify-center bg-slate-950/85 p-4 backdrop-blur-sm" onClick={() => setViewer(null)}>
+        <div className="fixed inset-0 z-[95] flex items-center justify-center bg-scrim/85 p-4 backdrop-blur-sm" onClick={() => setViewer(null)}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={viewer} alt="تصویر" className="max-h-[88vh] max-w-full rounded-2xl shadow-2xl" />
-          <button className="absolute left-4 top-4 rounded-full bg-white/10 p-2.5 text-white backdrop-blur hover:bg-white/20" aria-label="بستن">
+          <button className="absolute left-4 top-4 rounded-full bg-surface/10 p-2.5 text-white backdrop-blur hover:bg-surface/20" aria-label="بستن">
             <X className="size-5" />
           </button>
         </div>
@@ -1114,7 +1114,7 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
       >
         {menuMsg && (
           <div className="space-y-3">
-            <div className="max-h-28 overflow-y-auto rounded-2xl bg-slate-50 px-4 py-3 text-[13px] leading-7 text-slate-600 dark:bg-white/5 dark:text-slate-300">
+            <div className="max-h-28 overflow-y-auto rounded-2xl bg-app px-4 py-3 text-[13px] leading-7 text-slate-600 dark:bg-white/5 dark:text-slate-300">
               {menuMsg.image && !menuMsg.text ? "تصویر پیوست‌شده" : menuMsg.text}
             </div>
             <div className="space-y-2">
@@ -1127,7 +1127,7 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
                     toast("success", pinned ? "سنجاق برداشته شد" : "پیام بالای گفتگو سنجاق شد");
                     setMenuMsg(null);
                   }}
-                  className="flex w-full items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3.5 text-right text-[13.5px] font-black text-slate-700 transition hover:bg-amber-50 hover:text-amber-700 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-amber-500/10"
+                  className="flex w-full items-center gap-3 rounded-2xl bg-app px-4 py-3.5 text-right text-[13.5px] font-black text-slate-700 transition hover:bg-amber-50 hover:text-amber-700 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-amber-500/10"
                 >
                   <Pin className="size-4.5 -scale-y-100 text-amber-500" />
                   {chat.pinnedId === menuMsg.id ? "برداشتن سنجاق" : "سنجاق کردن پیام"}
@@ -1136,7 +1136,7 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
               {menuMsg.senderId === user.id && !menuMsg.image && !menuMsg.poll && (
                 <button
                   onClick={() => { setEditing(menuMsg); setText(menuMsg.text); setMenuMsg(null); }}
-                  className="flex w-full items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3.5 text-right text-[13.5px] font-black text-slate-700 transition hover:bg-indigo-50 hover:text-indigo-700 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-indigo-500/10"
+                  className="flex w-full items-center gap-3 rounded-2xl bg-app px-4 py-3.5 text-right text-[13.5px] font-black text-slate-700 transition hover:bg-indigo-50 hover:text-indigo-700 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-indigo-500/10"
                 >
                   <Pencil className="size-4.5 text-indigo-500" />
                   ویرایش پیام
@@ -1151,7 +1151,7 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
                     );
                     setMenuMsg(null);
                   }}
-                  className="flex w-full items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3.5 text-right text-[13.5px] font-black text-slate-700 transition hover:bg-slate-100 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10"
+                  className="flex w-full items-center gap-3 rounded-2xl bg-app px-4 py-3.5 text-right text-[13.5px] font-black text-slate-700 transition hover:bg-surface-2 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10"
                 >
                   <Copy className="size-4.5 text-slate-400" />
                   کپی متن پیام
@@ -1224,16 +1224,16 @@ function PollBubble({
               className={`relative block w-full overflow-hidden rounded-xl px-3 py-2.5 text-right transition active:scale-[0.99] ${
                 chosen
                   ? mine
-                    ? "bg-white/25 ring-1 ring-white/50"
+                    ? "bg-surface/25 ring-1 ring-surface/50"
                     : "bg-indigo-100 ring-1 ring-indigo-400 dark:bg-indigo-500/20 dark:ring-indigo-400/60"
                   : mine
-                  ? "bg-white/10 hover:bg-white/20"
-                  : "bg-slate-100 hover:bg-slate-200/80 dark:bg-white/5 dark:hover:bg-white/10"
+                  ? "bg-surface/10 hover:bg-surface/20"
+                  : "bg-surface-2 hover:bg-line/80 dark:bg-white/5 dark:hover:bg-white/10"
               }`}
             >
               <span
                 className={`absolute inset-y-0 right-0 transition-all duration-500 ${
-                  chosen ? (mine ? "bg-white/15" : "bg-indigo-200/50 dark:bg-indigo-400/20") : mine ? "bg-white/5" : "bg-slate-200/40 dark:bg-white/5"
+                  chosen ? (mine ? "bg-surface/15" : "bg-indigo-200/50 dark:bg-indigo-400/20") : mine ? "bg-surface/5" : "bg-line/40 dark:bg-white/5"
                 }`}
                 style={{ width: total > 0 ? `${pct}%` : "0%" }}
               />
@@ -1287,7 +1287,7 @@ function PollCreateModal({ chatId, user, onClose }: { chatId: string; user: User
           <div className="space-y-2">
             {options.map((o, i) => (
               <div key={i} className="flex items-center gap-2">
-                <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-[11px] font-black text-slate-500 dark:bg-white/10">
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-[11px] font-black text-slate-500 dark:bg-white/10">
                   {fa(i + 1)}
                 </span>
                 <input
@@ -1440,7 +1440,7 @@ function ChatInfoModal({
               <div className="py-6 text-center text-[12px] font-semibold text-slate-400">هنوز عضوی اضافه نشده است</div>
             )}
             {memberUsers.map((m) => (
-              <div key={m.id} className="flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-slate-50 dark:hover:bg-white/5">
+              <div key={m.id} className="flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-app dark:hover:bg-white/5">
                 <Avatar user={m} size={34} />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
@@ -1467,7 +1467,7 @@ function ChatInfoModal({
                       className={`rounded-lg px-2.5 py-1.5 text-[10.5px] font-black transition ${
                         adminIds.includes(m.id)
                           ? "bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300"
-                          : "bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-white/10 dark:text-slate-300"
+                          : "bg-surface-2 text-slate-500 hover:bg-line dark:bg-white/10 dark:text-slate-300"
                       }`}
                     >
                       {adminIds.includes(m.id) ? "حذف از مدیران" : "مدیر شود"}
@@ -1488,7 +1488,7 @@ function ChatInfoModal({
 
       {/* حذف گفتگو — در دسترس همه اعضای کادر مدرسه، برای هر نوع گفتگو */}
       {canRemoveChat && (
-        <div className="mt-5 border-t border-slate-100 pt-4 dark:border-white/5">
+        <div className="mt-5 border-t border-line pt-4 dark:border-white/5">
           <Btn kind="danger" className="w-full" onClick={() => setConfirmDel(true)}>
             <Trash2 className="size-4" />
             حذف کامل {chat.type === "channel" ? "کانال" : chat.type === "direct" ? "گفتگوی شخصی" : "گروه"}
@@ -1508,7 +1508,7 @@ function ChatInfoModal({
       >
         {permsFor && (
           <div className="space-y-3">
-            <div className="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 dark:bg-white/5">
+            <div className="flex items-center gap-3 rounded-2xl bg-app px-4 py-3 dark:bg-white/5">
               <Avatar user={permsFor} size={40} />
               <div className="min-w-0">
                 <div className="truncate text-[13.5px] font-black text-slate-800 dark:text-slate-100">{permsFor.firstName} {permsFor.lastName}</div>
@@ -1523,11 +1523,11 @@ function ChatInfoModal({
                     key={p.key}
                     onClick={() => setPerm(permsFor.id, p.key, !on)}
                     className={`flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-right transition ${
-                      on ? "border-violet-400 bg-violet-50/70 dark:border-violet-400/40 dark:bg-violet-500/10" : "border-slate-200 dark:border-white/10"
+                      on ? "border-violet-400 bg-violet-50/70 dark:border-violet-400/40 dark:bg-violet-500/10" : "border-line dark:border-white/10"
                     }`}
                   >
-                    <span className={`relative h-6 w-11 shrink-0 rounded-full transition ${on ? "bg-violet-600" : "bg-slate-300 dark:bg-white/15"}`}>
-                      <span className={`absolute top-0.5 size-5 rounded-full bg-white shadow transition-all ${on ? "left-[1.4rem]" : "left-0.5"}`} />
+                    <span className={`relative h-6 w-11 shrink-0 rounded-full transition ${on ? "bg-violet-600" : "bg-line-strong dark:bg-white/15"}`}>
+                      <span className={`absolute top-0.5 size-5 rounded-full bg-surface shadow transition-all ${on ? "left-[1.4rem]" : "left-0.5"}`} />
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block text-[13px] font-black text-slate-700 dark:text-slate-200">{p.label}</span>
@@ -1537,7 +1537,7 @@ function ChatInfoModal({
                 );
               })}
             </div>
-            <p className="rounded-xl bg-slate-50 px-3.5 py-2.5 text-[11.5px] font-semibold leading-6 text-slate-500 dark:bg-white/5 dark:text-slate-400">
+            <p className="rounded-xl bg-app px-3.5 py-2.5 text-[11.5px] font-semibold leading-6 text-slate-500 dark:bg-white/5 dark:text-slate-400">
               تغییرات بلافاصله ذخیره می‌شود. شما به‌عنوان مالک همیشه همه اختیارات را دارید.
             </p>
             <Btn className="w-full" onClick={() => setPermsFor(null)}>تأیید</Btn>
@@ -1614,7 +1614,7 @@ function StudentPicker({
           {allInFilterPicked ? "لغو انتخاب" : "انتخاب همه"}
         </Btn>
       </div>
-      <div className="max-h-64 space-y-1 overflow-y-auto rounded-2xl border border-slate-100 p-2 dark:border-white/5">
+      <div className="max-h-64 space-y-1 overflow-y-auto rounded-2xl border border-line p-2 dark:border-white/5">
         {filtered.length === 0 && (
           <div className="py-8 text-center text-[12.5px] font-semibold text-slate-400">دانش‌آموزی یافت نشد</div>
         )}
@@ -1625,7 +1625,7 @@ function StudentPicker({
               key={s.id}
               onClick={() => onToggle(s.id)}
               className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 transition ${
-                on ? "bg-indigo-50 ring-1 ring-indigo-200 dark:bg-indigo-500/10 dark:ring-indigo-400/30" : "hover:bg-slate-50 dark:hover:bg-white/5"
+                on ? "bg-indigo-50 ring-1 ring-indigo-200 dark:bg-indigo-500/10 dark:ring-indigo-400/30" : "hover:bg-app dark:hover:bg-white/5"
               }`}
             >
               <Avatar user={s} size={34} />
@@ -1633,7 +1633,7 @@ function StudentPicker({
                 <div className="truncate text-[13px] font-bold text-slate-700 dark:text-slate-200">{s.firstName} {s.lastName}</div>
                 <div className="text-[11px] text-slate-400">{s.grade ? className(s.grade, s.section!) : ""}</div>
               </div>
-              <span className={`flex size-5.5 items-center justify-center rounded-full border-2 transition ${on ? "border-indigo-500 bg-indigo-500 text-white" : "border-slate-300 dark:border-white/20"}`}>
+              <span className={`flex size-5.5 items-center justify-center rounded-full border-2 transition ${on ? "border-indigo-500 bg-indigo-500 text-white" : "border-line-strong dark:border-white/20"}`}>
                 {on && <Check className="size-3.5" />}
               </span>
             </button>
@@ -1754,13 +1754,13 @@ function CreateChatWizard({
           <div key={label} className="flex flex-1 items-center gap-1.5">
             <div className="flex flex-col items-center gap-1">
               <span className={`flex size-7 items-center justify-center rounded-full text-[11px] font-black transition ${
-                step > i + 1 ? "bg-emerald-500 text-white" : step === i + 1 ? "bg-indigo-600 text-white" : "bg-slate-200 text-slate-500 dark:bg-white/10"
+                step > i + 1 ? "bg-emerald-500 text-white" : step === i + 1 ? "bg-indigo-600 text-white" : "bg-line text-slate-500 dark:bg-white/10"
               }`}>
                 {step > i + 1 ? <Check className="size-3.5" /> : fa(i + 1)}
               </span>
               <span className={`whitespace-nowrap text-[9.5px] font-bold ${step === i + 1 ? "text-indigo-600 dark:text-indigo-300" : "text-slate-400"}`}>{label}</span>
             </div>
-            {i < steps.length - 1 && <span className={`mb-4 h-0.5 flex-1 rounded-full transition ${step > i + 1 ? "bg-emerald-500" : "bg-slate-200 dark:bg-white/10"}`} />}
+            {i < steps.length - 1 && <span className={`mb-4 h-0.5 flex-1 rounded-full transition ${step > i + 1 ? "bg-emerald-500" : "bg-line dark:bg-white/10"}`} />}
           </div>
         ))}
       </div>
@@ -1776,7 +1776,7 @@ function CreateChatWizard({
                 key={o.v}
                 onClick={() => setType(o.v)}
                 className={`flex flex-col items-center gap-1.5 rounded-2xl border px-4 py-4 transition ${
-                  type === o.v ? "border-indigo-400 bg-indigo-50/70 ring-2 ring-indigo-500/15 dark:border-indigo-400/50 dark:bg-indigo-500/10" : "border-slate-200 hover:border-slate-300 dark:border-white/10"
+                  type === o.v ? "border-indigo-400 bg-indigo-50/70 ring-2 ring-indigo-500/15 dark:border-indigo-400/50 dark:bg-indigo-500/10" : "border-line hover:border-line-strong dark:border-white/10"
                 }`}
               >
                 <span className={type === o.v ? "text-indigo-600 dark:text-indigo-300" : "text-slate-400"}>{o.icon}</span>
@@ -1823,7 +1823,7 @@ function CreateChatWizard({
               {staffPicked.size === staffList.length && staffList.length > 0 ? "لغو انتخاب همه" : "انتخاب همه"}
             </Btn>
           </div>
-          <div className="max-h-64 space-y-1 overflow-y-auto rounded-2xl border border-slate-100 p-2 dark:border-white/5">
+          <div className="max-h-64 space-y-1 overflow-y-auto rounded-2xl border border-line p-2 dark:border-white/5">
             {staffList.length === 0 && (
               <div className="py-8 text-center text-[12.5px] font-semibold text-slate-400">عضو دیگری در کادر مدرسه ثبت نشده است</div>
             )}
@@ -1834,7 +1834,7 @@ function CreateChatWizard({
                   key={u.id}
                   onClick={() => setStaffPicked((p) => { const n = new Set(p); if (n.has(u.id)) n.delete(u.id); else n.add(u.id); return n; })}
                   className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 transition ${
-                    on ? "bg-violet-50 ring-1 ring-violet-200 dark:bg-violet-500/10 dark:ring-violet-400/30" : "hover:bg-slate-50 dark:hover:bg-white/5"
+                    on ? "bg-violet-50 ring-1 ring-violet-200 dark:bg-violet-500/10 dark:ring-violet-400/30" : "hover:bg-app dark:hover:bg-white/5"
                   }`}
                 >
                   <Avatar user={u} size={34} />
@@ -1842,14 +1842,14 @@ function CreateChatWizard({
                     <div className="truncate text-[13px] font-bold text-slate-700 dark:text-slate-200">{u.firstName} {u.lastName}</div>
                     <div className="text-[11px] text-slate-400">{roleFa(u)}</div>
                   </div>
-                  <span className={`flex size-5.5 items-center justify-center rounded-full border-2 transition ${on ? "border-violet-500 bg-violet-500 text-white" : "border-slate-300 dark:border-white/20"}`}>
+                  <span className={`flex size-5.5 items-center justify-center rounded-full border-2 transition ${on ? "border-violet-500 bg-violet-500 text-white" : "border-line-strong dark:border-white/20"}`}>
                     {on && <Check className="size-3.5" />}
                   </span>
                 </button>
               );
             })}
           </div>
-          <p className="rounded-xl bg-slate-50 px-3.5 py-2.5 text-[11.5px] font-semibold leading-6 text-slate-500 dark:bg-white/5 dark:text-slate-400">
+          <p className="rounded-xl bg-app px-3.5 py-2.5 text-[11.5px] font-semibold leading-6 text-slate-500 dark:bg-white/5 dark:text-slate-400">
             پس از ساخت، می‌توانید از بخش «اعضا» هر یک از کادر را مدیر کنید و اختیاراتش را تعیین کنید.
           </p>
           <div className="flex gap-2">
@@ -1861,7 +1861,7 @@ function CreateChatWizard({
 
       {step === 4 && (
         <div className="space-y-4">
-          <div className="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3.5 dark:bg-white/5">
+          <div className="flex items-center gap-3 rounded-2xl bg-app px-4 py-3.5 dark:bg-white/5">
             <div className={`flex size-11 shrink-0 items-center justify-center rounded-2xl text-white ${type === "channel" ? channelGrad : groupGrad}`}>
               {type === "channel" ? <Megaphone className="size-5" /> : <Users className="size-5" />}
             </div>
@@ -1876,7 +1876,7 @@ function CreateChatWizard({
               { n: staffPicked.size, l: "عضو کادر" },
               { n: picked.size + staffPicked.size + 1, l: "مجموع اعضا" },
             ].map((x) => (
-              <div key={x.l} className="rounded-2xl bg-slate-50 py-3 dark:bg-white/5">
+              <div key={x.l} className="rounded-2xl bg-app py-3 dark:bg-white/5">
                 <div className="text-xl font-black text-slate-800 dark:text-slate-100">{fa(x.n)}</div>
                 <div className="text-[10.5px] font-bold text-slate-400">{x.l}</div>
               </div>
@@ -1923,7 +1923,7 @@ function NewDmModal({ user, onClose, onOpen }: { user: User; onClose: () => void
         <input className={`${inputCls} pr-10`} placeholder="جست‌وجوی نام..." value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
       {user.role === "student" && (
-        <p className="mb-3 rounded-xl bg-slate-50 px-3.5 py-2.5 text-[12px] font-semibold leading-6 text-slate-500 dark:bg-white/5 dark:text-slate-400">
+        <p className="mb-3 rounded-xl bg-app px-3.5 py-2.5 text-[12px] font-semibold leading-6 text-slate-500 dark:bg-white/5 dark:text-slate-400">
           شما می‌توانید با کادر مدرسه گفتگو کنید. گفتگو با دانش‌آموزان دیگر فقط با مجوز مدیریت ممکن است.
         </p>
       )}
@@ -1935,7 +1935,7 @@ function NewDmModal({ user, onClose, onOpen }: { user: User; onClose: () => void
           <button
             key={u.id}
             onClick={() => startFor(u)}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 transition hover:bg-slate-50 dark:hover:bg-white/5"
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 transition hover:bg-app dark:hover:bg-white/5"
           >
             <Avatar user={u} size={38} />
             <div className="min-w-0 flex-1 text-right">

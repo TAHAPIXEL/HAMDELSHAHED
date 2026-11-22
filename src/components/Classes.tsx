@@ -134,8 +134,8 @@ export default function Classes({
       <div className="mx-auto max-w-4xl">
         {/* سربرگ کلاس */}
         <div className={`anim-fade-up relative mb-5 overflow-hidden rounded-3xl bg-gradient-to-l p-6 text-white shadow-xl ${gradeGrad[grade]}`}>
-          <div className="absolute -left-10 -top-10 size-44 rounded-full bg-white/10 blur-xl" />
-          <div className="absolute -bottom-14 right-1/3 size-44 rounded-full bg-white/10 blur-xl" />
+          <div className="absolute -left-10 -top-10 size-44 rounded-full bg-surface/10 blur-xl" />
+          <div className="absolute -bottom-14 right-1/3 size-44 rounded-full bg-surface/10 blur-xl" />
           {(staff || visibleClasses.length > 1) && (
             <button onClick={() => onSelect(null)} className="relative mb-3 flex items-center gap-1 text-[12px] font-bold text-white/80 transition hover:text-white">
               <ChevronLeft className="size-4 rotate-180" />
@@ -151,13 +151,13 @@ export default function Classes({
         </div>
 
         {/* تب‌ها */}
-        <div className="mb-5 flex gap-1.5 rounded-2xl bg-slate-100 p-1.5 dark:bg-white/5">
+        <div className="mb-5 flex gap-1.5 rounded-2xl bg-surface-2 p-1.5 dark:bg-white/5">
           {visibleTabs.map((t) => (
             <button
               key={t.v}
               onClick={() => setTab(t.v)}
               className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-[12.5px] font-bold transition ${
-                activeTab === t.v ? "bg-white text-indigo-700 shadow-sm dark:bg-white/15 dark:text-indigo-200" : "text-slate-500"
+                activeTab === t.v ? "bg-surface text-indigo-700 shadow-sm dark:bg-white/15 dark:text-indigo-200" : "text-slate-500"
               }`}
             >
               {t.icon}

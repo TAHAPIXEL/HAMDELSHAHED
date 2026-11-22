@@ -11,21 +11,21 @@ export type VoiceTone = "mine" | "other" | "rec";
 
 const TONE = {
   mine: {
-    btn: "bg-white text-[#3a80e3]",
-    on: "bg-white",
-    off: "bg-white/45",
+    btn: "bg-surface text-accent",
+    on: "bg-surface",
+    off: "bg-surface/45",
     time: "text-white/85",
   },
   other: {
-    btn: "bg-[#3a80e3] text-white",
-    on: "bg-[#3a80e3]",
-    off: "bg-slate-300 dark:bg-slate-500",
+    btn: "bg-accent text-white",
+    on: "bg-accent",
+    off: "bg-line-strong dark:bg-slate-500",
     time: "text-slate-500 dark:text-slate-400",
   },
   rec: {
-    btn: "bg-white text-[#3f9a52]",
-    on: "bg-white",
-    off: "bg-white/45",
+    btn: "bg-surface text-accent",
+    on: "bg-surface",
+    off: "bg-surface/45",
     time: "text-white",
   },
 } satisfies Record<VoiceTone, { btn: string; on: string; off: string; time: string }>;
@@ -151,7 +151,7 @@ export function FileBubble({ media, mine }: { media: ChatMedia; mine: boolean })
     >
       <span
         className={`grid size-11 shrink-0 place-items-center rounded-full shadow-sm ${
-          mine ? "bg-white text-[#3a80e3]" : "bg-[#3a80e3] text-white"
+          mine ? "bg-surface text-accent" : "bg-accent text-white"
         }`}
       >
         <FileText className="size-5" />
@@ -189,11 +189,11 @@ export function PendingBubble({ p, onDismiss }: { p: PendingUpload; onDismiss: (
   const circ = 2 * Math.PI * r;
   return (
     <div className="msg-in flex items-end gap-2">
-      <div className="bubble-mine relative max-w-[78%] bg-[#3a80e3] px-3.5 py-2.5 text-white shadow-sm sm:max-w-[65%]">
+      <div className="bubble-mine bubble-mine-c relative max-w-[78%] px-3.5 py-2.5 shadow-sm sm:max-w-[65%]">
         {p.error ? (
           <div className="flex items-center gap-2 text-[13px] font-bold text-rose-100">
             <span className="flex-1">{p.error}</span>
-            <button onClick={onDismiss} className="rounded-full p-1 hover:bg-white/10" aria-label="بستن">
+            <button onClick={onDismiss} className="rounded-full p-1 hover:bg-surface/10" aria-label="بستن">
               <X className="size-4" />
             </button>
           </div>

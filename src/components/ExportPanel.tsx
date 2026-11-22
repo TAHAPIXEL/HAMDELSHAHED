@@ -43,7 +43,7 @@ export function ExportButtons({ build, disabled }: { build: () => ExportDoc | nu
           type="button"
           disabled={disabled || busy !== null}
           onClick={() => run(it.f)}
-          className={`inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-[12.5px] font-black transition disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/5 ${it.cls}`}
+          className={`inline-flex items-center gap-1.5 rounded-xl border border-line bg-surface px-3.5 py-2 text-[12.5px] font-black transition disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/5 ${it.cls}`}
         >
           {busy === it.f ? <Loader2 className="size-4 animate-spin" /> : it.icon}
           <span>{FORMAT_LABEL[it.f]}</span>

@@ -233,7 +233,7 @@ export function ClassroomPage({ open, onClose, user }: { open: boolean; onClose:
                     onClick={() => setRoom(id)}
                     disabled={connectedElsewhere && !active}
                     className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold transition disabled:opacity-40 ${
-                      active ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300"
+                      active ? "bg-indigo-600 text-white" : "bg-surface-2 text-slate-600 dark:bg-white/10 dark:text-slate-300"
                     }`}
                   >
                     پایه {g} / شعبه {s}
@@ -253,10 +253,10 @@ export function ClassroomPage({ open, onClose, user }: { open: boolean; onClose:
         )}
 
         {roomReady && (
-          <section className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-white/5">
+          <section className="rounded-2xl border border-line bg-surface p-4 dark:border-white/10 dark:bg-white/5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-2">
-                <span className={`size-2.5 rounded-full ${live ? "animate-pulse bg-rose-500" : "bg-slate-300"}`} />
+                <span className={`size-2.5 rounded-full ${live ? "animate-pulse bg-rose-500" : "bg-line-strong"}`} />
                 <b className="text-base">{live ? "کلاس در حال برگزاری است" : "کلاس شروع نشده است"}</b>
                 {live && info?.teacherName ? <Chip tone="indigo">مدرس: {info.teacherName}</Chip> : null}
                 {phaseText && <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-300">{phaseText}</span>}
@@ -395,7 +395,7 @@ export function ClassroomPage({ open, onClose, user }: { open: boolean; onClose:
         )}
 
         {connectedHere && (
-          <section className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-white/5">
+          <section className="rounded-2xl border border-line bg-surface p-4 dark:border-white/10 dark:bg-white/5">
             <h3 className="mb-3 flex items-center gap-2 text-sm font-bold">
               <Users className="size-4" /> حاضران ({snap.peers.length})
             </h3>
@@ -403,10 +403,10 @@ export function ClassroomPage({ open, onClose, user }: { open: boolean; onClose:
               {snap.peers.map((p) => (
                 <li
                   key={p.identity}
-                  className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 px-3 py-2 dark:bg-white/5"
+                  className="flex items-center justify-between gap-2 rounded-xl bg-app px-3 py-2 dark:bg-white/5"
                 >
                   <span className="flex min-w-0 items-center gap-2">
-                    <span className={`size-2 shrink-0 rounded-full ${p.speaking ? "bg-emerald-500" : "bg-slate-300"}`} />
+                    <span className={`size-2 shrink-0 rounded-full ${p.speaking ? "bg-emerald-500" : "bg-line-strong"}`} />
                     <span className="truncate text-sm font-semibold">{p.name}</span>
                     {p.teacher && <Chip tone="indigo">مدرس</Chip>}
                     {p.isSelf && <Chip tone="slate">شما</Chip>}
@@ -429,7 +429,7 @@ export function ClassroomPage({ open, onClose, user }: { open: boolean; onClose:
         )}
 
         {connectedHere && (
-          <section className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-white/5">
+          <section className="rounded-2xl border border-line bg-surface p-4 dark:border-white/10 dark:bg-white/5">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <h3 className="flex items-center gap-2 text-sm font-bold">
                 <Radio className="size-4" /> گفتگوی کلاس
@@ -458,7 +458,7 @@ export function ClassroomPage({ open, onClose, user }: { open: boolean; onClose:
                   disabled={!snap.chatOpen}
                   maxLength={1000}
                   placeholder={snap.chatOpen ? "پیام خود را بنویسید…" : "چت بسته است"}
-                  className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-slate-900"
+                  className="min-w-0 flex-1 rounded-xl border border-line bg-surface px-3 py-2 text-sm dark:border-white/10 dark:bg-ink"
                 />
                 <Btn onClick={sendChat} disabled={!snap.chatOpen || !chatText.trim()}>
                   <Send className="size-4" /> ارسال
@@ -506,7 +506,7 @@ function ChatList({ messages }: { messages: { id: string; name: string; text: st
   return (
     <div className="flex max-h-60 flex-col gap-2 overflow-y-auto pr-1 sm:max-h-80">
       {messages.map((m) => (
-        <div key={m.id} className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${m.mine ? "self-end bg-indigo-600 text-white" : "self-start bg-slate-100 dark:bg-white/10"}`}>
+        <div key={m.id} className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${m.mine ? "self-end bg-indigo-600 text-white" : "self-start bg-surface-2 dark:bg-white/10"}`}>
           {!m.mine && <div className="mb-0.5 text-[11px] font-bold opacity-70">{m.name}</div>}
           <div className="whitespace-pre-wrap break-words">{m.text}</div>
         </div>

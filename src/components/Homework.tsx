@@ -347,7 +347,7 @@ function AnswerModal({ hw, user, onClose }: { hw: Hw; user: User; onClose: () =>
     <Modal open onClose={onClose} title={`تحویل: ${hw.title}`} icon={<Send className="size-5 text-teal-500" />}>
       <div className="space-y-4">
         {hw.description && (
-          <div className="user-text rounded-2xl bg-slate-50 px-4 py-3 text-[13px] leading-7 text-slate-600 dark:bg-white/5 dark:text-slate-300">
+          <div className="user-text rounded-2xl bg-app px-4 py-3 text-[13px] leading-7 text-slate-600 dark:bg-white/5 dark:text-slate-300">
             {hw.description}
           </div>
         )}
@@ -360,7 +360,7 @@ function AnswerModal({ hw, user, onClose }: { hw: Hw; user: User; onClose: () =>
             {images.length > 0 && (
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {images.map((img, i) => (
-                  <div key={i} className="relative overflow-hidden rounded-xl ring-1 ring-slate-200 dark:ring-white/10">
+                  <div key={i} className="relative overflow-hidden rounded-xl ring-1 ring-line dark:ring-white/10">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={img} alt={`پیوست ${fa(i + 1)}`} className="h-24 w-full object-cover" />
                     <button
@@ -378,7 +378,7 @@ function AnswerModal({ hw, user, onClose }: { hw: Hw; user: User; onClose: () =>
               <button
                 onClick={() => fileRef.current?.click()}
                 disabled={busy}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 px-3 py-4 text-[13px] font-bold text-slate-500 transition hover:border-teal-300 hover:text-teal-600 disabled:opacity-50 dark:border-white/10 dark:hover:border-teal-400/50"
+                className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-line px-3 py-4 text-[13px] font-bold text-slate-500 transition hover:border-teal-300 hover:text-teal-600 disabled:opacity-50 dark:border-white/10 dark:hover:border-teal-400/50"
               >
                 <ImagePlus className="size-4.5" />
                 {busy ? "در حال افزودن..." : images.length === 0 ? "افزودن تصویر" : "افزودن تصویر دیگر"}
@@ -434,7 +434,7 @@ function SubsModal({ hw, onClose }: { hw: Hw; onClose: () => void }) {
         {subs.map((s) => {
           const st = students.find((u) => u.id === s.studentId);
           return (
-            <div key={s.id} className="rounded-2xl border border-slate-100 p-3.5 dark:border-white/5">
+            <div key={s.id} className="rounded-2xl border border-line p-3.5 dark:border-white/5">
               <div className="flex flex-wrap items-center gap-3">
                 <Avatar user={st ?? null} size={38} />
                 <div className="min-w-0 flex-1">
@@ -457,9 +457,9 @@ function SubsModal({ hw, onClose }: { hw: Hw; onClose: () => void }) {
                 </Btn>
               </div>
               {open?.id === s.id && (
-                <div className="anim-fade-up mt-3 space-y-3 border-t border-slate-100 pt-3 dark:border-white/5">
+                <div className="anim-fade-up mt-3 space-y-3 border-t border-line pt-3 dark:border-white/5">
                   {s.text && (
-                    <div className="user-text rounded-xl bg-slate-50 px-4 py-3 text-[13px] leading-8 text-slate-600 dark:bg-white/5 dark:text-slate-300">
+                    <div className="user-text rounded-xl bg-app px-4 py-3 text-[13px] leading-8 text-slate-600 dark:bg-white/5 dark:text-slate-300">
                       {s.text}
                     </div>
                   )}
@@ -473,7 +473,7 @@ function SubsModal({ hw, onClose }: { hw: Hw; onClose: () => void }) {
                           <button
                             key={i}
                             onClick={() => setViewer(img)}
-                            className="overflow-hidden rounded-xl ring-1 ring-slate-200 transition hover:opacity-90 dark:ring-white/10"
+                            className="overflow-hidden rounded-xl ring-1 ring-line transition hover:opacity-90 dark:ring-white/10"
                           >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={img} alt={`پیوست ${fa(i + 1)}`} className="h-24 w-full object-cover" />
@@ -515,10 +515,10 @@ function SubsModal({ hw, onClose }: { hw: Hw; onClose: () => void }) {
 
       {/* بزرگ‌نمایی تصویر پیوست */}
       {viewer && (
-        <div className="fixed inset-0 z-[95] flex items-center justify-center bg-slate-950/85 p-4 backdrop-blur-sm" onClick={() => setViewer(null)}>
+        <div className="fixed inset-0 z-[95] flex items-center justify-center bg-scrim/85 p-4 backdrop-blur-sm" onClick={() => setViewer(null)}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={viewer} alt="تصویر پیوست" className="max-h-[88vh] max-w-full rounded-2xl shadow-2xl" />
-          <button className="absolute left-4 top-4 rounded-full bg-white/10 p-2.5 text-white backdrop-blur hover:bg-white/20" aria-label="بستن">
+          <button className="absolute left-4 top-4 rounded-full bg-surface/10 p-2.5 text-white backdrop-blur hover:bg-surface/20" aria-label="بستن">
             <X className="size-5" />
           </button>
         </div>

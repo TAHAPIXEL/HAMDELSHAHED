@@ -1,5 +1,6 @@
 "use client";
 
+import { AppearanceCard } from "./Appearance";
 import { useRef, useState } from "react";
 import {
   Camera,
@@ -70,8 +71,8 @@ function InfoRow({
 }) {
   if (!value || value === "—") return null;
   return (
-    <div className="flex items-start gap-3 rounded-2xl bg-slate-50 px-4 py-5 transition hover:bg-slate-100/80 dark:bg-white/5 dark:hover:bg-white/[0.07]">
-      <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-white text-indigo-500 shadow-sm ring-1 ring-slate-200/60 dark:bg-white/10 dark:ring-white/10">
+    <div className="flex items-start gap-3 rounded-2xl bg-app px-4 py-5 transition hover:bg-surface-2/80 dark:bg-white/5 dark:hover:bg-white/[0.07]">
+      <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-surface text-indigo-500 shadow-sm ring-1 ring-line/60 dark:bg-white/10 dark:ring-white/10">
         {icon}
       </span>
       <div className="min-w-0 flex-1">
@@ -234,7 +235,7 @@ function EditProfileModal({ userId, onClose }: { userId: string; onClose: () => 
             <button
               onClick={() => fileRef.current?.click()}
               disabled={photoBusy}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 px-3 py-3 text-[12.5px] font-bold text-slate-500 transition hover:border-indigo-300 hover:text-indigo-600 disabled:opacity-60"
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-line px-3 py-3 text-[12.5px] font-bold text-slate-500 transition hover:border-indigo-300 hover:text-indigo-600 disabled:opacity-60"
             >
               {photoBusy ? <Loader2 className="size-4 animate-spin" /> : <Camera className="size-4" />}
               {avatar ? "تغییر عکس" : "انتخاب عکس"}
@@ -270,23 +271,23 @@ function EditProfileModal({ userId, onClose }: { userId: string; onClose: () => 
         {/* موارد غیرقابل تغییر توسط کاربر */}
         <div className="space-y-2">
           <div className="text-[11px] font-black text-slate-400">این موارد فقط توسط مدیر قابل تغییر است:</div>
-          <div className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 px-3.5 py-2.5">
+          <div className="flex items-center justify-between gap-2 rounded-xl bg-app px-3.5 py-2.5">
             <span className="text-[11px] font-bold text-slate-400">شماره تلفن (شناسه ورود)</span>
             <span className="text-[12.5px] font-black text-slate-600">{me.phone}</span>
           </div>
           {isStudent && (
-            <div className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 px-3.5 py-2.5">
+            <div className="flex items-center justify-between gap-2 rounded-xl bg-app px-3.5 py-2.5">
               <span className="text-[11px] font-bold text-slate-400">کد ملی</span>
               <span className="text-[12.5px] font-black text-slate-600">{fa(me.nationalId ?? "")}</span>
             </div>
           )}
-          <div className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 px-3.5 py-2.5">
+          <div className="flex items-center justify-between gap-2 rounded-xl bg-app px-3.5 py-2.5">
             <span className="text-[11px] font-bold text-slate-400">{isStudent ? "کلاس" : "سمت در مدرسه"}</span>
             <span className="text-[12.5px] font-black text-slate-600">
               {isStudent && me.grade ? className(me.grade, me.section!) : roleFa(me)}
             </span>
           </div>
-          <div className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 px-3.5 py-2.5">
+          <div className="flex items-center justify-between gap-2 rounded-xl bg-app px-3.5 py-2.5">
             <span className="text-[11px] font-bold text-slate-400">رمز عبور</span>
             <span className="flex items-center gap-1 text-[12px] font-bold text-slate-500">
               <Lock className="size-3 text-slate-300" />
@@ -373,22 +374,22 @@ export default function Profile({
       <div className="mx-auto max-w-2xl">
         {/* کارت هویت */}
         <div className="card anim-fade-up relative mb-5 overflow-hidden p-0">
-          <div className={`relative h-32 ${isDev ? "bg-gradient-to-l from-slate-800 via-slate-900 to-slate-800" : "bg-gradient-to-l from-indigo-600 via-violet-600 to-fuchsia-500"}`}>
+          <div className={`relative h-32 ${isDev ? "bg-gradient-to-l from-ink via-ink to-ink" : "bg-gradient-to-l from-indigo-600 via-violet-600 to-fuchsia-500"}`}>
             <div className="absolute inset-0" style={{ backgroundImage: "radial-gradient(rgba(255,255,255,0.22) 1px, transparent 1px)", backgroundSize: "18px 18px" }} />
-            <div className="absolute -top-10 left-8 size-40 rounded-full bg-white/10 blur-2xl" />
-            <div className="absolute -bottom-16 right-1/4 size-40 rounded-full bg-white/10 blur-2xl" />
+            <div className="absolute -top-10 left-8 size-40 rounded-full bg-surface/10 blur-2xl" />
+            <div className="absolute -bottom-16 right-1/4 size-40 rounded-full bg-surface/10 blur-2xl" />
             {isDev && <Crown className="absolute left-5 top-5 size-6 text-amber-400/80" />}
           </div>
 
           <div className="relative flex flex-col items-center px-6 pb-6">
             <div className="-mt-14 mb-3 rounded-full bg-gradient-to-br from-indigo-500/40 to-violet-500/40 p-[3px] shadow-xl">
-              <div className="relative rounded-full bg-white p-1 dark:bg-slate-900">
+              <div className="relative rounded-full bg-surface p-1 dark:bg-ink">
                 <Avatar user={me} size={96} />
                 {!isDev && (
                   <button
                     onClick={() => fileRef.current?.click()}
                     disabled={changing}
-                    className="absolute bottom-1 left-1 rounded-full bg-white p-2.5 text-slate-600 shadow-lg ring-1 ring-slate-200 transition hover:scale-105 hover:text-indigo-600 active:scale-95 dark:bg-slate-800 dark:text-slate-300 dark:ring-white/10"
+                    className="absolute bottom-1 left-1 rounded-full bg-surface p-2.5 text-slate-600 shadow-lg ring-1 ring-line transition hover:scale-105 hover:text-indigo-600 active:scale-95 dark:bg-ink dark:text-slate-300 dark:ring-white/10"
                     aria-label="تغییر عکس پروفایل"
                     title="تغییر عکس پروفایل"
                   >
@@ -413,7 +414,7 @@ export default function Profile({
             </div>
 
             {/* آمار کوچک */}
-            <div className="mt-6 grid w-full grid-cols-3 divide-x divide-x-reverse divide-slate-100 rounded-2xl bg-slate-50/70 py-3 dark:divide-white/5 dark:bg-white/[0.03]">
+            <div className="mt-6 grid w-full grid-cols-3 divide-x divide-x-reverse divide-line rounded-2xl bg-app/70 py-3 dark:divide-white/5 dark:bg-white/[0.03]">
               {stats.map((s, i) => (
                 <MiniStat key={i} {...s} />
               ))}
@@ -431,6 +432,9 @@ export default function Profile({
           )}
           <QuickAction icon={<ClipboardList className="size-5" />} label="آزمون‌ها" onClick={() => onGo("exams")} />
         </div>
+
+        {/* ظاهر و پوسته */}
+        <AppearanceCard />
 
         {/* اطلاعات حساب */}
         <div className="card anim-fade-up mb-5 p-5">
@@ -452,7 +456,7 @@ export default function Profile({
               action={
                 <button
                   onClick={copyPhone}
-                  className="rounded-lg p-1.5 text-slate-300 transition hover:bg-white hover:text-indigo-500 dark:hover:bg-white/10"
+                  className="rounded-lg p-1.5 text-slate-300 transition hover:bg-surface hover:text-indigo-500 dark:hover:bg-white/10"
                   aria-label="کپی شماره"
                   title="کپی شماره"
                 >
@@ -461,8 +465,8 @@ export default function Profile({
               }
             />
             {me.password && (
-              <div className="flex items-start gap-3 rounded-2xl bg-slate-50 px-4 py-5 transition hover:bg-slate-100/80 dark:bg-white/5 dark:hover:bg-white/[0.07]">
-                <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-white text-indigo-500 shadow-sm ring-1 ring-slate-200/60 dark:bg-white/10 dark:ring-white/10">
+              <div className="flex items-start gap-3 rounded-2xl bg-app px-4 py-5 transition hover:bg-surface-2/80 dark:bg-white/5 dark:hover:bg-white/[0.07]">
+                <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-surface text-indigo-500 shadow-sm ring-1 ring-line/60 dark:bg-white/10 dark:ring-white/10">
                   <KeyRound className="size-4" />
                 </span>
                 <div className="min-w-0 flex-1">
@@ -484,7 +488,7 @@ export default function Profile({
           </div>
         </div>
 
-        <div className="anim-fade-up rounded-2xl bg-slate-100 px-4 py-3.5 text-[12.5px] font-semibold leading-6 text-slate-500 dark:bg-white/5 dark:text-slate-400">
+        <div className="anim-fade-up rounded-2xl bg-surface-2 px-4 py-3.5 text-[12.5px] font-semibold leading-6 text-slate-500 dark:bg-white/5 dark:text-slate-400">
           <KeyRound className="ml-1 inline size-4 text-slate-400" />
           تغییر رمز عبور فقط توسط مدیر و معاونان آموزشی و پرورشی از «پنل مدیریت» انجام می‌شود.
         </div>
