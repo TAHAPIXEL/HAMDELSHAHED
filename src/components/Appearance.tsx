@@ -400,7 +400,8 @@ export function AppearanceCard() {
               { value: "light", label: "روشن" },
             ]}
             value={s.mode}
-            onChange={(mode) => update({ mode })}
+            // تغییر حالت، زمینه‌ی گفتگو را به پیش‌فرض همان حالت می‌برد (تا گفتگوی تیره در حالت روشن نماند)
+            onChange={(mode) => update(mode === "light" ? { mode, chatBg: "#e4ebe6" } : { mode, chatBg: "#0b0c0e" })}
           />
         </Section>
 

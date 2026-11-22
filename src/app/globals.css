@@ -410,3 +410,14 @@ select,
 textarea {
   font-family: inherit;
 }
+
+/* لمس فوری: بدون تأخیر ~۳۰۰ms مرورگر برای دوبار ضربه‌ی تشخیص زوم */
+button,
+a,
+[role="button"],
+label,
+input,
+textarea,
+select {
+  touch-action: manipulation;
+}
