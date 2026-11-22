@@ -254,6 +254,16 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
         ))}
       </nav>
 
+      <div className="px-3 pt-1">
+        <button
+          onClick={() => setClassroomOpen(true)}
+          className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold text-slate-500 transition hover:bg-surface-2 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-slate-100"
+        >
+          <Radio className="size-5" />
+          کلاس آنلاین
+        </button>
+      </div>
+
       <div className="mt-6 px-5 text-[11px] font-black tracking-wide text-slate-400">
         {isStaff(user) ? "کلاس‌ها" : "کلاس من"}
       </div>
