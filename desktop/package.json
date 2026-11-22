@@ -43,7 +43,12 @@
       "createStartMenuShortcut": true,
       "shortcutName": "HAMDEL",
       "uninstallDisplayName": "HAMDEL"
-    }
+    },
+    "electronLanguages": [
+      "fa",
+      "en-US"
+    ],
+    "compression": "maximum"
   },
   "devDependencies": {
     "electron": "^45.4.1",
