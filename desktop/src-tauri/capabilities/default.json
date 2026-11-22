@@ -1,0 +1,10 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "پنجره‌ی اصلی: فقط برای سایت هَمدِل، بدون دسترسی به دستورهای بومی",
+  "windows": ["main"],
+  "remote": {
+    "urls": ["https://hamdelshahed.vercel.app/*"]
+  },
+  "permissions": ["core:default"]
+}
