@@ -411,7 +411,7 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
 
         {/* ناوبری پایین موبایل — کپسول تیره‌ی شناور مثل ایتا؛ پروفایل سمت چپ، گفتگوها سمت راست */}
         <div className="z-30 px-3 pb-[max(env(safe-area-inset-bottom),0.6rem)] pt-1.5 lg:hidden">
-          <nav dir="ltr" className="mx-auto flex max-w-md items-center justify-between rounded-[30px] bg-[#17181c]/95 p-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.35)] backdrop-blur-xl">
+          <nav dir="ltr" className="mx-auto flex max-w-md items-center justify-between rounded-[30px] bg-nav/95 p-1.5 shadow-[0_10px_30px_rgba(15,23,42,0.18)] backdrop-blur-xl dark:shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
             {bottomItems.map((n) => {
               const on = tab === n.v;
               return (
@@ -420,7 +420,7 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
                   onClick={() => go(n.v)}
                   aria-current={on ? "page" : undefined}
                   className={`flex min-w-0 flex-1 flex-col items-center gap-1 rounded-[22px] px-1 py-2 text-[11px] font-bold transition-colors duration-150 active:scale-95 ${
-                    on ? "bg-accent/15 text-accent" : "text-slate-300/80"
+                    on ? "bg-accent/15 text-accent" : "text-slate-500 dark:text-slate-300/80"
                   }`}
                 >
                   <span className="relative">

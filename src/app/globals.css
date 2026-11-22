@@ -127,6 +127,7 @@
   --color-surface: var(--t-surface);
   --color-surface-2: var(--t-surface-2);
   --color-surface-3: var(--t-surface-3);
+  --color-nav: var(--t-nav);
   --color-line: var(--t-line);
   --color-line-strong: var(--t-line-strong);
   --color-ink: var(--t-ink);
@@ -170,6 +171,7 @@
   --t-surface: #1e1e1e;
   --t-surface-2: #262626;
   --t-surface-3: #2e2e2e;
+  --t-nav: #1e1e1e;
   --t-line: #2a2a2a;
   --t-line-strong: #3b3b3b;
   --t-scrim: #000000;
@@ -264,7 +266,7 @@ body {
 
 /* کارت شیشه‌ای استاندارد */
 .card {
-  @apply rounded-2xl border border-slate-200/80 bg-white/90 shadow-[0_1px_3px_rgba(15,23,42,0.05)] backdrop-blur-xl dark:border-white/[0.07] dark:bg-white/[0.04] dark:shadow-none;
+  @apply rounded-2xl border border-line bg-surface/90 shadow-[0_1px_3px_rgba(15,23,42,0.05)] backdrop-blur-xl dark:border-white/[0.07] dark:bg-white/[0.04] dark:shadow-none;
 }
 
 /* انیمیشن‌ها */
