@@ -17,7 +17,7 @@ import {
   type VideoCaptureOptions,
 } from "livekit-client";
 import { api } from "@/lib/store";
-import { installNativeScreenShare, isNativeApp } from "@/lib/native";
+import { installNativeScreenShare, isNativeApp, setClassroomKeepAlive } from "@/lib/native";
 
 const TOPIC = "classroom";
 const MAX_CHAT = 300;
@@ -280,6 +280,7 @@ class LiveSession {
       const isTeacher = !!res.canPublish;
       this.patch({ phase: "connected", isTeacher });
       this.rebuild();
+      void setClassroomKeepAlive(true);
       // مدرس بلافاصله بعد از شروع کلاس میکروفون را روشن می‌کند؛ منتظر کلیک دوم نمی‌ماند
       if (isTeacher && opts?.micOn) {
         void room.localParticipant
@@ -412,6 +413,7 @@ class LiveSession {
   }
 
   async disconnect(): Promise<void> {
+    void setClassroomKeepAlive(false);
     this.seq++;
     const room = this.room;
     this.room = null;
@@ -550,6 +552,8 @@ class LiveSession {
     if (on && !this.canSpeakNow() && !this.snap.isTeacher) throw new Error("هنوز اجازه‌ی صحبت ندارید. منتظر تأیید مدرس بمانید.");
     try {
       await local.setMicrophoneEnabled(on, { echoCancellation: true, noiseSuppression: true });
+      // مجوز میکروفون تازه داده شده؛ سرویس پیش‌زمینه نوع میکروفون را هم بگیرد
+      if (on) void setClassroomKeepAlive(true);
     } catch (err) {
       throw new Error(errorText(err, "میکروفون روشن نشد."));
     }
@@ -569,6 +573,7 @@ class LiveSession {
       } else {
         await local.setScreenShareEnabled(false);
         await local.setCameraEnabled(true, camOptions(source, deviceId));
+        void setClassroomKeepAlive(true);
       }
     } catch (err) {
       throw new Error(errorText(err, "اشتراک‌گذاری انجام نشد."));

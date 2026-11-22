@@ -19,6 +19,26 @@ interface ScreenSharePlugin {
 
 const ScreenShare = registerPlugin<ScreenSharePlugin>("ScreenShare");
 
+interface ClassroomKeepAlivePlugin {
+  start(): Promise<void>;
+  stop(): Promise<void>;
+}
+const ClassroomKeepAlive = registerPlugin<ClassroomKeepAlivePlugin>("ClassroomKeepAlive");
+
+/**
+ * در APK: تا وقتی کلاس باز است، سرویس پیش‌زمینه اجرا می‌شود تا صدا و تصویر با رفتن به پس‌زمینه قطع نشوند.
+ * در مرورگر کاری نمی‌کند (مرورگر اجازه‌ی این کار را نمی‌دهد).
+ */
+export async function setClassroomKeepAlive(on: boolean): Promise<void> {
+  if (!isNativeApp()) return;
+  try {
+    if (on) await ClassroomKeepAlive.start();
+    else await ClassroomKeepAlive.stop();
+  } catch {
+    // اجرا نشد؛ کلاس بدون سرویس ادامه می‌یابد
+  }
+}
+
 const CANVAS_FPS = 6;
 let installed = false;
 
