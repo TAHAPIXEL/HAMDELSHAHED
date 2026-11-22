@@ -531,7 +531,7 @@ function ChatsTab({ actor }: { actor: User }) {
       {chats.length === 0 && <Empty icon={<MessagesSquare className="size-7" />} title="گروهی نیست" />}
       {chats.map((c) => (
         <div key={c.id} className="card flex flex-wrap items-center gap-3 p-3.5">
-          <div className={`flex size-10 shrink-0 items-center justify-center rounded-2xl text-white ${c.type === "channel" ? "bg-gradient-to-br from-amber-500 to-orange-500" : "bg-gradient-to-br from-indigo-500 to-violet-500"}`}>
+          <div className={`flex size-10 shrink-0 items-center justify-center rounded-2xl text-white ${c.type === "channel" ? "bg-gradient-to-br from-amber-500 to-amber-600" : "bg-gradient-to-br from-indigo-500 to-violet-500"}`}>
             {c.type === "channel" ? <Megaphone className="size-4.5" /> : <Users className="size-4.5" />}
           </div>
           <div className="min-w-0 flex-1">
@@ -650,7 +650,7 @@ function ContentTab({ actor }: { actor: User }) {
           {exams.length === 0 && <Empty icon={<ClipboardList className="size-7" />} title="آزمونی ثبت نشده" />}
           {exams.map((e) => (
             <div key={e.id} className="card flex flex-wrap items-center gap-3 p-3.5">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 text-white">
                 <ClipboardList className="size-4.5" />
               </div>
               <div className="min-w-0 flex-1">
@@ -683,7 +683,7 @@ function ContentTab({ actor }: { actor: User }) {
           {homeworks.length === 0 && <Empty icon={<BookOpen className="size-7" />} title="تکلیفی ثبت نشده" />}
           {homeworks.map((h) => (
             <div key={h.id} className="card flex flex-wrap items-center gap-3 p-3.5">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-emerald-600 text-white">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 text-white">
                 <BookOpen className="size-4.5" />
               </div>
               <div className="min-w-0 flex-1">
@@ -714,7 +714,7 @@ function ContentTab({ actor }: { actor: User }) {
           {notices.length === 0 && <Empty icon={<Megaphone className="size-7" />} title="اطلاعیه‌ای ثبت نشده" />}
           {notices.map((n) => (
             <div key={n.id} className="card flex flex-wrap items-center gap-3 p-3.5">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 text-white">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-rose-600 text-white">
                 <Megaphone className="size-4.5" />
               </div>
               <div className="min-w-0 flex-1">
@@ -797,7 +797,7 @@ function AttendanceReportTab() {
               <div key={r.key} className="flex flex-wrap items-center gap-3 px-5 py-3.5">
                 <div className="min-w-24 text-[13px] font-black text-slate-700 dark:text-slate-200">{r.label}</div>
                 <div className="relative h-2 min-w-32 flex-1 overflow-hidden rounded-full bg-surface-2 dark:bg-white/10">
-                  <div className="absolute inset-y-0 right-0 rounded-full bg-gradient-to-l from-emerald-500 to-teal-500 transition-all" style={{ width: `${pct}%` }} />
+                  <div className="absolute inset-y-0 right-0 rounded-full bg-gradient-to-l from-emerald-500 to-emerald-600 transition-all" style={{ width: `${pct}%` }} />
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5">
                   <Chip tone="green">حاضر {fa(r.present)}</Chip>

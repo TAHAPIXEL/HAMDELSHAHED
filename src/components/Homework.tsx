@@ -85,7 +85,7 @@ export default function Homework({ user }: { user: User }) {
             return (
               <div key={h.id} className="card p-4 sm:p-5">
                 <div className="flex items-start gap-3.5">
-                  <div className={`flex size-12 shrink-0 items-center justify-center rounded-2xl text-white shadow-lg ${h.closed ? "bg-gradient-to-br from-slate-400 to-slate-500" : "bg-gradient-to-br from-teal-500 to-emerald-600 shadow-teal-600/20"}`}>
+                  <div className={`flex size-12 shrink-0 items-center justify-center rounded-2xl text-white shadow-lg ${h.closed ? "bg-gradient-to-br from-slate-400 to-slate-500" : "bg-gradient-to-br from-teal-500 to-teal-600 shadow-teal-600/20"}`}>
                     <BookOpen className="size-6" />
                   </div>
                   <div className="min-w-0 flex-1">

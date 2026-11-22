@@ -30,8 +30,8 @@ import { Avatar, Chip, Empty, inputCls, useDbTick } from "./ui";
 
 const gradeGrad: Record<number, string> = {
   7: "from-indigo-500 to-violet-500",
-  8: "from-emerald-500 to-teal-500",
-  9: "from-amber-500 to-orange-500",
+  8: "from-teal-500 to-teal-600",
+  9: "from-amber-500 to-amber-600",
 };
 
 type Tab = "groups" | "members" | "exams" | "homework";
@@ -178,7 +178,7 @@ export default function Classes({
             )}
             {myChats.map((c) => (
               <div key={c.id} className="card flex items-center gap-3.5 p-4 transition hover:shadow-lg hover:shadow-indigo-900/5">
-                <div className={`flex size-11 shrink-0 items-center justify-center rounded-2xl text-white shadow ${c.type === "channel" ? "bg-gradient-to-br from-amber-500 to-orange-500" : "bg-gradient-to-br from-emerald-500 to-teal-500"}`}>
+                <div className={`flex size-11 shrink-0 items-center justify-center rounded-2xl text-white shadow ${c.type === "channel" ? "bg-gradient-to-br from-amber-500 to-amber-600" : "bg-gradient-to-br from-emerald-500 to-emerald-600"}`}>
                   {c.type === "channel" ? <Megaphone className="size-5" /> : <Users className="size-5" />}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -235,7 +235,7 @@ export default function Classes({
             )}
             {exams.map((e) => (
               <div key={e.id} className="card flex items-center gap-3.5 p-4">
-                <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-purple-500 text-white shadow">
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 text-white shadow">
                   <ClipboardList className="size-5" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -262,7 +262,7 @@ export default function Classes({
               return (
                 <div key={h.id} className="card p-4">
                   <div className="flex items-center gap-3.5">
-                    <div className={`flex size-11 shrink-0 items-center justify-center rounded-2xl text-white shadow ${h.closed ? "bg-gradient-to-br from-slate-400 to-slate-500" : "bg-gradient-to-br from-teal-500 to-emerald-600"}`}>
+                    <div className={`flex size-11 shrink-0 items-center justify-center rounded-2xl text-white shadow ${h.closed ? "bg-gradient-to-br from-slate-400 to-slate-500" : "bg-gradient-to-br from-teal-500 to-teal-600"}`}>
                       <BookOpen className="size-5" />
                     </div>
                     <div className="min-w-0 flex-1">

@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   Palette,
   Camera,
+  Plus,
   Loader2,
   LogOut,
   Pencil,
@@ -381,7 +382,7 @@ export default function Profile({
       <div className="mx-auto max-w-2xl">
         {/* کارت هویت */}
         <div className="card anim-fade-up relative mb-5 overflow-hidden p-0">
-          <div className={`relative h-32 ${isDev ? "bg-gradient-to-l from-ink via-ink to-ink" : "bg-gradient-to-l from-indigo-600 via-violet-600 to-fuchsia-500"}`}>
+          <div className={`relative h-32 ${isDev ? "bg-gradient-to-l from-ink via-ink to-ink" : "bg-gradient-to-l from-indigo-600 via-violet-600 to-indigo-700"}`}>
             <div className="absolute inset-0" style={{ backgroundImage: "radial-gradient(rgba(255,255,255,0.22) 1px, transparent 1px)", backgroundSize: "18px 18px" }} />
             <div className="absolute -top-10 left-8 size-40 rounded-full bg-surface/10 blur-2xl" />
             <div className="absolute -bottom-16 right-1/4 size-40 rounded-full bg-surface/10 blur-2xl" />
@@ -401,6 +402,9 @@ export default function Profile({
                     title="تغییر عکس پروفایل"
                   >
                     <Camera className="size-4" />
+                    <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-accent text-white ring-2 ring-surface dark:ring-ink">
+                      <Plus className="size-2.5" strokeWidth={3.5} />
+                    </span>
                   </button>
                 )}
                 <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={changeAvatar} />
@@ -421,7 +425,7 @@ export default function Profile({
             </div>
 
             {/* آمار کوچک */}
-            <div className="mt-6 grid w-full grid-cols-3 divide-x divide-x-reverse divide-line rounded-2xl bg-app/70 py-3 dark:divide-white/5 dark:bg-white/[0.03]">
+            <div className="mt-6 grid w-full grid-cols-3 rounded-2xl bg-app/70 py-3 dark:bg-white/[0.03]">
               {stats.map((s, i) => (
                 <MiniStat key={i} {...s} />
               ))}

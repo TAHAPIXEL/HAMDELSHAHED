@@ -81,8 +81,8 @@ import { AttachSheet } from "./AttachSheet";
 import { useDraft } from "@/lib/drafts";
 import { CHAT_FILE_MAX, FILE_ACCEPT, VoiceRecorder, baseMime, fmtRec, guessMime, uploadChatBlob, type Recording } from "@/lib/chatmedia";
 
-const groupGrad = "bg-gradient-to-br from-emerald-500 to-teal-500";
-const channelGrad = "bg-gradient-to-br from-amber-500 to-orange-500";
+const groupGrad = "bg-gradient-to-br from-emerald-500 to-emerald-600";
+const channelGrad = "bg-gradient-to-br from-amber-500 to-amber-600";
 
 const ZERO_BANDS: number[] = new Array(16).fill(0);
 
@@ -90,13 +90,28 @@ export default function Chats({
   user,
   externalChatId,
   onConsumeExternal,
+  onChatChange,
+  syncChat,
+  onListScroll,
+  searchSignal,
 }: {
   user: User;
   externalChatId: string | null;
   onConsumeExternal: () => void;
+  /** گفتگو از داخل این بخش باز/بسته شد (برای ثبت در تاریخچه‌ی بک) */
+  onChatChange?: (id: string | null) => void;
+  /** فرمان بیرونی از تاریخچه‌ی بک: باز یا بسته کردن گفتگو */
+  syncChat?: { id: string | null; n: number };
+  /** لیست گفتگو پایین‌تر از ابتدا رفته؛ نوار جستجو به بالا (کنار زنگوله) منتقل می‌شود */
+  onListScroll?: (scrolled: boolean) => void;
+  /** درخواست جستجو از بالای صفحه: لیست به ابتدا برمی‌گردد و جستجو فعال می‌شود */
+  searchSignal?: number;
 }) {
   useDbTick(); // هر تغییری در داده‌ها، بلافاصله رابط را زنده می‌کند
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [listScrolled, setListScrolled] = useState(false);
+  const listScrollRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [showDm, setShowDm] = useState(false);
@@ -126,6 +141,19 @@ export default function Chats({
   const chats = userChats(user);
   const active = chats.find((c) => c.id === activeId) ?? DB.chats().find((c) => c.id === activeId) ?? null;
 
+  // فرمان تاریخچه‌ی بک (در حین رندر، مثل بخش زیر)
+  const [consumedSync, setConsumedSync] = useState(0);
+  if (syncChat && syncChat.n !== consumedSync) {
+    setConsumedSync(syncChat.n);
+    setActiveId(syncChat.id);
+  }
+  // فهرست دوباره ساخته می‌شود: وضعیت «پایین رفته» را از اول حساب کن
+  const [prevListActive, setPrevListActive] = useState<string | null>(activeId);
+  if (prevListActive !== activeId) {
+    setPrevListActive(activeId);
+    if (activeId === null) setListScrolled(false);
+  }
+
   // باز کردن گفتگو از بیرون (مثلاً از اطلاعیه): در حین رندر، بدون setState داخل effect
   const [consumedExt, setConsumedExt] = useState<string | null>(null);
   if (externalChatId && externalChatId !== consumedExt) {
@@ -135,6 +163,30 @@ export default function Chats({
   useEffect(() => {
     if (externalChatId) onConsumeExternal();
   }, [externalChatId, onConsumeExternal]);
+
+  // اطلاع به بخش بالا (تاریخچه‌ی بک) — تنها وقتی تغییر واقعی رخ داده باشد
+  const notifiedRef = useRef<string | null | undefined>(undefined);
+  useEffect(() => {
+    const prev = notifiedRef.current;
+    notifiedRef.current = activeId;
+    if (prev === activeId) return;
+    if (prev === undefined && activeId === null) return;
+    onChatChange?.(activeId);
+  }, [activeId, onChatChange]);
+
+  useEffect(() => {
+    onListScroll?.(listScrolled);
+  }, [listScrolled, onListScroll]);
+  useEffect(() => () => onListScroll?.(false), [onListScroll]);
+
+  // درخواست جستجو از نوار بالا
+  const seenSignal = useRef(searchSignal ?? 0);
+  useEffect(() => {
+    if (!searchSignal || searchSignal === seenSignal.current) return;
+    seenSignal.current = searchSignal;
+    listScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    searchRef.current?.focus();
+  }, [searchSignal]);
 
   const activeChatId = active?.id;
   const activeChatActivity = active?.lastActivity;
@@ -169,14 +221,24 @@ export default function Chats({
         }`}
       >
         <div className="space-y-3 p-4 pb-3">
-          <div className="relative">
-            <Search className="absolute right-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-            <input
-              className={`${inputCls} !rounded-full pr-10`}
-              placeholder="جست‌وجوی گفتگو..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
+          {/* نوار جستجو: وقتی فهرست پایین رفته، به‌آرامی جمع می‌شود (به نوار بالا منتقل می‌شود) */}
+          <div
+            className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
+              listScrolled ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100"
+            }`}
+          >
+            <div className="min-h-0 overflow-hidden">
+              <div className="relative">
+                <Search className="absolute right-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  ref={searchRef}
+                  className={`${inputCls} !rounded-full pr-10`}
+                  placeholder="جست‌وجوی گفتگو..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                />
+              </div>
+            </div>
           </div>
           {!selectMode && (
             <div dir="ltr" className="flex items-center gap-1 rounded-full bg-surface-2 p-1 dark:bg-white/5">
@@ -221,7 +283,14 @@ export default function Chats({
           )}
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-2.5 pb-24">
+        <div
+          ref={listScrollRef}
+          onScroll={(e) => {
+            const s = e.currentTarget.scrollTop > 24;
+            setListScrolled((prev) => (prev === s ? prev : s));
+          }}
+          className="min-h-0 flex-1 overflow-y-auto px-2.5 pb-24"
+        >
           {filtered.length === 0 && (
             <Empty
               icon={<MessagesSquare className="size-7" />}

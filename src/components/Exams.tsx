@@ -92,7 +92,7 @@ export default function Exams({ user }: { user: User }) {
             return (
               <div key={e.id} className="card p-4 sm:p-5">
                 <div className="flex flex-wrap items-center gap-3">
-                  <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-600/20">
+                  <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 text-white shadow-lg shadow-violet-600/20">
                     <ClipboardList className="size-6" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -678,7 +678,7 @@ function ResultModal({ exam, sub, viewer, onClose }: { exam: Exam; sub: Submissi
   return (
     <Modal open onClose={onClose} title={staffCanGrade ? `تصحیح پاسخ‌های ${student?.firstName ?? ""} ${student?.lastName ?? ""}` : "کارنامه آزمون"} wide icon={<CircleCheckBig className="size-5 text-emerald-500" />}>
       {sub.graded && (
-        <div className="mb-4 flex items-center justify-between rounded-2xl bg-gradient-to-l from-emerald-500 to-teal-500 px-5 py-4 text-white">
+        <div className="mb-4 flex items-center justify-between rounded-2xl bg-gradient-to-l from-emerald-500 to-emerald-600 px-5 py-4 text-white">
           <div>
             <div className="text-[12px] font-bold text-white/80">نمره نهایی</div>
             <div className="text-2xl font-black">{fa(sub.total ?? 0)} <span className="text-sm font-bold text-white/80">از {fa(totalScore(exam))}</span></div>
