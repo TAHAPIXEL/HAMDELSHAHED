@@ -44,7 +44,15 @@ jobs:
       - name: همگام‌سازی Capacitor
         run: npx cap sync android
 
-      - name: کلید امضای انتشار
+      - name: کلید امضای ثابت (کش)
+        # کلید در کش Actions نگه داشته می‌شود تا همه‌ی نسخه‌ها با یک امضا ساخته شوند
+        # (در غیر این صورت نصب نسخه‌ی جدید روی قبلی خطای «conflicts with an existing package» می‌دهد)
+        uses: actions/cache@v4
+        with:
+          path: ~/.hamdel-keystore
+          key: hamdel-release-keystore-v1
+
+      - name: آماده‌سازی کلید امضا
         env:
           KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -52,25 +60,27 @@ jobs:
           KS_KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           set -euo pipefail
+          DIR="$HOME/.hamdel-keystore"
+          mkdir -p "$DIR"
           if [ -n "$KS_B64" ]; then
-            # کلید ثابت از Secrets: نسخه‌های بعدی روی نسخه‌ی قبلی نصب می‌شوند
-            echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/release.p12"
-            echo "HAMDEL_KEYSTORE_PASSWORD=$KS_PASS" >> "$GITHUB_ENV"
-            echo "HAMDEL_KEY_ALIAS=${KS_ALIAS:-hamdel}" >> "$GITHUB_ENV"
-            echo "HAMDEL_KEY_PASSWORD=${KS_KEY_PASS:-$KS_PASS}" >> "$GITHUB_ENV"
-          else
-            # Secret تعریف نشده: کلید موقت برای این اجرا (برای نصب نسخه‌ی بعدی باید اپ قبلی حذف شود)
+            echo "$KS_B64" | base64 -d > "$DIR/release.p12"
+            echo "$KS_PASS" > "$DIR/pass.txt"
+            echo "${KS_ALIAS:-hamdel}" > "$DIR/alias.txt"
+          elif [ ! -f "$DIR/release.p12" ]; then
             PASS="$(openssl rand -hex 24)"
-            keytool -genkeypair -v -keystore "$RUNNER_TEMP/release.p12" -storetype PKCS12 \
+            echo "$PASS" > "$DIR/pass.txt"
+            echo "hamdel" > "$DIR/alias.txt"
+            keytool -genkeypair -keystore "$DIR/release.p12" -storetype PKCS12 \
               -alias hamdel -keyalg RSA -keysize 2048 -validity 10000 \
               -dname "CN=HAMDEL, OU=Shahed, O=Shahed School, C=IR" \
               -storepass "$PASS" -keypass "$PASS"
-            echo "HAMDEL_KEYSTORE_PASSWORD=$PASS" >> "$GITHUB_ENV"
-            echo "HAMDEL_KEY_ALIAS=hamdel" >> "$GITHUB_ENV"
-            echo "HAMDEL_KEY_PASSWORD=$PASS" >> "$GITHUB_ENV"
-            echo "::warning::ANDROID_KEYSTORE_BASE64 تعریف نشده؛ کلید موقت استفاده شد"
           fi
-          echo "HAMDEL_KEYSTORE=$RUNNER_TEMP/release.p12" >> "$GITHUB_ENV"
+          {
+            echo "HAMDEL_KEYSTORE=$DIR/release.p12"
+            echo "HAMDEL_KEYSTORE_PASSWORD=$(cat "$DIR/pass.txt")"
+            echo "HAMDEL_KEY_ALIAS=$(cat "$DIR/alias.txt")"
+            echo "HAMDEL_KEY_PASSWORD=$(cat "$DIR/pass.txt")"
+          } >> "$GITHUB_ENV"
 
       - name: ساخت APK انتشار (Release)
         working-directory: android

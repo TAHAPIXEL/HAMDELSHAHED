@@ -5,6 +5,7 @@ import {
   Search,
   Send,
   ImagePlus,
+  Smile,
   Users,
   Megaphone,
   MessagesSquare,
@@ -361,6 +362,62 @@ export default function Chats({
 // پنجره چت
 // ----------------------------------------------------------------------------
 
+/* ---------- ایموجی: دسته‌بندی‌شده؛ درج در محل نشانگر متن ---------- */
+const EMOJI_GROUPS: { id: string; icon: string; label: string; items: string }[] = [
+  { id: "smile", icon: "😀", label: "شکلک‌ها", items: "😀 😃 😄 😁 😆 😅 😂 🤣 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘 😗 😙 😚 😋 😛 😝 😜 🤪 🤨 🧐 🤓 😎 🥳 😏 😒 😞 😔 😟 😕 🙁 😣 😖 😫 😩 🥺 😢 😭 😤 😠 😡 🤬 🤯 😳 🥵 🥶 😱 😨 😰 😥 😓 🤗 🤔 🤭 🤫 🤥 😶 😐 😑 😬 🙄 😯 😦 😧 😮 😲 🥱 😴 🤤 😪 😵 🤐 🥴 🤢 🤮 🤧 😷 🤒 🤕" },
+  { id: "hands", icon: "👋", label: "دست و بدن", items: "👋 🤚 🖐 ✋ 🖖 👌 🤌 🤏 ✌ 🤞 🤟 🤘 🤙 👈 👉 👆 👇 ☝ 👍 👎 ✊ 👊 🤛 🤜 👏 🙌 👐 🤲 🤝 🙏 ✍ 💪 🦾 🧠 👀 👁 👂 👃 👶 🧒 👦 👧 👨 👩 🧑 👮 👷 💂 🕵 🎓 📚 ✏ 🏫" },
+  { id: "animals", icon: "🐶", label: "حیوانات", items: "🐶 🐱 🐭 🐹 🐰 🦊 🐻 🐼 🐨 🐯 🦁 🐮 🐷 🐸 🐵 🐔 🐧 🐦 🐤 🦆 🦅 🦉 🦇 🐺 🐗 🐴 🦄 🐝 🐛 🦋 🐌 🐞 🐜 🐢 🐍 🦎 🐙 🦑 🦐 🐠 🐟 🐬 🐳 🦈 🐊 🐘 🦒 🦓 🌸 🌹 🌻 🌷 🌱 🌳 🌴 🍀" },
+  { id: "food", icon: "🍔", label: "غذا", items: "🍏 🍎 🍐 🍊 🍋 🍌 🍉 🍇 🍓 🍒 🍑 🥭 🍍 🥥 🥝 🍅 🥑 🍆 🥔 🥕 🌽 🌶 🥒 🥬 🥦 🍄 🥜 🌰 🍞 🥐 🥖 🧀 🥚 🍳 🥞 🥓 🍔 🍟 🍕 🌭 🥪 🌮 🌯 🥗 🍝 🍜 🍲 🍛 🍣 🍱 🍚 🍙 🍘 🍦 🍰 🎂 🍭 🍫 🍬 🍩 🍪 ☕ 🍵 🥤 🧃 🥛" },
+  { id: "activity", icon: "⚽", label: "فعالیت", items: "⚽ 🏀 🏈 ⚾ 🎾 🏐 🏉 🎱 🏓 🏸 🥊 🥋 🎯 ⛳ 🏹 🎣 🎽 🛹 🛼 🛷 🥌 🎿 🏂 🏋 🤼 🤸 ⛹ 🤺 🏇 🧗 🏄 🏊 🚴 🎮 🎲 🧩 🎭 🎨 🎬 🎤 🎧 🎼 🎹 🥁 🎷 🎺 🎸" },
+  { id: "travel", icon: "🚗", label: "سفر و مکان", items: "🚗 🚕 🚙 🚌 🚎 🏎 🚓 🚑 🚒 🚐 🚚 🚜 🛵 🏍 🚲 🛴 🚨 🚔 🚍 🚘 🚖 🚡 🚠 🚟 🚃 🚋 🚞 🚝 🚄 🚅 🚈 🚂 🚆 🚇 🚊 🚉 ✈ 🛫 🛬 🚀 🛸 🚁 ⛵ 🚤 🚢 ⚓ 🌍 🌎 🌏 🗺 🏠 🏡 🏫 🏢 🏣 🏤 🏥 🏦 🏨 🏪 🏬 🏭 🏯 🏰 🗼 🗽 ⛰ 🏔 🌋 🏕 🏖 🏜 🏝 🏞" },
+  { id: "objects", icon: "💡", label: "اشیا و نمادها", items: "💡 🔋 📱 💻 🖥 📷 🎥 📞 ☎ 📧 📅 📆 🔍 🔑 🔒 ⏰ ⌛ 📌 📍 📎 🔔 📢 📣 💬 💭 📝 📖 🏆 🥇 🥈 🥉 🎉 🎊 🎈 🎁 ✨ 🌟 ⭐ 🔥 💥 ⚡ 💯 ✅ ✔ ❌ ➕ ➖ ❤ 🧡 💛 💚 💙 💜 🖤 🤍 💔 💕 💞 💗 💖 💘 💝 🙈 🙉 🙊 🐾" },
+  { id: "flags", icon: "🇮🇷", label: "پرچم", items: "🇮🇷 🇦🇫 🇮🇶 🇦🇪 🇹🇷 🇩🇪 🇬🇧 🇫🇷 🇺🇸 🇨🇦 🇯🇵 🇨🇳 🇷🇺 🇮🇹 🇪🇸 🇸🇦 🇶🇦 🇰🇼 🇹🇲 🏁 🚩 🎌 🏴 🏳" },
+];
+
+function EmojiPanel({ onPick, onClose }: { onPick: (e: string) => void; onClose: () => void }) {
+  const [g, setG] = useState(0);
+  const group = EMOJI_GROUPS[g];
+  return (
+    <div className="absolute bottom-full left-0 right-0 z-20 mb-2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-slate-900">
+      <div className="flex items-center gap-1 overflow-x-auto border-b border-slate-100 px-2 py-1.5 dark:border-white/5" dir="ltr">
+        {EMOJI_GROUPS.map((x, i) => (
+          <button key={x.id} onClick={() => setG(i)} title={x.label} aria-label={x.label} className={`grid size-9 shrink-0 place-items-center rounded-xl text-lg transition ${i === g ? "bg-slate-100 dark:bg-white/10" : "opacity-60 hover:opacity-100"}`}>
+            {x.icon}
+          </button>
+        ))}
+        <button onClick={onClose} className="ms-auto grid size-9 shrink-0 place-items-center rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10" aria-label="بستن">
+          <X className="size-4" />
+        </button>
+      </div>
+      <div className="px-2 pb-1 pt-2 text-[11px] font-bold text-slate-400">{group.label}</div>
+      <div className="grid max-h-56 grid-cols-7 gap-0.5 overflow-y-auto px-2 pb-3 sm:grid-cols-9">
+        {group.items.split(" ").map((e, i) => (
+          <button key={`${g}-${i}`} onClick={() => onPick(e)} className="grid aspect-square place-items-center rounded-lg text-2xl transition active:scale-90 hover:bg-slate-100 dark:hover:bg-white/10">
+            {e}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** درج متن در موقعیت نشانگر (یا انتها) و حفظ فوکوس */
+function insertAtCursor(el: HTMLTextAreaElement | null, value: string, setText: (fn: (prev: string) => string) => void) {
+  const start = el?.selectionStart ?? null;
+  const end = el?.selectionEnd ?? null;
+  setText((prev) => {
+    const s = start ?? prev.length;
+    const e = end ?? s;
+    return prev.slice(0, s) + value + prev.slice(e);
+  });
+  requestAnimationFrame(() => {
+    if (!el) return;
+    const pos = (start ?? el.value.length) + value.length;
+    el.focus();
+    el.setSelectionRange(pos, pos);
+  });
+}
+
 function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: () => void }) {
   useDbTick(); // زنده‌سازی پیام‌ها
   const toast = useToast();
@@ -374,6 +431,8 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
   const [showPoll, setShowPoll] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const taRef = useRef<HTMLTextAreaElement>(null);
+  const [showEmoji, setShowEmoji] = useState(false);
   const stickRef = useRef(true);
   // زمان آخرین بازدید پیش از باز شدن این گفتگو. markSeen در effect اجرا می‌شود و وضعیت را پاک می‌کند،
   // پس باید همین‌جا (هنگام mount، قبل از effectها) ثبت شود. ChatWindow با key=chat.id ساخته می‌شود.
@@ -707,26 +766,18 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
                 </button>
               </div>
             )}
-            <div className="flex items-end gap-2">
-              {isStaff(user) && chat.type !== "direct" && (
-                <button
-                  onClick={() => setShowPoll(true)}
-                  className="rounded-2xl p-3 text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-white/10"
-                  aria-label="ایجاد نظرسنجی"
-                  title="ایجاد نظرسنجی"
-                >
-                  <BarChart3 className="size-5" />
-                </button>
-              )}
+            <div className="relative flex items-end gap-1.5">
+              {showEmoji && <EmojiPanel onPick={(e) => insertAtCursor(taRef.current, e, setText)} onClose={() => setShowEmoji(false)} />}
+              {/* ایموجی — سمت چپ */}
               <button
-                onClick={() => fileRef.current?.click()}
-                className="rounded-2xl p-3 text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-white/10"
-                aria-label="ارسال تصویر"
+                onClick={() => setShowEmoji((o) => !o)}
+                className={`grid size-11 shrink-0 place-items-center rounded-full transition ${showEmoji ? "text-[#3b7ae0]" : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"}`}
+                aria-label="ایموجی"
               >
-                <ImagePlus className="size-5" />
+                <Smile className="size-6" />
               </button>
-              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={pickImage} />
               <textarea
+                ref={taRef}
                 rows={1}
                 value={text}
                 onChange={(e) => {
@@ -740,17 +791,33 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
                     submit();
                   }
                 }}
+                onFocus={() => setShowEmoji(false)}
                 placeholder="پیام خود را بنویسید..."
-                className="max-h-[140px] flex-1 resize-none rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 dark:border-white/10 dark:bg-white/5 dark:focus:border-indigo-400/50"
+                className="max-h-[140px] min-h-11 flex-1 resize-none rounded-3xl bg-slate-100 px-4 py-2.5 text-sm outline-none transition placeholder:text-slate-400 focus:bg-slate-100/80 dark:bg-white/10 dark:focus:bg-white/15"
               />
-              <button
-                onClick={submit}
-                disabled={!text.trim() && !image}
-                className="rounded-2xl bg-gradient-to-l from-indigo-600 to-violet-600 p-3 text-white shadow-lg shadow-indigo-600/25 transition hover:brightness-110 active:scale-95 disabled:opacity-40 disabled:shadow-none"
-                aria-label="ارسال"
-              >
-                <Send className="size-5 -scale-x-100" />
-              </button>
+              {!text.trim() && !image ? (
+                <>
+                  {isStaff(user) && chat.type !== "direct" && (
+                    <button onClick={() => setShowPoll(true)} className="grid size-11 shrink-0 place-items-center rounded-full text-slate-400 transition hover:text-slate-600 dark:hover:text-slate-200" aria-label="ایجاد نظرسنجی" title="ایجاد نظرسنجی">
+                      <BarChart3 className="size-5" />
+                    </button>
+                  )}
+                  <button onClick={() => fileRef.current?.click()} className="grid size-11 shrink-0 place-items-center rounded-full text-slate-400 transition hover:text-slate-600 dark:hover:text-slate-200" aria-label="ارسال تصویر">
+                    <ImagePlus className="size-5" />
+                  </button>
+                  <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={pickImage} />
+                </>
+              ) : (
+                /* ارسال — دایره‌ای، سمت راست */
+                <button
+                  onClick={submit}
+                  disabled={!text.trim() && !image}
+                  className="grid size-11 shrink-0 place-items-center rounded-full bg-[#4f8ff0] text-white shadow-md shadow-[#4f8ff0]/30 transition active:scale-90 disabled:opacity-40"
+                  aria-label="ارسال"
+                >
+                  <Send className="size-5 -scale-x-100" />
+                </button>
+              )}
             </div>
           </>
         ) : (
