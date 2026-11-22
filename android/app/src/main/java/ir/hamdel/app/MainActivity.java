@@ -19,7 +19,7 @@ public class MainActivity extends BridgeActivity {
      * تایمرها و پخش/ضبط رسانه‌ی صفحه‌ی کلاس ادامه می‌یابند (سرویس پیش‌زمینه مانع قطع فرایند می‌شود).
      */
     @Override
-    protected void onPause() {
+    public void onPause() {
         super.onPause();
         if (ClassroomService.active && getBridge() != null) {
             WebView wv = getBridge().getWebView();
