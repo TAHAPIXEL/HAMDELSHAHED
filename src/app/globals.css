@@ -181,8 +181,10 @@
   --t-accent: #58b662;
   --t-on-accent: #ffffff;
   --t-wallpaper-bg: #0b0c0e;
-  --t-wallpaper: none;
-  --t-wallpaper-size: auto;
+  --t-wallpaper-base: none;
+  --t-wallpaper-image: none;
+  --t-texture: none;
+  --t-texture-size: auto;
   --t-slate-50: #141414;
   --t-slate-100: #f0f0f2;
   --t-slate-200: #e6e6ea;
@@ -338,10 +340,12 @@ body {
 }
 
 /* پس‌زمینه‌ی گفتگو (والپیپر) — از پوسته‌ی کاربر می‌آید */
+/* لایه‌ها از بالا به پایین: نقش (بافت) ← تصویر دلخواه ← گرادیان ← رنگ پایه */
 .chat-bg {
   background-color: var(--t-wallpaper-bg);
-  background-image: var(--t-wallpaper);
-  background-size: var(--t-wallpaper-size);
+  background-image: var(--t-texture), var(--t-wallpaper-image), var(--t-wallpaper-base);
+  background-size: var(--t-texture-size), cover, cover;
+  background-position: center;
 }
 
 /* حباب پیام‌ها */

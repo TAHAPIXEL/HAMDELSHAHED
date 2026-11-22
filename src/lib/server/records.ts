@@ -13,6 +13,7 @@ import {
   isSensitiveViewerRole,
   type CollectionKey,
 } from "@/lib/collections";
+import { normalizeTheme } from "@/lib/theme";
 import { HttpError } from "./http";
 import { CHAT_MAX_BYTES, isInlineAvatar, isStoredChatUrl, isStoredImageUrl } from "./storage";
 import type { Viewer } from "./session";
@@ -279,6 +280,14 @@ async function enforceRules(viewer: Viewer, ops: SyncOp[]): Promise<void> {
           !isStoredImageUrl(next.avatar)
         ) {
           throw new HttpError(400, "آدرس تصویر پروفایل نامعتبر است.");
+        }
+        // پوسته‌ی کاربر (رنگ‌ها، حالت، بافت، تصویر گفتگو) همیشه به شکل معتبر و امن ذخیره می‌شود
+        if (next.theme !== undefined && next.theme !== null) {
+          const theme = normalizeTheme(next.theme);
+          if (theme.wallpaperUrl && !isStoredImageUrl(theme.wallpaperUrl)) {
+            throw new HttpError(400, "آدرس تصویر پس‌زمینه‌ی گفتگو نامعتبر است.");
+          }
+          next.theme = theme;
         }
         if (manager) break;
         if (op.id !== viewer.id || !prev) {

@@ -40,6 +40,7 @@ import {
   type User,
 } from "@/lib/model";
 import { Avatar, Confirm, useDbTick } from "./ui";
+import { useThemeSync } from "./Appearance";
 import Chats from "./Chats";
 import Classes from "./Classes";
 import Exams from "./Exams";
@@ -65,6 +66,7 @@ const titles: Record<View, string> = {
 
 export default function Shell({ user: initialUser, onLogout }: { user: User; onLogout: () => void }) {
   useDbTick();
+  useThemeSync();
   const user = currentUser() ?? initialUser;
   const [view, setView] = useState<View>("chats");
   // برچسب فعال نوار پایین فوری تغییر می‌کند؛ رندر صفحه‌ی سنگین در transition انجام می‌شود تا تپ آنی باشد
