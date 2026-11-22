@@ -399,6 +399,26 @@ async function main() {
     await req("POST", "/api/state/sync", { token: tokenA, body: { ops: [{ c: "users", id: studentA.id, d: { ...base, avatar: "" } }] } });
   });
 
+  await check("theme: saved on the account, normalized, foreign wallpaper URLs rejected", async () => {
+    const base = { id: studentA.id, role: "student", firstName: "رضا", lastName: "ویرایش", phone: studentA.phone, password: "1234", grade: 7, section: "1", createdAt: 1 };
+    const save = (d) => req("POST", "/api/state/sync", { token: tokenA, body: { ops: [{ c: "users", id: studentA.id, d }] } });
+    const theme = { presetId: "ocean", mode: "dark", accent: "#38bdf8", mine: "#0e7490", mineText: "", chatBg: "#0b2a3c", chatBg2: "#061722", chatAngle: 160, texture: "waves", textureColor: "#67e8f9", textureOpacity: 12, textureScale: 100, wallpaperUrl: "", wallpaperDim: 0 };
+    assert.equal((await save({ ...base, theme })).status, 200);
+    const sb = await req("GET", "/api/state", { token: tokenB });
+    const seen = sb.json.rows.find((r) => r.c === "users" && r.id === studentA.id);
+    assert.equal(seen.d.theme.texture, "waves", "theme is stored on the user record");
+    assert.equal(seen.d.theme.accent, "#38bdf8");
+    const junkTheme = { accent: "javascript:alert(1)", texture: "<img>", textureOpacity: 999 };
+    assert.equal((await save({ ...base, theme: junkTheme })).status, 200, "garbage theme values are normalized, not fatal");
+    const after = (await req("GET", "/api/state", { token: tokenB })).json.rows.find((r) => r.c === "users" && r.id === studentA.id);
+    assert.equal(after.d.theme.accent, "#58b662");
+    assert.equal(after.d.theme.texture, "none");
+    assert.equal(after.d.theme.textureOpacity, 60);
+    const evilTheme = { ...theme, wallpaperUrl: "https://evil.example/bg.jpg" };
+    assert.equal((await save({ ...base, theme: evilTheme })).status, 400, "wallpaper must be a stored image");
+    await save({ ...base });
+  });
+
   await check("upload requires a session", async () => {
     const f = new FormData();
     f.append("file", new Blob(["x"], { type: "image/png" }), "a.png");

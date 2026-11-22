@@ -15,6 +15,7 @@ import {
   type ApiErrorLike,
 } from "./store";
 import type { CollectionKey } from "./collections";
+import type { ThemeSettings } from "./theme";
 
 export type Grade = 7 | 8 | 9;
 export const GRADES: Grade[] = [7, 8, 9];
@@ -51,6 +52,7 @@ export interface User {
   section?: string;
   staffRole?: StaffRole;
   avatar?: string; // dataURL فشرده
+  theme?: ThemeSettings; // پوسته‌ی شخصی (ذخیره در پایگاه‌داده)
   createdAt: number;
   lastLoginAt?: number;
 }
