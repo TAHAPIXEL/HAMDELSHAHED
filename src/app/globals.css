@@ -358,6 +358,7 @@ body {
 .bubble-other-c {
   background-color: var(--t-other);
   color: var(--t-other-text);
+  box-shadow: inset 0 0 0 1px var(--t-line-strong);
 }
 
 /* دکمه‌ی اصلی و نشان‌های رنگ اصلی */

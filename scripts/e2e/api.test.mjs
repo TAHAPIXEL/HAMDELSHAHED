@@ -178,7 +178,7 @@ async function main() {
   const claims = (token) => JSON.parse(Buffer.from(token.split(".")[1], "base64url").toString("utf8"));
 
   await check("classroom: only staff start a class; students get 403", async () => {
-    const r = await req("POST", "/api/classroom", { token: tokenA, body: { room: "7-1", action: "start" } });
+    const r = await req("POST", "/api/classroom", { token: tokenA, body: { room: "7-1", action: "start", title: "ریاضی تست" } });
     assert.equal(r.status, 403);
   });
 
@@ -198,11 +198,32 @@ async function main() {
   });
 
   await check("classroom: teacher starts the class and the state shows it live", async () => {
-    const r = await req("POST", "/api/classroom", { token: teacherToken, body: { room: "7-1", action: "start" } });
+    const r = await req("POST", "/api/classroom", { token: teacherToken, body: { room: "7-1", action: "start", title: "ریاضی تست" } });
     assert.equal(r.status, 200);
     const s = await req("GET", "/api/classroom?room=7-1", { token: teacherToken });
     assert.equal(s.json.live, true);
     assert.equal(s.json.maxListeners, 100);
+  });
+
+  await check("classroom: a title is required and becomes the class name", async () => {
+    const none = await req("POST", "/api/classroom", { token: teacherToken, body: { room: "7-2", action: "start", title: "   " } });
+    assert.equal(none.status, 400);
+    const s = await req("GET", "/api/classroom?room=7-1", { token: teacherToken });
+    assert.equal(s.json.title, "ریاضی تست");
+    assert.match(s.json.joinToken, /^[a-z0-9]{12}$/);
+    globalThis.__joinToken = s.json.joinToken;
+  });
+
+  await check("classroom link: a section student enters without a code", async () => {
+    const r = await req("POST", "/api/classroom/join", { token: tokenA, body: { token: globalThis.__joinToken } });
+    assert.equal(r.status, 200);
+    assert.equal(r.json.needsCode, false);
+    assert.equal(r.json.roomId, "7-1");
+  });
+
+  await check("classroom link: a bad token is refused", async () => {
+    assert.equal((await req("POST", "/api/classroom/join", { token: tokenA, body: { token: "aaaaaaaaaaaa" } })).status, 410);
+    assert.equal((await req("POST", "/api/classroom/join", { token: tokenA, body: { token: "x" } })).status, 404);
   });
 
   await check("classroom: student token is listen-only (no publish rights)", async () => {
@@ -256,6 +277,7 @@ async function main() {
     const s = await req("GET", "/api/classroom?room=7-1", { token: tokenA });
     assert.equal(s.json.live, false);
     assert.equal((await req("POST", "/api/classroom/token", { token: tokenA, body: { room: "7-1" } })).status, 409);
+    assert.equal((await req("POST", "/api/classroom/join", { token: tokenA, body: { token: globalThis.__joinToken } })).status, 410);
   });
 
   // ── پیش‌نویس‌ها (ماندگار، فقط برای صاحب) ───────────────────────────────────
@@ -288,7 +310,7 @@ async function main() {
 
   // ── چت کلاس آنلاین (ماندگار در پایگاه‌داده) ────────────────────────────────
   await check("class chat: teacher starts the class; a classmate's message is stored and history returns it", async () => {
-    assert.equal((await req("POST", "/api/classroom", { token: teacherToken, body: { room: "7-1", action: "start" } })).status, 200);
+    assert.equal((await req("POST", "/api/classroom", { token: teacherToken, body: { room: "7-1", action: "start", title: "ریاضی تست" } })).status, 200);
     const id = `${studentA.id}-${uid()}`;
     const r = await req("POST", "/api/classroom/chat", { token: tokenA, body: { room: "7-1", id, text: "سلام کلاس" } });
     assert.equal(r.status, 200, JSON.stringify(r.json));

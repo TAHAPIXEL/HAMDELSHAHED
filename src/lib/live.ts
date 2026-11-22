@@ -55,6 +55,22 @@ export interface Share {
   isSelf: boolean;
 }
 
+/**
+ * باید مستقیم داخل کلیک کاربر صدا زده شود (قبل از هر await): مرورگر فقط در همین لحظه
+ * اجازه‌ی پخش صدا را برای صفحه باز می‌کند؛ در غیر این صورت صدای کلاس تا چند ثانیه قطع می‌ماند.
+ */
+export function unlockAudioNow(): void {
+  try {
+    const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AC) return;
+    const ctx = new AC();
+    void ctx.resume().catch(() => undefined);
+    setTimeout(() => void ctx.close().catch(() => undefined), 3000);
+  } catch {
+    // مرورگر قدیمی: کاری نمی‌شود
+  }
+}
+
 export type Phase = "idle" | "connecting" | "connected" | "reconnecting" | "ended" | "error";
 
 export interface LiveSnapshot {
@@ -237,7 +253,7 @@ class LiveSession {
 
   // ---- اتصال -------------------------------------------------------------------
   /** اتصال به کلاس زنده. اگر به همان کلاس وصل باشیم، دوباره وصل نمی‌شود. */
-  async connect(roomId: string): Promise<void> {
+  async connect(roomId: string, joinToken?: string | null, opts?: { micOn?: boolean }): Promise<void> {
     if (this.room && this.snap.roomId === roomId && this.snap.phase !== "error" && this.snap.phase !== "ended") return;
     await this.disconnect();
     const seq = ++this.seq;
@@ -245,7 +261,7 @@ class LiveSession {
     try {
       const res = await api<{ url: string; token: string; canPublish: boolean }>("/api/classroom/token", {
         method: "POST",
-        body: { room: roomId },
+        body: { room: roomId, joinToken: joinToken ?? undefined },
       });
       if (seq !== this.seq) return;
       const room = new Room({
@@ -264,6 +280,13 @@ class LiveSession {
       const isTeacher = !!res.canPublish;
       this.patch({ phase: "connected", isTeacher });
       this.rebuild();
+      // مدرس بلافاصله بعد از شروع کلاس میکروفون را روشن می‌کند؛ منتظر کلیک دوم نمی‌ماند
+      if (isTeacher && opts?.micOn) {
+        void room.localParticipant
+          .setMicrophoneEnabled(true, { echoCancellation: true, noiseSuppression: true })
+          .then(() => this.rebuild())
+          .catch(() => this.rebuild());
+      }
       void this.loadHistory(roomId, seq, isTeacher);
     } catch (err) {
       if (seq !== this.seq) return;

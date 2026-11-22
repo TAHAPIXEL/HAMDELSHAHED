@@ -22,8 +22,8 @@ export async function POST(req: Request) {
     const viewer = await requireViewer(req);
     const body = await readJson(req);
     if (typeof body.action !== "string") throw new HttpError(400, "درخواست نامعتبر است.");
-    await actLive(viewer, body);
-    return Response.json({ ok: true }, { headers: NO_STORE });
+    const res = await actLive(viewer, body);
+    return Response.json(typeof res === "object" && res ? { ok: true, ...res } : { ok: true }, { headers: NO_STORE });
   } catch (err) {
     return errorResponse(err);
   }

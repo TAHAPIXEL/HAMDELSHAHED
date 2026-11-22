@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { Camera, Hand, Lock, LogOut, Mic, MicOff, Monitor, Power, Radio, Send, Unlock, Users, Video, VideoOff, Volume2, VolumeX } from "lucide-react";
+import { Camera, Copy, Hand, Link2, Lock, LogOut, Mic, MicOff, Monitor, Power, Radio, Send, Unlock, Users, Video, VideoOff, Volume2, VolumeX } from "lucide-react";
 import {
   canShareScreen,
   isMobileDevice,
   liveSession,
   listCameras,
+  unlockAudioNow,
   type Peer,
   type Share,
   type ShareSource,
@@ -14,7 +15,7 @@ import {
 import { api } from "@/lib/store";
 import { GRADES, SECTIONS, type Grade, isStaff } from "@/lib/model";
 import type { User } from "@/lib/model";
-import { Btn, Chip, Empty, Modal, useToast } from "./ui";
+import { Btn, Chip, Empty, Modal, inputCls, useToast } from "./ui";
 
 /** شناسه‌ی اتاق کلاس = «پایه-شعبه» */
 /** فایل APK آخرین نسخه‌ی اندروید (از GitHub Release) */
@@ -37,11 +38,34 @@ interface RoomInfo {
   live: boolean;
   teacherName: string;
   maxListeners: number;
+  title: string;
+  joinToken: string | null;
+}
+
+/** نتیجه‌ی بررسی لینک ورود (همان شکل سرور) */
+interface JoinInfo {
+  roomId: string;
+  title: string;
+  kind: "section" | "free";
+  teacherName: string;
+  needsCode: boolean;
+  name: string | null;
 }
 
 const DEFAULT_ROOM = `${GRADES[0] as Grade}-${SECTIONS[GRADES[0] as Grade][0]}`;
 
-export function ClassroomPage({ open, onClose, user }: { open: boolean; onClose: () => void; user: User }) {
+export function ClassroomPage({
+  open,
+  onClose,
+  user,
+  joinToken,
+}: {
+  open: boolean;
+  onClose: () => void;
+  user: User;
+  /** لینک ورود یکتای کلاس (از ?classroom=...) */
+  joinToken?: string | null;
+}) {
   const teacher = isStaff(user);
   const ownRoom = roomOfUser(user);
   const [room, setRoom] = useState<string>(ownRoom ?? DEFAULT_ROOM);
@@ -53,6 +77,14 @@ export function ClassroomPage({ open, onClose, user }: { open: boolean; onClose:
   const [mobile] = useState(() => typeof window !== "undefined" && isMobileDevice());
   const [screenOk] = useState(() => typeof window !== "undefined" && canShareScreen());
   const [chatText, setChatText] = useState("");
+  // عنوان و نوع کلاس هنگام شروع (عنوان الزامی است و نام کلاس در همه‌جا همین است)
+  const [title, setTitle] = useState("");
+  const [kind, setKind] = useState<"section" | "free">("section");
+  // نتیجه‌ی لینک ورود؛ با توکن کلید می‌خورد تا با تغییر لینک، داده‌ی قبلی نماند
+  const [joinRes, setJoinRes] = useState<{ token: string; info?: JoinInfo; err?: string } | null>(null);
+  const joinInfo = joinRes && joinRes.token === joinToken ? (joinRes.info ?? null) : null;
+  const joinErr = joinRes && joinRes.token === joinToken ? (joinRes.err ?? null) : null;
+  const [joinCode, setJoinCode] = useState("");
   const toast = useToast();
 
   const roomReady = !!room && (teacher || room === ownRoom);
@@ -69,8 +101,8 @@ export function ClassroomPage({ open, onClose, user }: { open: boolean; onClose:
     let alive = true;
     const load = async () => {
       try {
-        const s = await api<{ live: boolean; teacherName: string; maxListeners: number }>(`/api/classroom?room=${room}`);
-        if (alive) setInfo({ live: s.live, teacherName: s.teacherName, maxListeners: s.maxListeners });
+        const s = await api<{ live: boolean; teacherName: string; maxListeners: number; title: string; joinToken: string | null }>(`/api/classroom?room=${room}`);
+        if (alive) setInfo({ live: s.live, teacherName: s.teacherName, maxListeners: s.maxListeners, title: s.title, joinToken: s.joinToken });
       } catch {
         // خطا را پیام کلی نشان می‌دهد؛ تلاش بعدی خودکار است
       }
@@ -83,6 +115,22 @@ export function ClassroomPage({ open, onClose, user }: { open: boolean; onClose:
     };
   }, [open, roomReady, room]);
 
+  // لینک ورود کلاس: وضعیت کلاس را بررسی می‌کند (بدون ورود)
+  useEffect(() => {
+    if (!open || !joinToken) return;
+    let alive = true;
+    api<JoinInfo>("/api/classroom/join", { method: "POST", body: { token: joinToken } })
+      .then((j) => {
+        if (alive) setJoinRes({ token: joinToken, info: j });
+      })
+      .catch((err: unknown) => {
+        if (alive) setJoinRes({ token: joinToken, err: err instanceof Error ? err.message : "این لینک معتبر نیست." });
+      });
+    return () => {
+      alive = false;
+    };
+  }, [open, joinToken]);
+
   async function run(label: string, fn: () => Promise<void>) {
     setBusy(true);
     try {
@@ -94,28 +142,69 @@ export function ClassroomPage({ open, onClose, user }: { open: boolean; onClose:
     }
   }
 
-  const reloadInfo = async () => {
+  const reloadInfo = async (rid: string = room) => {
     try {
-      const s = await api<{ live: boolean; teacherName: string; maxListeners: number }>(`/api/classroom?room=${room}`);
-      setInfo({ live: s.live, teacherName: s.teacherName, maxListeners: s.maxListeners });
+      const s = await api<{ live: boolean; teacherName: string; maxListeners: number; title: string; joinToken: string | null }>(`/api/classroom?room=${rid}`);
+      setInfo({ live: s.live, teacherName: s.teacherName, maxListeners: s.maxListeners, title: s.title, joinToken: s.joinToken });
     } catch {
       // ignore
     }
   };
 
+  const joinUrl = info?.joinToken && typeof window !== "undefined" ? `${window.location.origin}/?classroom=${info.joinToken}` : "";
+  const copyLink = () => {
+    if (!joinUrl || !navigator.clipboard) return;
+    navigator.clipboard.writeText(joinUrl).then(
+      () => toast("success", "لینک کلاس کپی شد."),
+      () => toast("error", "کپی انجام نشد؛ لینک را دستی کپی کنید."),
+    );
+  };
+
   // ---- کنش‌ها -----------------------------------------------------------------
-  const goLive = () =>
-    run("شروع کلاس", async () => {
-      await api("/api/classroom", { method: "POST", body: { room, action: "start" } });
-      await liveSession.connect(room);
-      await reloadInfo();
+  const goLive = () => {
+    const t = title.trim();
+    if (!t) {
+      toast("error", "عنوان کلاس را وارد کنید.");
+      return;
+    }
+    // قبل از هر await: صدای مرورگر همین‌جا (داخل کلیک) باز می‌شود
+    unlockAudioNow();
+    return run("شروع کلاس", async () => {
+      const res = await api<{ ok: boolean; room?: string }>("/api/classroom", {
+        method: "POST",
+        body: { room: kind === "free" ? "new" : room, action: "start", title: t, kind },
+      });
+      const roomNow = res.room ?? room;
+      if (res.room) setRoom(res.room);
+      // مدرس بلافاصله وصل می‌شود و میکروفونش روشن است؛ منتظر بستن فرم یا کلیک دوم نمی‌ماند
+      await liveSession.connect(roomNow, null, { micOn: true });
+      await reloadInfo(roomNow);
       toast("success", "کلاس آنلاین شروع شد.");
     });
+  };
 
-  const join = () =>
-    run("ورود به کلاس", async () => {
+  const join = () => {
+    unlockAudioNow();
+    return run("ورود به کلاس", async () => {
       await liveSession.connect(room);
     });
+  };
+
+  const confirmCode = () =>
+    run("تأیید کد ملی", async () => {
+      if (!joinToken) return;
+      const j = await api<JoinInfo>("/api/classroom/join", { method: "POST", body: { token: joinToken, code: joinCode } });
+      setJoinRes({ token: joinToken, info: j });
+    });
+
+  const enterByLink = () => {
+    if (!joinInfo || !joinToken) return;
+    unlockAudioNow();
+    return run("ورود به کلاس", async () => {
+      setRoom(joinInfo.roomId);
+      await liveSession.connect(joinInfo.roomId, joinToken);
+    });
+  };
 
   const endLive = () =>
     run("پایان کلاس", async () => {
@@ -219,6 +308,47 @@ export function ClassroomPage({ open, onClose, user }: { open: boolean; onClose:
   return (
     <Modal open={open} onClose={onClose} title="کلاس آنلاین" page icon={<Radio className="size-5" />}>
       <div className="flex flex-col gap-4">
+        {joinToken && !connectedHere && (
+          <section className="rounded-2xl border border-indigo-200 bg-indigo-50/60 p-4 dark:border-indigo-500/20 dark:bg-indigo-500/5">
+            {joinErr ? (
+              <p className="text-sm font-bold text-rose-600 dark:text-rose-300">{joinErr}</p>
+            ) : !joinInfo ? (
+              <p className="text-sm text-slate-500 dark:text-slate-400">در حال بررسی لینک کلاس…</p>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <div className="min-w-0">
+                  <div className="text-xs font-bold text-slate-500 dark:text-slate-400">کلاس</div>
+                  <div className="truncate text-base font-black">{joinInfo.title}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">مدرس: {joinInfo.teacherName}</div>
+                </div>
+                {joinInfo.needsCode && (
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <input
+                      inputMode="numeric"
+                      maxLength={12}
+                      value={joinCode}
+                      onChange={(e) => setJoinCode(e.target.value)}
+                      placeholder="کد ملی خود را وارد کنید"
+                      className={inputCls}
+                    />
+                    <Btn kind="soft" onClick={confirmCode} loading={busy} disabled={!joinCode.trim()}>
+                      نمایش نام
+                    </Btn>
+                  </div>
+                )}
+                {joinInfo.name && <div className="text-sm font-bold">نام شما: {joinInfo.name}</div>}
+                {!joinInfo.needsCode && (
+                  <div>
+                    <Btn onClick={enterByLink} loading={busy}>
+                      <Volume2 className="size-4" /> ورود به کلاس
+                    </Btn>
+                  </div>
+                )}
+              </div>
+            )}
+          </section>
+        )}
+
         {teacher ? (
           <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
             <span className="shrink-0 text-xs font-bold text-slate-500">کلاس:</span>
@@ -252,18 +382,72 @@ export function ClassroomPage({ open, onClose, user }: { open: boolean; onClose:
           />
         )}
 
+        {teacher && roomReady && !live && (
+          <section className="rounded-2xl border border-line bg-surface p-4 dark:border-white/10 dark:bg-white/5">
+            <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
+              <label className="grid min-w-0 gap-1.5">
+                <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                  عنوان کلاس <span className="text-rose-500">*</span>
+                </span>
+                <input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  maxLength={80}
+                  placeholder="مثلاً: ریاضی — فصل دوم"
+                  className={inputCls}
+                />
+              </label>
+              <div className="grid grid-cols-2 gap-1 rounded-2xl bg-surface-2 p-1 dark:bg-white/5">
+                {(["section", "free"] as const).map((k) => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => setKind(k)}
+                    className={`rounded-xl px-3 py-2 text-xs font-bold transition ${
+                      kind === k ? "bg-surface text-indigo-600 shadow dark:bg-ink dark:text-indigo-300" : "text-slate-500 dark:text-slate-400"
+                    }`}
+                  >
+                    {k === "section" ? "کلاس پایه / شعبه" : "کلاس آزاد"}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <p className="mt-2 text-xs leading-6 text-slate-500 dark:text-slate-400">
+              {kind === "section"
+                ? "دانش‌آموزان همین شعبه بدون کد وارد می‌شوند."
+                : "ورود با لینک و کد ملی؛ نام هر شرکت‌کننده پس از تأیید نمایش داده می‌شود."}
+            </p>
+          </section>
+        )}
+
+        {teacher && live && info?.joinToken && (
+          <section className="flex flex-col gap-2 rounded-2xl border border-indigo-200 bg-indigo-50/60 p-4 sm:flex-row sm:items-center dark:border-indigo-500/20 dark:bg-indigo-500/5">
+            <div className="flex shrink-0 items-center gap-2 text-sm font-bold">
+              <Link2 className="size-4 text-indigo-600 dark:text-indigo-300" /> لینک ورود
+            </div>
+            <div className="flex min-w-0 flex-1 items-center gap-2">
+              <code dir="ltr" className="min-w-0 flex-1 truncate rounded-xl bg-surface px-3 py-2 text-xs dark:bg-ink">
+                {joinUrl}
+              </code>
+              <Btn kind="soft" onClick={copyLink}>
+                <Copy className="size-4" /> کپی
+              </Btn>
+            </div>
+          </section>
+        )}
+
         {roomReady && (
           <section className="rounded-2xl border border-line bg-surface p-4 dark:border-white/10 dark:bg-white/5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-2">
                 <span className={`size-2.5 rounded-full ${live ? "animate-pulse bg-rose-500" : "bg-line-strong"}`} />
-                <b className="text-base">{live ? "کلاس در حال برگزاری است" : "کلاس شروع نشده است"}</b>
+                <b className="min-w-0 truncate text-base">{live ? info?.title || "کلاس در حال برگزاری" : "کلاس شروع نشده است"}</b>
                 {live && info?.teacherName ? <Chip tone="indigo">مدرس: {info.teacherName}</Chip> : null}
                 {phaseText && <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-300">{phaseText}</span>}
               </div>
               <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap">
                 {teacher && !live && (
-                  <Btn onClick={goLive} loading={busy}>
+                  <Btn onClick={goLive} loading={busy} disabled={!title.trim()}>
                     <Power className="size-4" /> شروع کلاس
                   </Btn>
                 )}

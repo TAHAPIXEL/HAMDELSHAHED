@@ -84,6 +84,11 @@ create index if not exists hamdel_signals_to_idx on hamdel_signals (to_id, id);
 
 -- وضعیت چت کلاس (باز/بسته) روی خود اتاق ذخیره می‌شود تا ورود دوباره‌ی مدرس یا دانش‌آموز همان را ببیند
 alter table hamdel_live_rooms add column if not exists chat_open boolean not null default true;
+-- عنوان کلاس (الزامی)، نوع کلاس (پایه/شعبه یا آزاد) و لینک ورود یکتا که با پایان کلاس باطل می‌شود
+alter table hamdel_live_rooms add column if not exists title text not null default '';
+alter table hamdel_live_rooms add column if not exists kind text not null default 'section';
+alter table hamdel_live_rooms add column if not exists join_token text;
+create unique index if not exists hamdel_live_rooms_token_idx on hamdel_live_rooms (join_token) where join_token is not null;
 
 -- پیام‌های چت کلاس آنلاین؛ ارسال زنده از LiveKit می‌رود و این جدول تاریخچه‌ی ماندگار است
 create table if not exists hamdel_live_chat (

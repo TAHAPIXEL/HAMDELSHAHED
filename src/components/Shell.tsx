@@ -68,6 +68,13 @@ const titles: Record<View, string> = {
 // تاریخچه‌ی ناوبری فقط یک بار ساخته شود (در حالت توسعه effectها دوبار اجرا می‌شوند)
 let navInit = false;
 
+/** لینک ورود کلاس: ?classroom=<توکن> — فقط توکن معتبر (۱۲ نویسه) پذیرفته می‌شود */
+function readClassroomParam(): string | null {
+  if (typeof window === "undefined") return null;
+  const t = new URLSearchParams(window.location.search).get("classroom");
+  return t && /^[a-z0-9]{12}$/.test(t) ? t : null;
+}
+
 export default function Shell({ user: initialUser, onLogout }: { user: User; onLogout: () => void }) {
   useDbTick();
   useThemeSync();
@@ -78,7 +85,8 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
   const [, startTransition] = useTransition();
   const [classSel, setClassSel] = useState<{ grade: Grade; section: string } | null>(null);
   const [drawer, setDrawer] = useState(false);
-  const [classroomOpen, setClassroomOpen] = useState(false);
+  const [classroomJoin, setClassroomJoin] = useState<string | null>(() => readClassroomParam());
+  const [classroomOpen, setClassroomOpen] = useState(() => readClassroomParam() !== null);
   const [bellOpen, setBellOpen] = useState(false);
   const bellRef = useRef<HTMLDivElement>(null);
   const [openChatId, setOpenChatId] = useState<string | null>(null);
@@ -504,7 +512,16 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
           {view === "profile" && <Profile user={user} onLogout={requestLogout} onGo={go} />}
         </main>
 
-        <ClassroomPage open={classroomOpen} onClose={() => setClassroomOpen(false)} user={user} />
+        <ClassroomPage
+          open={classroomOpen}
+          joinToken={classroomJoin}
+          onClose={() => {
+            setClassroomOpen(false);
+            setClassroomJoin(null);
+            if (readClassroomParam()) window.history.replaceState(window.history.state, "", window.location.pathname);
+          }}
+          user={user}
+        />
 
         {/* ناوبری پایین موبایل — کپسول شناور تیره با سایه، بدون نوار یا رنگ زیر آن؛ هنگام باز بودن گفتگو پنهان می‌شود */}
         {!chatOpen && (
