@@ -2,7 +2,10 @@
 
 import { AppearanceCard } from "./Appearance";
 import { useRef, useState } from "react";
+import { THEME_PRESETS } from "@/lib/theme";
 import {
+  ChevronLeft,
+  Palette,
   Camera,
   Loader2,
   LogOut,
@@ -43,6 +46,7 @@ import {
   type User,
 } from "@/lib/model";
 import { Avatar, Btn, Chip, Field, Modal, SecretReveal, inputCls, useDbTick, useToast } from "./ui";
+import { useThemeSettings } from "./Appearance";
 
 /** ذخیره‌ی آدرس عکس (که قبلاً در فضای ابری ذخیره شده) در پروفایل کاربر؛ اگر کاربر پیدا نشود false */
 function saveAvatarUrl(userId: string, url: string): boolean {
@@ -320,6 +324,9 @@ export default function Profile({
   const me = currentUser() ?? user;
   const [changing, setChanging] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [appearanceOpen, setAppearanceOpen] = useState(false);
+  const { settings: themeSettings } = useThemeSettings();
+  const themeLabel = THEME_PRESETS.find((p) => p.id === themeSettings.presetId)?.label ?? "پوسته‌ی سفارشی";
   const isDev = me.role === "developer";
 
   const changeAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -433,8 +440,24 @@ export default function Profile({
           <QuickAction icon={<ClipboardList className="size-5" />} label="آزمون‌ها" onClick={() => onGo("exams")} />
         </div>
 
-        {/* ظاهر و پوسته */}
-        <AppearanceCard />
+        {/* تنظیمات ظاهری: با کلیک، کل بخش پوسته در یک صفحه‌ی تمام‌صفحه باز می‌شود */}
+        <button
+          type="button"
+          onClick={() => setAppearanceOpen(true)}
+          className="card anim-fade-up mb-5 flex w-full items-center gap-3 p-4 text-right transition hover:bg-surface-2 active:scale-[0.99]"
+        >
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-accent/15 text-accent">
+            <Palette className="size-5" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[14px] font-black text-slate-800 dark:text-slate-100">تنظیمات ظاهری</span>
+            <span className="mt-0.5 block truncate text-[11.5px] font-semibold text-slate-400">{themeLabel}</span>
+          </span>
+          <ChevronLeft className="size-5 shrink-0 text-slate-400" />
+        </button>
+        <Modal open={appearanceOpen} onClose={() => setAppearanceOpen(false)} title="تنظیمات ظاهری" icon={<Palette className="size-4 text-accent" />} page>
+          <AppearanceCard bare />
+        </Modal>
 
         {/* اطلاعات حساب */}
         <div className="card anim-fade-up mb-5 p-5">

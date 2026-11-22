@@ -87,71 +87,71 @@ export interface ThemePreset {
 }
 
 export const THEME_PRESETS: ThemePreset[] = [
-  { id: "eitaa-dark", label: "ایتا تیره", hint: "سبز و بنفش، مثل ایتا", values: BASE_DARK },
-  { id: "eitaa-light", label: "ایتا روشن", hint: "سبز روشن", values: BASE_LIGHT },
+  { id: "eitaa-dark", label: "ایتا شب · Eitaa Night", hint: "سبز و بنفش، پیش‌فرض ایتا", values: BASE_DARK },
+  { id: "eitaa-light", label: "ایتا روز · Eitaa Day", hint: "سبز روشن، پیش‌فرض ایتا", values: BASE_LIGHT },
   {
     id: "tg-dark",
-    label: "تلگرام تیره",
-    hint: "آبی و حباب آبی تیره",
+    label: "شب آبی · Night Blue",
+    hint: "آبی تیره با حباب آبی",
     values: { ...BASE_DARK, accent: "#5b9cf6", mine: "#2b5278", chatBg: "#0e1621", texture: "doodle", textureOpacity: 7 },
   },
   {
     id: "tg-light",
-    label: "تلگرام روشن",
-    hint: "آبی با حباب سبز",
+    label: "روز کلاسیک · Day Classic",
+    hint: "آبی با حباب سبز روشن",
     values: { ...BASE_LIGHT, accent: "#3390ec", mine: "#effdde", chatBg: "#dce6ee", textureOpacity: 7 },
   },
   {
     id: "midnight",
-    label: "شب مشکی",
+    label: "شب · Night",
     hint: "مشکی کامل و کم‌نور",
     values: { ...BASE_DARK, accent: "#8b7cf6", mine: "#3b2f63", other: "#111111", appBg: "#000000", chatBg: "#000000", texture: "dots", textureOpacity: 14 },
   },
   {
     id: "ocean",
-    label: "اقیانوس",
+    label: "آبی تیره · Dark Blue",
     hint: "آبی عمیق با موج",
     values: { ...BASE_DARK, accent: "#38bdf8", mine: "#0e7490", other: "#0f2735", appBg: "#071b26", surface: "#0c2331", chatBg: "#0b2a3c", chatBg2: "#061722", chatAngle: 160, texture: "waves", textureColor: "#67e8f9", textureOpacity: 12 },
   },
   {
     id: "forest",
-    label: "جنگل",
+    label: "نعنایی · Dracula Mint",
     hint: "سبز تیره با لوزی",
     values: { ...BASE_DARK, accent: "#4ade80", mine: "#166534", other: "#1a2e22", appBg: "#0c1a12", surface: "#12241a", chatBg: "#0f2418", chatBg2: "#08130d", chatAngle: 170, texture: "diamonds", textureColor: "#86efac", textureOpacity: 9 },
   },
   {
     id: "sunset",
-    label: "غروب",
+    label: "غروب · Sunset",
     hint: "بنفش و نارنجی با ستاره",
     values: { ...BASE_DARK, accent: "#f97316", mine: "#9a3412", other: "#2a1b2e", appBg: "#140c1c", surface: "#1f1428", chatBg: "#3b1d4a", chatBg2: "#1a0c22", chatAngle: 180, texture: "stars", textureColor: "#fdba74", textureOpacity: 14 },
   },
   {
     id: "paper",
-    label: "کاغذی",
+    label: "کاغذی · Sepia",
     hint: "کرم روشن با خط شطرنجی",
     values: { ...BASE_LIGHT, accent: "#b45309", mine: "#fde68a", other: "#fffdf6", appBg: "#faf6ec", surface: "#fffdf7", chatBg: "#f5efe0", texture: "grid", textureColor: "#a16207", textureOpacity: 12 },
   },
   {
     id: "pink",
-    label: "صورتی",
+    label: "صورتی · Pink",
     hint: "روشن با قلب",
     values: { ...BASE_LIGHT, accent: "#db2777", mine: "#fbcfe8", other: "#ffffff", appBg: "#fdf2f8", surface: "#ffffff", chatBg: "#fce7f3", chatBg2: "#fbcfe8", chatAngle: 160, texture: "hearts", textureColor: "#ec4899", textureOpacity: 16 },
   },
   {
     id: "neon",
-    label: "نئون",
+    label: "بخار نئون · Vapor Neon",
     hint: "مشکی با خط فیروزه‌ای",
     values: { ...BASE_DARK, accent: "#22d3ee", mine: "#7c3aed", mineText: "#ffffff", other: "#18181b", appBg: "#050507", chatBg: "#050507", texture: "diamonds", textureColor: "#22d3ee", textureOpacity: 18, textureScale: 80 },
   },
   {
     id: "graphite",
-    label: "گرافیت",
+    label: "خاکستری فضایی · Space Grey",
     hint: "خاکستری مات با دایره",
     values: { ...BASE_DARK, accent: "#d4d4d8", mine: "#3f3f46", other: "#27272a", appBg: "#111113", surface: "#18181b", chatBg: "#18181b", texture: "circles", textureColor: "#71717a", textureOpacity: 14 },
   },
   {
     id: "gold",
-    label: "طلایی",
+    label: "طلایی · Gold",
     hint: "مشکی قهوه‌ای با راه‌راه",
     values: { ...BASE_DARK, accent: "#d4a017", mine: "#8a6d1d", other: "#1f1b12", appBg: "#120f09", surface: "#1b170e", chatBg: "#17130b", chatBg2: "#0c0a06", chatAngle: 200, texture: "stripes", textureColor: "#d4a017", textureOpacity: 9 },
   },
@@ -270,6 +270,8 @@ export function themeVars(input: Partial<ThemeSettings>): { dark: boolean; vars:
 
   set("--t-bg", bg);
   set("--t-surface", surface);
+  // نوار ناوبری پایین: هم‌رنگ کارت‌ها تا در هر حالتی با پوسته هماهنگ باشد
+  set("--t-nav", surface);
   set("--t-surface-2", surface2);
   set("--t-surface-3", surface3);
   set("--t-line", line);
@@ -344,7 +346,7 @@ export function applyTheme(input: Partial<ThemeSettings>): void {
   root.classList.toggle("dark", r.dark);
   root.style.colorScheme = r.dark ? "dark" : "light";
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", r.dark ? "#17181c" : "#f2f4f7");
+  if (meta) meta.setAttribute("content", r.vars["--t-bg"] || (r.dark ? "#161616" : "#f2f4f7"));
 }
 
 /** اسکریپت اولیه‌ی <head>: آخرین پوسته‌ی ذخیره‌شده را قبل از رسم صفحه اعمال می‌کند (بدون چشمک رنگ) */

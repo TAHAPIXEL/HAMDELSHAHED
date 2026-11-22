@@ -292,7 +292,8 @@ function TexturePicker({ s, texVars, onPick }: { s: ThemeSettings; texVars: Reco
 // کارت «ظاهر و پوسته» در پروفایل
 // ----------------------------------------------------------------------------
 
-export function AppearanceCard() {
+/** کارت کامل تنظیمات ظاهری. bare=true یعنی داخل صفحه‌ی تمام‌صفحه‌ی «تنظیمات ظاهری» (عنوان آن صفحه نمایش داده می‌شود) */
+export function AppearanceCard({ bare = false }: { bare?: boolean } = {}) {
   const toast = useToast();
   const { settings: s, update } = useThemeSettings();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -331,16 +332,20 @@ export function AppearanceCard() {
   const resetAll = () => {
     const v = presetValues("eitaa-dark");
     if (v) update({ ...v, wallpaperUrl: "", wallpaperDim: 0 }, "eitaa-dark");
-    toast("success", "پوسته به ایتا تیره برگشت");
+    toast("success", "پوسته به ایتا شب برگشت");
   };
 
   return (
-    <div className="card anim-fade-up mb-5 p-5">
+    <div className={bare ? "pb-8" : "card anim-fade-up mb-5 p-5"}>
       <div className="mb-1 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-[13px] font-black text-slate-700 dark:text-slate-200">
-          <Palette className="size-4 text-accent" />
-          ظاهر و پوسته
-        </div>
+        {bare ? (
+          <div className="text-[12.5px] font-bold text-slate-500">هر تغییری بلافاصله اعمال و در حساب شما ذخیره می‌شود</div>
+        ) : (
+          <div className="flex items-center gap-2 text-[13px] font-black text-slate-700 dark:text-slate-200">
+            <Palette className="size-4 text-accent" />
+            ظاهر و پوسته
+          </div>
+        )}
         <button
           type="button"
           onClick={resetAll}
