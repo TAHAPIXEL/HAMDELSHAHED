@@ -31,18 +31,24 @@ jobs:
           cache: npm
           cache-dependency-path: desktop/package-lock.json
 
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: desktop/src-tauri
+
       - name: نصب وابستگی‌ها
         working-directory: desktop
         run: npm ci
 
-      - name: ساخت نصب‌کننده‌ی ویندوز
+      - name: ساخت نصب‌کننده‌ی ویندوز (Tauri)
         working-directory: desktop
         run: npm run dist
 
       - name: آماده‌سازی فایل نصب
         run: |
           set -e
-          SETUP="$(ls desktop/dist/HAMDEL-Setup-*.exe | head -n 1)"
+          SETUP="$(ls desktop/src-tauri/target/release/bundle/nsis/*-setup.exe | head -n 1)"
           test -n "$SETUP"
           cp "$SETUP" HAMDEL-Setup.exe
           ls -la HAMDEL-Setup.exe

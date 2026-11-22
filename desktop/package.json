@@ -2,56 +2,14 @@
   "name": "hamdel-desktop",
   "productName": "هَمدِل • HAMDEL",
   "version": "1.0.0",
-  "description": "اپ ویندوز هَمدِل — نسخه‌ی دسکتاپ سایت هَمدِل",
-  "main": "main.js",
+  "description": "اپ ویندوز هَمدِل — نسخه‌ی دسکتاپ سایت هَمدِل (Tauri)",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "start": "electron .",
-    "dist": "electron-builder --win nsis --x64"
-  },
-  "build": {
-    "appId": "ir.hamdel.desktop",
-    "productName": "هَمدِل • HAMDEL",
-    "artifactName": "HAMDEL-Setup-${version}.${ext}",
-    "directories": {
-      "output": "dist",
-      "buildResources": "assets"
-    },
-    "files": [
-      "main.js",
-      "preload.js",
-      "offline.html",
-      "assets/icon.png",
-      "package.json"
-    ],
-    "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
-      "icon": "assets/icon.png"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "HAMDEL",
-      "uninstallDisplayName": "HAMDEL"
-    },
-    "electronLanguages": [
-      "fa",
-      "en-US"
-    ],
-    "compression": "maximum"
+    "tauri": "tauri",
+    "dist": "tauri build --bundles nsis"
   },
   "devDependencies": {
-    "electron": "^45.4.1",
-    "electron-builder": "^26.18.0"
+    "@tauri-apps/cli": "^2"
   }
 }
