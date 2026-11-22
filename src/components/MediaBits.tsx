@@ -1,24 +1,51 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Download, FileText, Pause, Play, X } from "lucide-react";
+import { FileText, Play, Pause, X } from "lucide-react";
 import type { ChatMedia } from "@/lib/model";
-import { downloadMedia, fmtDur, openMedia } from "@/lib/chatmedia";
+import { fmtDur, openMedia } from "@/lib/chatmedia";
 import { useToast } from "./ui";
+
+/** رنگ‌بندی حباب ویس: پیام خودم (آبی)، پیام دیگران (سفید)، پیش‌نمایش ضبط (سبز) */
+export type VoiceTone = "mine" | "other" | "rec";
+
+const TONE = {
+  mine: {
+    btn: "bg-white text-[#3a80e3]",
+    on: "bg-white",
+    off: "bg-white/45",
+    time: "text-white/85",
+  },
+  other: {
+    btn: "bg-[#3a80e3] text-white",
+    on: "bg-[#3a80e3]",
+    off: "bg-slate-300 dark:bg-slate-500",
+    time: "text-slate-500 dark:text-slate-400",
+  },
+  rec: {
+    btn: "bg-white text-[#3f9a52]",
+    on: "bg-white",
+    off: "bg-white/45",
+    time: "text-white",
+  },
+} satisfies Record<VoiceTone, { btn: string; on: string; off: string; time: string }>;
 
 /** پخش ویس با شکل موج؛ کلیک روی موج جابه‌جا می‌کند */
 export function VoicePlayer({
   src,
   wave,
   duration,
-  mine,
+  tone,
   ready = true,
+  compact = false,
 }: {
   src: string;
   wave?: number[];
   duration?: number;
-  mine: boolean;
+  tone: VoiceTone;
   ready?: boolean;
+  /** نوار فشرده برای پیش‌نمایش ضبط: دکمه‌ی کوچک‌تر و زمان کنار موج */
+  compact?: boolean;
 }) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const barsRef = useRef<HTMLDivElement>(null);
@@ -27,6 +54,7 @@ export function VoicePlayer({
   const dur = duration && duration > 0 ? duration : 0;
   const bars = wave && wave.length ? wave : Array.from({ length: 48 }, () => 0.2);
   const progress = dur ? Math.min(1, cur / dur) : 0;
+  const t = TONE[tone];
 
   const toggle = () => {
     const a = audioRef.current;
@@ -46,34 +74,32 @@ export function VoicePlayer({
   };
 
   return (
-    <div className="flex w-[244px] max-w-full items-center gap-2.5 py-0.5">
+    <div className={compact ? "flex w-full min-w-0 items-center gap-2" : "flex w-[232px] max-w-full items-center gap-2.5"}>
       <button
         onClick={toggle}
         disabled={!ready}
         aria-label={playing ? "توقف" : "پخش ویس"}
-        className={`grid size-10 shrink-0 place-items-center rounded-full transition active:scale-90 disabled:opacity-50 ${
-          mine ? "bg-white/20 text-white" : "bg-[#4f8ff0]/15 text-[#3b7ae0] dark:text-[#7fb0ff]"
-        }`}
+        className={`grid shrink-0 place-items-center rounded-full shadow-sm transition active:scale-90 disabled:opacity-50 ${compact ? "size-9" : "size-11"} ${t.btn}`}
       >
-        {playing ? <Pause className="size-5 fill-current" /> : <Play className="size-5 fill-current" />}
+        {playing ? <Pause className={compact ? "size-4 fill-current" : "size-5 fill-current"} /> : <Play className={`${compact ? "size-4" : "size-5"} translate-x-[1px] fill-current`} />}
       </button>
-      <div ref={barsRef} onClick={(e) => seek(e.clientX)} className="flex h-9 min-w-0 flex-1 cursor-pointer items-center gap-[2px]">
-        {bars.map((v, i) => {
-          const filled = (i + 0.5) / bars.length <= progress;
-          return (
-            <span
-              key={i}
-              className={`w-[3px] shrink-0 rounded-full transition-colors ${
-                filled ? (mine ? "bg-white" : "bg-[#3b7ae0]") : mine ? "bg-white/40" : "bg-slate-300 dark:bg-slate-500"
-              }`}
-              style={{ height: `${Math.max(14, Math.round(v * 100))}%` }}
-            />
-          );
-        })}
+      <div className={compact ? "flex min-w-0 flex-1 items-center gap-2" : "flex min-w-0 flex-1 flex-col gap-1"}>
+        <div ref={barsRef} onClick={(e) => seek(e.clientX)} className={`flex cursor-pointer items-center justify-between gap-[2px] ${compact ? "h-6 min-w-0 flex-1" : "h-7"}`}>
+          {bars.map((v, i) => {
+            const filled = (i + 0.5) / bars.length <= progress;
+            return (
+              <span
+                key={i}
+                className={`w-[2.5px] shrink-0 rounded-full transition-colors ${filled ? t.on : t.off}`}
+                style={{ height: `${Math.max(12, Math.round(v * 100))}%` }}
+              />
+            );
+          })}
+        </div>
+        <span dir="ltr" className={`text-[11px] font-bold tabular-nums leading-none ${compact ? "shrink-0" : ""} ${t.time}`}>
+          {fmtDur(playing || cur > 0 ? cur : dur)}
+        </span>
       </div>
-      <span dir="ltr" className={`w-9 shrink-0 text-end text-[11px] font-bold tabular-nums ${mine ? "text-white/80" : "text-slate-500 dark:text-slate-400"}`}>
-        {fmtDur(playing || cur > 0 ? cur : dur)}
-      </span>
       <audio
         ref={audioRef}
         src={ready ? src : undefined}
@@ -90,27 +116,27 @@ export function VoicePlayer({
   );
 }
 
+/** حجم فایل به شکل کوتاه، مثل «980.7 KB» */
+export function sizeShort(bytes: number): string {
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 function fileExt(name: string): string {
   const e = name.split(".").pop() ?? "";
   return e.length <= 4 ? e.toUpperCase() : "FILE";
 }
 
-function sizeText(bytes: number): string {
-  if (bytes < 1024) return `${bytes} بایت`;
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} کیلوبایت`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} مگابایت`;
-}
-
-/** پیوست سند: کلیک برای مشاهده/بازکردن، دکمه‌ی جدا برای دانلود با درصد پیشرفت */
+/** پیوست سند: کل حباب قابل ضربه است؛ بازکردن یا دانلود با درصد پیشرفت */
 export function FileBubble({ media, mine }: { media: ChatMedia; mine: boolean }) {
   const toast = useToast();
   const [pct, setPct] = useState<number | null>(null);
   const busy = pct !== null;
-  const run = async (fn: (onP: (p: number) => void) => Promise<void>) => {
+  const run = async () => {
     if (busy) return;
     setPct(0);
     try {
-      await fn((p) => setPct(p));
+      await openMedia(media.url, media.name, (p) => setPct(p));
     } catch (err) {
       toast("error", (err as Error).message || "انجام نشد");
     } finally {
@@ -118,39 +144,32 @@ export function FileBubble({ media, mine }: { media: ChatMedia; mine: boolean })
     }
   };
   return (
-    <div className="relative flex w-[260px] max-w-full items-center gap-3">
-      <button
-        onClick={() => run((onP) => openMedia(media.url, media.name, onP))}
-        className="flex min-w-0 flex-1 items-center gap-3 rounded-xl text-right transition active:scale-[0.99]"
-        aria-label={`باز کردن ${media.name}`}
+    <button
+      onClick={run}
+      aria-label={`باز کردن ${media.name}`}
+      className="relative flex w-[236px] max-w-full items-center gap-3 rounded-xl text-right transition active:scale-[0.99]"
+    >
+      <span
+        className={`grid size-11 shrink-0 place-items-center rounded-full shadow-sm ${
+          mine ? "bg-white text-[#3a80e3]" : "bg-[#3a80e3] text-white"
+        }`}
       >
-        <span className={`relative grid size-11 shrink-0 place-items-center rounded-xl ${mine ? "bg-white/20" : "bg-[#4f8ff0]/15 text-[#3b7ae0] dark:text-[#7fb0ff]"}`}>
-          <FileText className="size-5" />
-          <span className="absolute -bottom-1 rounded-md bg-slate-800 px-1 text-[8px] font-black leading-3 text-white" dir="ltr">
-            {fileExt(media.name)}
-          </span>
+        <FileText className="size-5" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className={`line-clamp-2 break-all text-[14px] font-bold leading-5 ${mine ? "text-white" : "text-slate-800 dark:text-slate-100"}`}>
+          {media.name}
         </span>
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-[13px] font-bold">{media.name}</span>
-          <span className={`block text-[11px] font-semibold ${mine ? "text-white/70" : "text-slate-400"}`}>
-            {busy ? `در حال دریافت ${Math.round((pct ?? 0) * 100)}٪` : sizeText(media.size)}
-          </span>
+        <span dir="ltr" className={`mt-0.5 block text-[12px] font-semibold ${mine ? "text-white/80" : "text-slate-400"}`}>
+          {busy ? `${Math.round((pct ?? 0) * 100)}%` : `${sizeShort(media.size)} · ${fileExt(media.name)}`}
         </span>
-      </button>
-      <button
-        onClick={() => run((onP) => downloadMedia(media.url, media.name, onP))}
-        disabled={busy}
-        className={`grid size-9 shrink-0 place-items-center rounded-full transition active:scale-90 ${mine ? "bg-white/20" : "bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-200"}`}
-        aria-label="دانلود"
-      >
-        <Download className="size-4" />
-      </button>
+      </span>
       {busy && (
-        <div className="absolute inset-x-0 bottom-0 h-0.5 overflow-hidden rounded-full bg-black/10">
-          <div className="h-full bg-current transition-all" style={{ width: `${Math.round((pct ?? 0) * 100)}%` }} />
-        </div>
+        <span className="absolute inset-x-0 -bottom-1 h-0.5 overflow-hidden rounded-full bg-black/10">
+          <span className="block h-full bg-current transition-all" style={{ width: `${Math.round((pct ?? 0) * 100)}%` }} />
+        </span>
       )}
-    </div>
+    </button>
   );
 }
 
@@ -163,12 +182,14 @@ export interface PendingUpload {
   error?: string;
 }
 
-/** حباب در حال ارسال: درصد پیشرفت آپلود، مثل تلگرام */
+/** حباب در حال ارسال: حلقه‌ی پیشرفت با درصد، مثل تلگرام */
 export function PendingBubble({ p, onDismiss }: { p: PendingUpload; onDismiss: () => void }) {
   const pct = Math.round(p.progress * 100);
+  const r = 19;
+  const circ = 2 * Math.PI * r;
   return (
-    <div className="flex items-end gap-2 flex-row-reverse msg-in">
-      <div className="relative max-w-[78%] rounded-2xl bg-gradient-to-bl from-indigo-600 to-violet-600 px-3.5 py-2.5 text-white shadow-sm sm:max-w-[65%]">
+    <div className="msg-in flex items-end gap-2">
+      <div className="bubble-mine relative max-w-[78%] bg-[#3a80e3] px-3.5 py-2.5 text-white shadow-sm sm:max-w-[65%]">
         {p.error ? (
           <div className="flex items-center gap-2 text-[13px] font-bold text-rose-100">
             <span className="flex-1">{p.error}</span>
@@ -177,36 +198,36 @@ export function PendingBubble({ p, onDismiss }: { p: PendingUpload; onDismiss: (
             </button>
           </div>
         ) : (
-          <div className="flex w-[250px] max-w-full flex-col gap-2">
-            <div className="flex items-center gap-3">
-              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white/20">
-                {p.kind === "voice" ? <Play className="size-4 fill-current" /> : <FileText className="size-5" />}
+          <div className="flex w-[236px] max-w-full items-center gap-3">
+            <span className="relative grid size-11 shrink-0 place-items-center">
+              <svg viewBox="0 0 44 44" className="absolute inset-0 -rotate-90" aria-hidden="true">
+                <circle cx="22" cy="22" r={r} fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="3" />
+                <circle
+                  cx="22"
+                  cy="22"
+                  r={r}
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeDasharray={circ}
+                  strokeDashoffset={circ * (1 - p.progress)}
+                  className="transition-[stroke-dashoffset] duration-200"
+                />
+              </svg>
+              <span dir="ltr" className="text-[10px] font-black tabular-nums">
+                {pct}%
               </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[13px] font-bold">{p.kind === "voice" ? "پیام صوتی" : p.name}</span>
-                <span className="block text-[11px] font-semibold text-white/70">{sizeText(p.size)}</span>
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[14px] font-bold">{p.kind === "voice" ? "پیام صوتی" : p.name}</span>
+              <span dir="ltr" className="block text-[12px] font-semibold text-white/80">
+                {p.kind === "voice" ? "در حال ارسال" : sizeShort(p.size)}
               </span>
-              <span dir="ltr" className="text-[12px] font-black tabular-nums">{pct}%</span>
-            </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/25">
-              <div className="h-full rounded-full bg-white transition-[width] duration-200" style={{ width: `${pct}%` }} />
-            </div>
+            </span>
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-/** شکل موج زنده‌ی هنگام ضبط */
-export function RecBars({ levels }: { levels: number[] }) {
-  const n = 34;
-  const bars = Array.from({ length: n }, (_, i) => levels[levels.length - n + i] ?? 0.12);
-  return (
-    <div dir="ltr" className="flex h-6 min-w-0 flex-1 items-center justify-end gap-[2px] overflow-hidden">
-      {bars.map((v, i) => (
-        <span key={i} className="w-[2px] shrink-0 rounded-full bg-rose-400" style={{ height: `${Math.round(Math.max(0.12, v) * 100)}%` }} />
-      ))}
     </div>
   );
 }
