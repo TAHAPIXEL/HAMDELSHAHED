@@ -124,18 +124,65 @@ function pickRecorderMime(): string {
   return "";
 }
 
-/** کاهش نمونه‌های سطح صدا به n میله برای شکل موج */
-function resample(levels: number[], n: number): number[] {
-  if (levels.length === 0) return Array.from({ length: n }, () => 0.15);
+/** تعداد باندهای فرکانسی برای اکولایزر دایره‌ی ضبط */
+export const ORB_BANDS = 16;
+// بازه‌ی گفتار در تحلیلگر (fftSize 512 ≈ ۹۴ هرتز برای هر خانه): حدود ۱۸۰ هرتز تا ۶ کیلوهرتز
+const BIN_LO = 2;
+const BIN_HI = 64;
+
+/** نوار فرکانس گفتار به باندهای لگاریتمی (زیر → بمی) تبدیل می‌شود؛ هر باند ۰ تا ۱ */
+function bandsOf(freq: Uint8Array): number[] {
   const out: number[] = [];
-  for (let i = 0; i < n; i++) {
-    const from = Math.floor((i * levels.length) / n);
-    const to = Math.max(from + 1, Math.floor(((i + 1) * levels.length) / n));
+  for (let i = 0; i < ORB_BANDS; i++) {
+    const e0 = BIN_LO * Math.pow(BIN_HI / BIN_LO, i / ORB_BANDS);
+    const e1 = BIN_LO * Math.pow(BIN_HI / BIN_LO, (i + 1) / ORB_BANDS);
+    const a = Math.floor(e0);
+    const b = Math.max(a + 1, Math.floor(e1));
     let sum = 0;
-    for (let j = from; j < to; j++) sum += levels[j];
-    out.push(Math.round(Math.max(0.08, Math.min(1, (sum / (to - from)) * 1.2)) * 100) / 100);
+    for (let k = a; k < b && k < freq.length; k++) sum += freq[k];
+    out.push(Math.min(1, ((sum / (b - a)) / 255) * 1.5));
   }
   return out;
+}
+
+/** هر فریم: بلندی صدا (۰ تا ۱) و زیر/بمی صدا (مرکز ثقل فرکانس، ۰ تا ۱) */
+interface Frame {
+  rms: number;
+  pitch: number;
+}
+
+/**
+ * شکل موج ذخیره‌شده: هر ستون ترکیبی از بلندی صدا و زیر/بمی است؛
+ * صدای بم‌تر ستون کوتاه‌تر و صدای زیرتر ستون بلندتر می‌شود، و ارتفاع‌ها به بلندترین ستون نرمال می‌شوند.
+ */
+function buildWave(frames: Frame[], n: number): number[] {
+  if (frames.length === 0) return Array.from({ length: n }, () => 0.2);
+  const cols: Frame[] = [];
+  for (let i = 0; i < n; i++) {
+    const from = Math.floor((i * frames.length) / n);
+    const to = Math.max(from + 1, Math.floor(((i + 1) * frames.length) / n));
+    let rms = 0;
+    let pitch = 0;
+    let k = 0;
+    for (let j = from; j < to && j < frames.length; j++) {
+      rms = Math.max(rms, frames[j].rms);
+      pitch += frames[j].pitch;
+      k++;
+    }
+    cols.push({ rms, pitch: k ? pitch / k : 0 });
+  }
+  const peak = Math.max(1e-4, ...cols.map((c) => c.rms));
+  const voiced = cols.filter((c) => c.pitch > 0).map((c) => c.pitch);
+  const pMin = voiced.length ? Math.min(...voiced) : 0;
+  const pMax = voiced.length ? Math.max(...voiced) : 1;
+  const span = Math.max(1e-4, pMax - pMin);
+  const raw = cols.map((c) => {
+    const amp = Math.pow(c.rms / peak, 0.7);
+    const rel = c.pitch > 0 ? (c.pitch - pMin) / span : 0;
+    return amp * (0.45 + 0.55 * rel);
+  });
+  const top = Math.max(1e-4, ...raw);
+  return raw.map((v) => Math.round(Math.max(0.1, v / top) * 100) / 100);
 }
 
 export interface Recording {
@@ -145,34 +192,52 @@ export interface Recording {
   wave: number[];
 }
 
-/** ضبط صدا با MediaRecorder؛ سطح صدا برای شکل موج زنده نمونه‌برداری می‌شود */
+/** داده‌ی هر لحظه‌ی ضبط برای نمایش زنده (اکولایزر دایره‌ای) */
+export interface RecFrame {
+  bands: number[];
+  level: number;
+  elapsed: number;
+}
+
+/** ضبط صدا با MediaRecorder؛ سطح و باندهای فرکانسی برای نمایش زنده و شکل موج ذخیره می‌شوند */
 export class VoiceRecorder {
-  onLevel?: (levels: number[], elapsedMs: number) => void;
+  onFrame?: (f: RecFrame) => void;
   private rec: MediaRecorder | null = null;
   private chunks: Blob[] = [];
   private stream: MediaStream | null = null;
   private ctx: AudioContext | null = null;
   private analyser: AnalyserNode | null = null;
   private timer: number | null = null;
-  private levels: number[] = [];
+  private frames: Frame[] = [];
+  private bands: number[] = new Array(ORB_BANDS).fill(0);
   private startedAt = 0;
+  private cancelled = false;
 
   async start(): Promise<void> {
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
       throw new Error("ضبط صدا در این دستگاه پشتیبانی نمی‌شود.");
     }
-    this.stream = await navigator.mediaDevices.getUserMedia({
+    const stream = await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation: true, noiseSuppression: true },
     });
+    // اگر در حین آماده‌شدن میکروفون لغو شده، جریان را همان‌جا می‌بندیم
+    if (this.cancelled) {
+      stream.getTracks().forEach((t) => t.stop());
+      return;
+    }
+    this.stream = stream;
     const mime = pickRecorderMime();
     this.rec = new MediaRecorder(this.stream, mime ? { mimeType: mime } : undefined);
     this.chunks = [];
-    this.levels = [];
+    this.frames = [];
     this.rec.ondataavailable = (e) => {
       if (e.data.size) this.chunks.push(e.data);
     };
     this.rec.start(250);
     this.startedAt = Date.now();
+
+    const emit = (level: number, bands: number[]) =>
+      this.onFrame?.({ bands, level, elapsed: Date.now() - this.startedAt });
 
     const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     try {
@@ -180,22 +245,37 @@ export class VoiceRecorder {
       const source = this.ctx.createMediaStreamSource(this.stream);
       this.analyser = this.ctx.createAnalyser();
       this.analyser.fftSize = 512;
+      this.analyser.smoothingTimeConstant = 0.55;
       source.connect(this.analyser);
-      const buf = new Uint8Array(this.analyser.fftSize);
+      const td = new Uint8Array(this.analyser.fftSize);
+      const fq = new Uint8Array(this.analyser.frequencyBinCount);
       this.timer = window.setInterval(() => {
-        if (!this.analyser) return;
-        this.analyser.getByteTimeDomainData(buf);
+        const an = this.analyser;
+        if (!an) return;
+        an.getByteTimeDomainData(td);
+        an.getByteFrequencyData(fq);
         let sum = 0;
-        for (const v of buf) {
+        for (const v of td) {
           const x = (v - 128) / 128;
           sum += x * x;
         }
-        this.levels.push(Math.min(1, Math.sqrt(sum / buf.length) * 3));
-        this.onLevel?.(this.levels, Date.now() - this.startedAt);
-      }, 100);
+        const rms = Math.min(1, Math.sqrt(sum / td.length));
+        let ws = 0;
+        let wc = 0;
+        for (let i = BIN_LO; i < BIN_HI && i < fq.length; i++) {
+          ws += fq[i];
+          wc += fq[i] * (i - BIN_LO);
+        }
+        const pitch = ws > 0 ? wc / ws / (BIN_HI - BIN_LO) : 0;
+        this.frames.push({ rms, pitch });
+        // حمله‌ی سریع و افت آرام تا اکولایزر بیش‌ازحد نلرزد
+        const raw = bandsOf(fq);
+        this.bands = raw.map((v, i) => Math.max(v, this.bands[i] * 0.82));
+        emit(Math.min(1, rms * 4), this.bands);
+      }, 80);
     } catch {
-      // بدون تحلیل صدا هم ضبط انجام می‌شود؛ شکل موج صاف خواهد بود
-      this.timer = window.setInterval(() => this.onLevel?.(this.levels, Date.now() - this.startedAt), 200);
+      // بدون تحلیل صدا هم ضبط انجام می‌شود؛ نمایش زنده ساکت می‌ماند
+      this.timer = window.setInterval(() => emit(0, new Array(ORB_BANDS).fill(0)), 200);
     }
   }
 
@@ -212,7 +292,7 @@ export class VoiceRecorder {
       rec.onstop = () => {
         const mime = baseMime(rec.mimeType || "audio/webm");
         const blob = new Blob(this.chunks, { type: mime });
-        const wave = resample(this.levels, 48);
+        const wave = buildWave(this.frames, 48);
         this.cleanup();
         resolve({ blob, mime, duration, wave });
       };
@@ -226,6 +306,7 @@ export class VoiceRecorder {
 
   /** لغو ضبط بدون ذخیره */
   cancel(): void {
+    this.cancelled = true;
     if (this.rec && this.rec.state !== "inactive") {
       this.rec.onstop = null;
       this.rec.stop();

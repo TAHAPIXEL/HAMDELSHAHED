@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { FileText, Play, Pause, X } from "lucide-react";
 import type { ChatMedia } from "@/lib/model";
 import { fmtDur, openMedia } from "@/lib/chatmedia";
@@ -84,13 +84,13 @@ export function VoicePlayer({
         {playing ? <Pause className={compact ? "size-4 fill-current" : "size-5 fill-current"} /> : <Play className={`${compact ? "size-4" : "size-5"} translate-x-[1px] fill-current`} />}
       </button>
       <div className={compact ? "flex min-w-0 flex-1 items-center gap-2" : "flex min-w-0 flex-1 flex-col gap-1"}>
-        <div ref={barsRef} onClick={(e) => seek(e.clientX)} className={`flex cursor-pointer items-center justify-between gap-[2px] ${compact ? "h-6 min-w-0 flex-1" : "h-7"}`}>
+        <div ref={barsRef} onClick={(e) => seek(e.clientX)} className={`flex min-w-0 cursor-pointer items-center justify-between ${compact ? "h-6 flex-1" : "h-7"}`}>
           {bars.map((v, i) => {
             const filled = (i + 0.5) / bars.length <= progress;
             return (
               <span
                 key={i}
-                className={`w-[2.5px] shrink-0 rounded-full transition-colors ${filled ? t.on : t.off}`}
+                className={`min-w-[1.5px] max-w-[3px] flex-1 rounded-full transition-colors ${filled ? t.on : t.off}`}
                 style={{ height: `${Math.max(12, Math.round(v * 100))}%` }}
               />
             );
@@ -112,6 +112,50 @@ export function VoicePlayer({
           setCur(0);
         }}
       />
+    </div>
+  );
+}
+
+/** دکمه‌ی ضبط با دایره‌ی اکولایزر: دور دکمه، میله‌های شعاعی بر اساس باندهای فرکانسی (زیر و بمی) و بلندی صدا بزرگ و کوچک می‌شوند */
+export function VoiceOrb({
+  active,
+  bands,
+  level,
+  children,
+}: {
+  active: boolean;
+  bands: number[];
+  level: number;
+  children: ReactNode;
+}) {
+  return (
+    <div className="relative grid size-11 shrink-0 place-items-center">
+      {active && (
+        <>
+          <span
+            aria-hidden
+            className="pointer-events-none absolute left-1/2 top-1/2 size-11 rounded-full bg-accent/20 transition-transform duration-100 ease-out"
+            style={{ transform: `translate(-50%, -50%) scale(${(1 + level * 0.5).toFixed(3)})` }}
+          />
+          {bands.map((v, i) => {
+            const len = 3 + v * 12;
+            const r = 24 + len / 2;
+            return (
+              <span
+                key={i}
+                aria-hidden
+                className="pointer-events-none absolute left-1/2 top-1/2 w-[3px] rounded-full bg-accent transition-[height,opacity] duration-100 ease-out"
+                style={{
+                  height: `${len.toFixed(1)}px`,
+                  opacity: (0.3 + v * 0.7).toFixed(2),
+                  transform: `translate(-50%, -50%) rotate(${(i / bands.length) * 360}deg) translateY(-${r.toFixed(1)}px)`,
+                }}
+              />
+            );
+          })}
+        </>
+      )}
+      <span className="relative grid place-items-center">{children}</span>
     </div>
   );
 }

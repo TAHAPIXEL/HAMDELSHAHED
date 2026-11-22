@@ -76,13 +76,15 @@ import {
   type User,
 } from "@/lib/model";
 import { Avatar, Btn, Confirm, Empty, Field, Modal, inputCls, useDbTick, useToast } from "./ui";
-import { FileBubble, PendingBubble, VoicePlayer, type PendingUpload } from "./MediaBits";
+import { FileBubble, PendingBubble, VoiceOrb, VoicePlayer, type PendingUpload } from "./MediaBits";
 import { AttachSheet } from "./AttachSheet";
 import { useDraft } from "@/lib/drafts";
 import { CHAT_FILE_MAX, FILE_ACCEPT, VoiceRecorder, baseMime, fmtRec, guessMime, uploadChatBlob, type Recording } from "@/lib/chatmedia";
 
 const groupGrad = "bg-gradient-to-br from-emerald-500 to-teal-500";
 const channelGrad = "bg-gradient-to-br from-amber-500 to-orange-500";
+
+const ZERO_BANDS: number[] = new Array(16).fill(0);
 
 export default function Chats({
   user,
@@ -451,14 +453,19 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
   const [showEmoji, setShowEmoji] = useState(false);
   // ضبط ویس: idle → hold (نگه داشتن) → locked (قفل با کشیدن به بالا) → preview (بررسی قبل از ارسال)
   const [rec, setRec] = useState<"idle" | "hold" | "locked" | "preview">("idle");
+  const modeRef = useRef<"idle" | "hold" | "locked" | "preview">("idle");
+  const setMode = (m: "idle" | "hold" | "locked" | "preview") => {
+    modeRef.current = m;
+    setRec(m);
+  };
   const [recMs, setRecMs] = useState(0);
-  const [recLevels, setRecLevels] = useState<number[]>([]);
+  const [recBands, setRecBands] = useState<number[]>(ZERO_BANDS);
+  const [recLevel, setRecLevel] = useState(0);
   const [dragX, setDragX] = useState(0);
   const [dragY, setDragY] = useState(0);
   const [preview, setPreview] = useState<(Recording & { url: string }) | null>(null);
   const [pending, setPending] = useState<PendingUpload[]>([]);
   const recorderRef = useRef<VoiceRecorder | null>(null);
-  const pressRef = useRef<{ x: number; y: number; released: boolean } | null>(null);
   const startedRef = useRef(false);
   const fileInRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
@@ -614,101 +621,145 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
     void sendMedia("file", f, f.name, mime);
   };
 
-  const startRec = async (e: React.PointerEvent<HTMLButtonElement>) => {
-    if (rec !== "idle" || recorderRef.current) return;
-    e.preventDefault();
-    const press = { x: e.clientX, y: e.clientY, released: false };
-    pressRef.current = press;
-    const r = new VoiceRecorder();
-    r.onLevel = (lv, ms) => {
-      setRecLevels(lv.slice(-40));
-      setRecMs(ms);
-    };
-    recorderRef.current = r;
-    startedRef.current = false;
-    setRec("hold");
-    setDragX(0);
-    setDragY(0);
-    setRecMs(0);
-    setRecLevels([]);
-    try {
-      e.currentTarget.setPointerCapture?.(e.pointerId);
-      await r.start();
-    } catch (err) {
-      recorderRef.current = null;
-      pressRef.current = null;
-      setRec("idle");
-      toast("error", (err as Error).message || "میکروفون در دسترس نیست؛ دسترسی میکروفون را بدهید.");
-      return;
-    }
-    startedRef.current = true;
-    if (press.released) finishRec();
-  };
+  // ---- ضبط ویس ----
+  // حرکت انگشت روی «پنجره» ثبت می‌شود، نه روی خود دکمه؛ بنابراین اگر دکمه در حین ضبط عوض شود
+  // یا مرورگر رویداد لمسی را قطع کند، ضبط بی‌صدا تمام نمی‌شود. کشیدن به بالا = قفل، کشیدن به چپ = لغو.
+  const LOCK_DISTANCE = 80;
+  const CANCEL_DISTANCE = 120;
+  const gestureRef = useRef<{ id: number; x: number; y: number } | null>(null);
+  const detachRef = useRef<(() => void) | null>(null);
+  const releasedEarlyRef = useRef(false);
 
-  const moveRec = (e: React.PointerEvent) => {
-    const press = pressRef.current;
-    if (!press || rec !== "hold") return;
-    const dx = e.clientX - press.x;
-    const dy = e.clientY - press.y;
-    if (dx < -120) return cancelRec();
-    if (dy < -90) {
-      pressRef.current = null;
-      setRec("locked");
-      setDragX(0);
-      setDragY(0);
-      return;
-    }
-    setDragX(Math.min(0, dx));
-    setDragY(Math.min(0, dy));
-  };
-
-  const upRec = () => {
-    const press = pressRef.current;
-    if (!press) return;
-    press.released = true;
-    if (startedRef.current) finishRec();
+  const detachGesture = () => {
+    detachRef.current?.();
+    detachRef.current = null;
+    gestureRef.current = null;
   };
 
   const resetRec = () => {
+    detachGesture();
     recorderRef.current = null;
-    pressRef.current = null;
     startedRef.current = false;
-    setRec("idle");
-    setRecLevels([]);
+    releasedEarlyRef.current = false;
+    setMode("idle");
+    setRecBands(ZERO_BANDS);
+    setRecLevel(0);
     setDragX(0);
     setDragY(0);
   };
 
   const cancelRec = () => {
+    detachGesture();
     recorderRef.current?.cancel();
     resetRec();
   };
 
+  /** قفل ضبط: انگشت برداشته می‌شود و ضبط ادامه می‌یابد تا با دکمه‌ی ارسال یا لغو تمام شود */
+  const lockRec = () => {
+    detachGesture();
+    setDragX(0);
+    setDragY(0);
+    setMode("locked");
+  };
+
   /** پایان ضبط: ویس کوتاه‌تر از نیم ثانیه دور ریخته می‌شود؛ بقیه برای بررسی نمایش داده می‌شوند */
   const finishRec = () => {
+    detachGesture();
     const r = recorderRef.current;
     if (!r) return resetRec();
     if (r.elapsed() < 600) return cancelRec();
     recorderRef.current = null;
-    pressRef.current = null;
     startedRef.current = false;
-    setRec("preview");
+    setMode("preview");
     r.stop()
       .then((res) => setPreview({ ...res, url: URL.createObjectURL(res.blob) }))
       .catch(() => resetRec());
   };
 
+  const startRec = async (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (modeRef.current !== "idle" || recorderRef.current) return;
+    e.preventDefault();
+    const r = new VoiceRecorder();
+    r.onFrame = (f) => {
+      setRecBands(f.bands);
+      setRecLevel(f.level);
+      setRecMs(f.elapsed);
+    };
+    recorderRef.current = r;
+    startedRef.current = false;
+    releasedEarlyRef.current = false;
+    gestureRef.current = { id: e.pointerId, x: e.clientX, y: e.clientY };
+    setMode("hold");
+    setDragX(0);
+    setDragY(0);
+    setRecMs(0);
+    setRecBands(ZERO_BANDS);
+    setRecLevel(0);
+
+    const onMove = (ev: PointerEvent) => {
+      const g = gestureRef.current;
+      if (!g || ev.pointerId !== g.id || modeRef.current !== "hold") return;
+      const dx = ev.clientX - g.x;
+      const dy = ev.clientY - g.y;
+      if (dx < -CANCEL_DISTANCE) return cancelRec();
+      if (dy < -LOCK_DISTANCE) return lockRec();
+      setDragX(Math.min(0, dx));
+      setDragY(Math.min(0, dy));
+    };
+    const onUp = (ev: PointerEvent) => {
+      const g = gestureRef.current;
+      if (!g || ev.pointerId !== g.id) return;
+      detachGesture();
+      if (startedRef.current) finishRec();
+      else releasedEarlyRef.current = true;
+    };
+    const onCancel = (ev: PointerEvent) => {
+      const g = gestureRef.current;
+      if (!g || ev.pointerId !== g.id) return;
+      // مرورگر حرکت لمسی را گرفت (اسکرول یا منو): ضبط را نگه می‌داریم و قفل می‌کنیم تا قطع نشود
+      if (startedRef.current) return lockRec();
+      detachGesture();
+      releasedEarlyRef.current = true;
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onCancel);
+    detachRef.current = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
+    };
+    try {
+      e.currentTarget.setPointerCapture?.(e.pointerId);
+    } catch {
+      // اختیاری: بدون capture هم گوش‌دادن روی پنجره کار می‌کند
+    }
+
+    try {
+      await r.start();
+    } catch (err) {
+      if (recorderRef.current !== r) return; // در این فاصله لغو شده
+      resetRec();
+      toast("error", (err as Error).message || "میکروفون در دسترس نیست؛ دسترسی میکروفون را بدهید.");
+      return;
+    }
+    if (recorderRef.current !== r) return; // لغو شده در حین آماده‌سازی میکروفون
+    startedRef.current = true;
+    if (releasedEarlyRef.current) finishRec();
+  };
+
+
   const discardPreview = () => {
     if (preview) URL.revokeObjectURL(preview.url);
     setPreview(null);
-    setRec("idle");
+    setMode("idle");
   };
 
   const sendPreview = () => {
     if (!preview) return;
     const p = preview;
     setPreview(null);
-    setRec("idle");
+    setMode("idle");
     void sendMedia("voice", p.blob, "پیام صوتی", p.mime, { duration: p.duration, wave: p.wave });
     setTimeout(() => URL.revokeObjectURL(p.url), 60_000);
   };
@@ -1030,9 +1081,11 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
                 ))}
 
               {rec === "locked" && (
-                <button onClick={finishRec} className="grid size-11 shrink-0 place-items-center rounded-full bg-accent text-white shadow-md shadow-accent/30 transition active:scale-90" aria-label="پایان و پیش‌نمایش">
-                  <Send className="size-5" />
-                </button>
+                <VoiceOrb active bands={recBands} level={recLevel}>
+                  <button onClick={finishRec} className="grid size-11 place-items-center rounded-full bg-accent text-white shadow-md shadow-accent/30 transition active:scale-90" aria-label="پایان و پیش‌نمایش">
+                    <Send className="size-5" />
+                  </button>
+                </VoiceOrb>
               )}
 
               {rec === "preview" && (
@@ -1042,7 +1095,7 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
               )}
 
               {(rec === "hold" || (rec === "idle" && !text.trim() && !image)) && (
-                <div className="relative grid size-11 shrink-0 place-items-center">
+                <VoiceOrb active={rec === "hold"} bands={recBands} level={recLevel}>
                   {rec === "hold" && (
                     <span
                       className="pointer-events-none absolute inset-x-0 bottom-full mb-3 mx-auto flex w-max flex-col items-center gap-1 rounded-full bg-ink px-2.5 py-2.5 text-slate-200 shadow-lg"
@@ -1054,20 +1107,13 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
                   )}
                   <button
                     onPointerDown={startRec}
-                    onPointerMove={moveRec}
-                    onPointerUp={upRec}
-                    onPointerCancel={upRec}
-                    onContextMenu={(e) => e.preventDefault()}
-                    className={`grid size-11 touch-none select-none place-items-center rounded-full text-white transition duration-200 ${
-                      rec === "hold"
-                        ? "scale-[1.3] bg-accent shadow-lg shadow-accent/40 ring-[7px] ring-accent/25"
-                        : "bg-accent shadow-md shadow-accent/30 active:scale-95"
-                    }`}
+                    onContextMenu={(ev) => ev.preventDefault()}
+                    className="grid size-11 touch-none select-none place-items-center rounded-full bg-accent text-white shadow-md shadow-accent/30 transition active:scale-95"
                     aria-label="ضبط ویس"
                   >
                     <Mic className="size-[22px]" />
                   </button>
-                </div>
+                </VoiceOrb>
               )}
             </div>
           </>
