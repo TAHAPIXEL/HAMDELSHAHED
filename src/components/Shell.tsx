@@ -538,7 +538,7 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
           <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-2 lg:hidden">
             <nav
               dir="ltr"
-              className="pointer-events-auto flex w-full max-w-md items-center justify-between gap-1 rounded-full bg-nav p-1.5 shadow-[0_8px_28px_rgba(15,23,42,0.22)] dark:shadow-[0_8px_28px_rgba(0,0,0,0.55)]"
+              className="pointer-events-auto flex w-full max-w-md items-center justify-between gap-1 rounded-full bg-nav/70 p-1.5 backdrop-blur-xl shadow-[0_8px_28px_rgba(15,23,42,0.22)] dark:shadow-[0_8px_28px_rgba(0,0,0,0.55)]"
             >
               {bottomItems.map((n) => {
                 const on = tab === n.v;
