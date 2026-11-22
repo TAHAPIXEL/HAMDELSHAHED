@@ -255,7 +255,7 @@ export default function Chats({
                     {t.label}
                     <span
                       className={`shrink-0 rounded-full px-1.5 text-[10px] font-black leading-4 ${
-                        active ? "bg-accent text-white" : "bg-line-strong/80 text-white dark:bg-white/15"
+                        active ? "bg-accent text-on-accent" : "bg-line-strong/80 text-white dark:bg-white/15"
                       }`}
                     >
                       {fa(tabCount(t.key))}
@@ -395,7 +395,7 @@ export default function Chats({
               onClick={() => setFabOpen((o) => !o)}
               aria-label="ساخت گفتگو"
               aria-expanded={fabOpen}
-              className="absolute bottom-3 left-4 z-40 flex size-14 items-center justify-center rounded-full bg-accent text-white shadow-lg shadow-accent/40 transition active:scale-95 lg:bottom-4"
+              className="absolute bottom-3 left-4 z-40 flex size-14 items-center justify-center rounded-full bg-accent text-on-accent shadow-lg shadow-accent/40 transition active:scale-95 lg:bottom-4"
             >
               {fabOpen ? <X className="size-6" /> : <MessageSquarePlus className="size-6" />}
             </button>
@@ -834,7 +834,7 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
   };
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="chat-bg flex h-full flex-col">
       {/* هدر چت */}
       <div className="z-10 flex items-center gap-3 border-b border-line/70 bg-surface/80 px-3 py-2.5 backdrop-blur-xl dark:border-white/5 dark:bg-ink/60 sm:px-4">
         <button onClick={onBack} className="rounded-xl p-2 text-slate-500 hover:bg-surface-2 dark:hover:bg-white/10 sm:hidden" aria-label="بازگشت">
@@ -865,7 +865,7 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
         {canLock && (
           <button
             onClick={toggleLock}
-            className={`rounded-xl p-2.5 transition ${chat.locked ? "bg-amber-50 text-amber-600 dark:bg-amber-500/10" : "text-slate-400 hover:bg-surface-2 dark:hover:bg-white/10"}`}
+            className={`rounded-xl p-2.5 transition ${chat.locked ? "bg-amber-50 text-amber-600 dark:text-amber-300 dark:bg-amber-500/10" : "text-slate-400 hover:bg-surface-2 dark:hover:bg-white/10"}`}
             title={chat.locked ? "برداشتن محدودیت پیام" : "فقط کادر پیام دهند"}
           >
             {chat.locked ? <Lock className="size-5" /> : <Unlock className="size-5" />}
@@ -919,7 +919,7 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
         onWheel={releaseAnchor}
         onTouchMove={releaseAnchor}
         onPointerDown={releaseAnchor}
-        className="chat-bg min-h-0 flex-1 space-y-2 overflow-y-auto px-3 py-4 sm:px-6"
+        className="min-h-0 flex-1 space-y-2 overflow-y-auto px-3 py-4 sm:px-6"
       >
         {messages.length === 0 && (
           <Empty icon={<MessagesSquare className="size-7" />} title="گفتگو را شروع کنید" desc="اولین پیام را ارسال کنید" />
@@ -978,7 +978,7 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
                     </div>
                   )}
                   {m.deleted ? (
-                    <div className={`text-[13px] italic ${mine ? "text-white/60" : "text-slate-400"}`}>این پیام حذف شد</div>
+                    <div className={`text-[13px] italic ${mine ? "opacity-60" : "text-slate-400"}`}>این پیام حذف شد</div>
                   ) : m.poll ? (
                     <PollBubble poll={m.poll} messageId={m.id} me={user} mine={mine} />
                   ) : (
@@ -1011,10 +1011,10 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
                       {m.text && <div className="user-text whitespace-pre-wrap break-words text-[14px] leading-7">{m.text}</div>}
                     </>
                   )}
-                  <div className={`mt-1 flex items-center justify-end gap-1 text-[10px] font-semibold ${mine ? "text-white/70" : "text-slate-400"}`}>
+                  <div className={`mt-1 flex items-center justify-end gap-1 text-[10px] font-semibold ${mine ? "opacity-70" : "text-slate-400"}`}>
                     {m.editedAt && !m.deleted && <span>ویرایش‌شده</span>}
                     <span dir="ltr" className="tabular-nums">{faClock(m.createdAt)}</span>
-                    {receipt === "read" && <CheckCheck className="size-3.5 text-sky-300" aria-label="خوانده شد" />}
+                    {receipt === "read" && <CheckCheck className="size-3.5 text-sky-500 dark:text-sky-300" aria-label="خوانده شد" />}
                     {receipt === "sent" && <Check className="size-3.5" aria-label="ارسال شد" />}
                     {receipt === "group" && <CheckCheck className="size-3.5" aria-label="ارسال شد" />}
                   </div>
@@ -1142,7 +1142,7 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
                   <button
                     onClick={submit}
                     disabled={!text.trim() && !image}
-                    className="grid size-11 shrink-0 place-items-center rounded-full bg-accent text-white shadow-md shadow-accent/30 transition active:scale-90 disabled:opacity-40"
+                    className="grid size-11 shrink-0 place-items-center rounded-full bg-accent text-on-accent shadow-md shadow-accent/30 transition active:scale-90 disabled:opacity-40"
                     aria-label="ارسال"
                   >
                     <Send className="size-5" />
@@ -1151,14 +1151,14 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
 
               {rec === "locked" && (
                 <VoiceOrb active bands={recBands} level={recLevel}>
-                  <button onClick={finishRec} className="grid size-11 place-items-center rounded-full bg-accent text-white shadow-md shadow-accent/30 transition active:scale-90" aria-label="پایان و پیش‌نمایش">
+                  <button onClick={finishRec} className="grid size-11 place-items-center rounded-full bg-accent text-on-accent shadow-md shadow-accent/30 transition active:scale-90" aria-label="پایان و پیش‌نمایش">
                     <Send className="size-5" />
                   </button>
                 </VoiceOrb>
               )}
 
               {rec === "preview" && (
-                <button onClick={sendPreview} className="grid size-11 shrink-0 place-items-center rounded-full bg-accent text-white shadow-md shadow-accent/30 transition active:scale-90" aria-label="ارسال ویس">
+                <button onClick={sendPreview} className="grid size-11 shrink-0 place-items-center rounded-full bg-accent text-on-accent shadow-md shadow-accent/30 transition active:scale-90" aria-label="ارسال ویس">
                   <Send className="size-5" />
                 </button>
               )}
@@ -1177,7 +1177,7 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
                   <button
                     onPointerDown={startRec}
                     onContextMenu={(ev) => ev.preventDefault()}
-                    className="grid size-11 touch-none select-none place-items-center rounded-full bg-accent text-white shadow-md shadow-accent/30 transition active:scale-95"
+                    className="grid size-11 touch-none select-none place-items-center rounded-full bg-accent text-on-accent shadow-md shadow-accent/30 transition active:scale-95"
                     aria-label="ضبط ویس"
                   >
                     <Mic className="size-[22px]" />
@@ -1329,11 +1329,11 @@ function PollBubble({
   const myVote = poll.votes[me.id];
   return (
     <div className="min-w-56 sm:min-w-64">
-      <div className={`mb-2 flex items-center gap-2 text-[11px] font-black ${mine ? "text-white/90" : "text-indigo-500 dark:text-indigo-300"}`}>
+      <div className={`mb-2 flex items-center gap-2 text-[11px] font-black ${mine ? "opacity-90" : "text-indigo-500 dark:text-indigo-300"}`}>
         <BarChart3 className="size-4" />
         نظرسنجی
       </div>
-      <div className={`mb-3 text-[14px] font-black leading-7 ${mine ? "text-white" : "text-slate-800 dark:text-slate-100"}`}>
+      <div className={`mb-3 text-[14px] font-black leading-7 ${mine ? "" : "text-slate-800 dark:text-slate-100"}`}>
         {poll.question}
       </div>
       <div className="space-y-1.5">
@@ -1362,12 +1362,12 @@ function PollBubble({
                 style={{ width: total > 0 ? `${pct}%` : "0%" }}
               />
               <span className="relative flex items-center justify-between gap-2">
-                <span className={`flex items-center gap-1.5 text-[13px] font-bold ${mine ? "text-white" : "text-slate-700 dark:text-slate-200"}`}>
+                <span className={`flex items-center gap-1.5 text-[13px] font-bold ${mine ? "" : "text-slate-700 dark:text-slate-200"}`}>
                   {chosen && <Check className="size-3.5" />}
                   {opt}
                 </span>
                 {total > 0 && (
-                  <span className={`text-[10.5px] font-black tabular-nums ${mine ? "text-white/80" : "text-slate-400"}`}>
+                  <span className={`text-[10.5px] font-black tabular-nums ${mine ? "opacity-80" : "text-slate-400"}`}>
                     {fa(pct)}٪
                   </span>
                 )}
@@ -1376,7 +1376,7 @@ function PollBubble({
           );
         })}
       </div>
-      <div className={`mt-2 text-[10.5px] font-bold ${mine ? "text-white/70" : "text-slate-400"}`}>
+      <div className={`mt-2 text-[10.5px] font-bold ${mine ? "opacity-70" : "text-slate-400"}`}>
         {fa(total)} رأی{myVote !== undefined ? " • برای لغو رأی، دوباره روی همان گزینه بزنید" : ""}
       </div>
     </div>

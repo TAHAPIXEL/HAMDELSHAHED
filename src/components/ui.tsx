@@ -427,7 +427,7 @@ export function Seg<T extends string>({
           onClick={() => onChange(o.value)}
           className={`flex-1 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-[12px] font-bold transition ${
             value === o.value
-              ? "bg-surface text-indigo-700 shadow dark:bg-white/15 dark:text-indigo-200"
+              ? "bg-surface text-indigo-700 shadow dark:bg-white/15 dark:text-indigo-300"
               : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
           }`}
         >

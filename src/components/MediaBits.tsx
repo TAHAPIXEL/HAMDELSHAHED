@@ -14,10 +14,10 @@ const TONE = {
     btn: "bg-surface text-accent",
     on: "bg-surface",
     off: "bg-surface/45",
-    time: "text-white/85",
+    time: "opacity-90",
   },
   other: {
-    btn: "bg-accent text-white",
+    btn: "bg-accent text-on-accent",
     on: "bg-accent",
     off: "bg-line-strong dark:bg-slate-500",
     time: "text-slate-500 dark:text-slate-400",
@@ -26,7 +26,7 @@ const TONE = {
     btn: "bg-surface text-accent",
     on: "bg-surface",
     off: "bg-surface/45",
-    time: "text-white",
+    time: "text-on-accent",
   },
 } satisfies Record<VoiceTone, { btn: string; on: string; off: string; time: string }>;
 
@@ -195,16 +195,16 @@ export function FileBubble({ media, mine }: { media: ChatMedia; mine: boolean })
     >
       <span
         className={`grid size-11 shrink-0 place-items-center rounded-full shadow-sm ${
-          mine ? "bg-surface text-accent" : "bg-accent text-white"
+          mine ? "bg-surface text-accent" : "bg-accent text-on-accent"
         }`}
       >
         <FileText className="size-5" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className={`line-clamp-2 break-all text-[14px] font-bold leading-5 ${mine ? "text-white" : "text-slate-800 dark:text-slate-100"}`}>
+        <span className={`line-clamp-2 break-all text-[14px] font-bold leading-5 ${mine ? "" : "text-slate-800 dark:text-slate-100"}`}>
           {media.name}
         </span>
-        <span dir="ltr" className={`mt-0.5 block text-[12px] font-semibold ${mine ? "text-white/80" : "text-slate-400"}`}>
+        <span dir="ltr" className={`mt-0.5 block text-[12px] font-semibold ${mine ? "opacity-80" : "text-slate-400"}`}>
           {busy ? `${Math.round((pct ?? 0) * 100)}%` : `${sizeShort(media.size)} · ${fileExt(media.name)}`}
         </span>
       </span>
@@ -235,7 +235,7 @@ export function PendingBubble({ p, onDismiss }: { p: PendingUpload; onDismiss: (
     <div className="msg-in flex items-end gap-2">
       <div className="bubble-mine bubble-mine-c relative max-w-[78%] px-3.5 py-2.5 shadow-sm sm:max-w-[65%]">
         {p.error ? (
-          <div className="flex items-center gap-2 text-[13px] font-bold text-rose-100">
+          <div className="flex items-center gap-2 text-[13px] font-bold text-rose-600 dark:text-rose-200">
             <span className="flex-1">{p.error}</span>
             <button onClick={onDismiss} className="rounded-full p-1 hover:bg-surface/10" aria-label="بستن">
               <X className="size-4" />
@@ -265,7 +265,7 @@ export function PendingBubble({ p, onDismiss }: { p: PendingUpload; onDismiss: (
             </span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[14px] font-bold">{p.kind === "voice" ? "پیام صوتی" : p.name}</span>
-              <span dir="ltr" className="block text-[12px] font-semibold text-white/80">
+              <span dir="ltr" className="block text-[12px] font-semibold opacity-80">
                 {p.kind === "voice" ? "در حال ارسال" : sizeShort(p.size)}
               </span>
             </span>

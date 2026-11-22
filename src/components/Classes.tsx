@@ -157,7 +157,7 @@ export default function Classes({
               key={t.v}
               onClick={() => setTab(t.v)}
               className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-[12.5px] font-bold transition ${
-                activeTab === t.v ? "bg-surface text-indigo-700 shadow-sm dark:bg-white/15 dark:text-indigo-200" : "text-slate-500"
+                activeTab === t.v ? "bg-surface text-indigo-700 shadow-sm dark:bg-white/15 dark:text-indigo-300" : "text-slate-500"
               }`}
             >
               {t.icon}

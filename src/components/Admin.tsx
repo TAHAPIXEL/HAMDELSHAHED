@@ -105,11 +105,11 @@ export default function Admin({ user }: { user: User }) {
     <div className="h-full overflow-y-auto p-4 sm:p-6">
       <div className="mx-auto max-w-5xl">
         {!canManage(user) && (
-          <div className="anim-fade-up mb-5 flex items-center gap-3 rounded-2xl bg-amber-50 px-5 py-4 text-amber-800">
+          <div className="anim-fade-up mb-5 flex items-center gap-3 rounded-2xl bg-amber-50 dark:bg-amber-500/15 px-5 py-4 text-amber-800 dark:text-amber-300">
             <Eye className="size-6 shrink-0 text-amber-500" />
             <div>
               <div className="text-sm font-black">حالت مشاهده</div>
-              <div className="text-[11.5px] font-semibold text-amber-700/80">
+              <div className="text-[11.5px] font-semibold text-amber-700/80 dark:text-amber-300">
                 شما به اطلاعات دسترسی دارید، اما امکان تغییر در پنل مدیریت فقط برای مدیر و معاونان آموزشی و پرورشی فعال است.
               </div>
             </div>
@@ -132,7 +132,7 @@ export default function Admin({ user }: { user: User }) {
               key={t.v}
               onClick={() => setTab(t.v)}
               className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-[12.5px] font-bold transition ${
-                tab === t.v ? "bg-surface text-indigo-700 shadow-sm dark:bg-white/15 dark:text-indigo-200" : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
+                tab === t.v ? "bg-surface text-indigo-700 shadow-sm dark:bg-white/15 dark:text-indigo-300" : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
               }`}
             >
               {t.icon}
@@ -635,7 +635,7 @@ function ContentTab({ actor }: { actor: User }) {
             key={t.v}
             onClick={() => setKind(t.v)}
             className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-[12.5px] font-bold transition ${
-              kind === t.v ? "bg-surface text-indigo-700 shadow-sm dark:bg-white/15 dark:text-indigo-200" : "text-slate-500"
+              kind === t.v ? "bg-surface text-indigo-700 shadow-sm dark:bg-white/15 dark:text-indigo-300" : "text-slate-500"
             }`}
           >
             {t.i}

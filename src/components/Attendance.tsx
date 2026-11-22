@@ -70,7 +70,7 @@ function StudentAttendance({ user }: { user: User }) {
           </div>
         </div>
 
-        <div className="mb-3 rounded-2xl bg-indigo-50 px-4 py-3 text-[12.5px] font-semibold leading-6 text-indigo-800 dark:bg-indigo-500/10 dark:text-indigo-200">
+        <div className="mb-3 rounded-2xl bg-indigo-50 px-4 py-3 text-[12.5px] font-semibold leading-6 text-indigo-800 dark:bg-indigo-500/10 dark:text-indigo-300">
           هر روزی که وارد سایت شوید، حضور شما به‌صورت خودکار ثبت می‌شود. کادر مدرسه می‌توانند آن را اصلاح کنند.
         </div>
 
@@ -189,7 +189,7 @@ function StaffAttendance({ user }: { user: User }) {
           <Chip tone="amber">موجه: {fa(counts.excused)}</Chip>
           <Chip>بدون ثبت: {fa(counts.none)}</Chip>
           {savedTick > 0 && (
-            <span key={savedTick} className="anim-fade-up mr-auto flex items-center gap-1 text-[11px] font-bold text-emerald-600">
+            <span key={savedTick} className="anim-fade-up mr-auto flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-300">
               <CircleCheckBig className="size-3.5" />
               ذخیره شد
             </span>

@@ -717,7 +717,7 @@ function ResultModal({ exam, sub, viewer, onClose }: { exam: Exam; sub: Submissi
               </div>
             ) : (
               sub.graded && (
-                <div className="mt-2 text-left text-[12px] font-black text-emerald-600">
+                <div className="mt-2 text-left text-[12px] font-black text-emerald-600 dark:text-emerald-300">
                   {fa(grades[q.id] ?? 0)} از {fa(q.score)}
                 </div>
               )
@@ -737,7 +737,7 @@ function ResultModal({ exam, sub, viewer, onClose }: { exam: Exam; sub: Submissi
         </div>
       ) : (
         sub.feedback && (
-          <div className="mt-4 rounded-2xl bg-indigo-50 px-4 py-3 text-[13px] font-semibold leading-7 text-indigo-800 dark:bg-indigo-500/10 dark:text-indigo-200">
+          <div className="mt-4 rounded-2xl bg-indigo-50 px-4 py-3 text-[13px] font-semibold leading-7 text-indigo-800 dark:bg-indigo-500/10 dark:text-indigo-300">
             نظر دبیر: {sub.feedback}
           </div>
         )

@@ -132,6 +132,7 @@
   --color-line-strong: var(--t-line-strong);
   --color-ink: var(--t-ink);
   --color-accent: var(--t-accent);
+  --color-on-accent: var(--t-on-accent);
   --color-scrim: var(--t-scrim);
 
   /* مقیاس متن (slate) */

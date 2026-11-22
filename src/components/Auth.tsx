@@ -232,7 +232,7 @@ export default function Auth({ onAuth }: { onAuth: (u: User) => void }) {
                     onClick={() => { setTab(t.v); setErrors({}); }}
                     className={`flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-[13px] font-bold transition ${
                       tab === t.v
-                        ? "bg-surface text-indigo-700 shadow-sm dark:bg-white/15 dark:text-indigo-200"
+                        ? "bg-surface text-indigo-700 shadow-sm dark:bg-white/15 dark:text-indigo-300"
                         : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
                     }`}
                   >
