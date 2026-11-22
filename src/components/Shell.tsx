@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import {
   MessagesSquare,
+  Search,
   LayoutGrid,
   ClipboardList,
   CalendarCheck2,
@@ -39,7 +40,7 @@ import {
   type Grade,
   type User,
 } from "@/lib/model";
-import { Avatar, Confirm, useDbTick } from "./ui";
+import { Avatar, Confirm, useDbTick, useToast } from "./ui";
 import { useThemeSync } from "./Appearance";
 import Chats from "./Chats";
 import Classes from "./Classes";
@@ -63,6 +64,9 @@ const titles: Record<View, string> = {
   admin: "پنل مدیریت",
   profile: "پروفایل من",
 };
+
+// تاریخچه‌ی ناوبری فقط یک بار ساخته شود (در حالت توسعه effectها دوبار اجرا می‌شوند)
+let navInit = false;
 
 export default function Shell({ user: initialUser, onLogout }: { user: User; onLogout: () => void }) {
   useDbTick();
@@ -93,9 +97,83 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
   const notices = visibleNotices(user);
   const unreadN = unreadNotices(user);
 
-  const go = (v: View) => {
+  // ---- تاریخچه‌ی ناوبری (دکمه‌ی بک) ----
+  // هر بخش یا گفتگوی بازشده یک مرحله در تاریخچه است؛ بک فقط یک مرحله برمی‌گرداند.
+  // در صفحه‌ی اصلی، بک اول پیام «دو بار کلیک کنید» را نشان می‌دهد و بک دوم از برنامه خارج می‌شود.
+  type NavState = { v: View; c: string | null };
+  const navRef = useRef<NavState>({ v: "chats", c: null });
+  const lastRootBackRef = useRef(0);
+  const [chatOpenId, setChatOpenId] = useState<string | null>(null);
+  const [syncChat, setSyncChat] = useState<{ id: string | null; n: number }>({ id: null, n: 0 });
+  const [listScrolled, setListScrolled] = useState(false);
+  const [searchSignal, setSearchSignal] = useState(0);
+  const toast = useToast();
+  const chatOpen = view === "chats" && chatOpenId !== null;
+
+  const showView = (v: View) => {
     setTab(v);
     startTransition(() => setView(v));
+    setDrawer(false);
+    if (v !== "classes") setClassSel(null);
+  };
+
+  const applyNav = (next: NavState) => {
+    navRef.current = next;
+    setChatOpenId(next.c);
+    setSyncChat((s) => ({ id: next.c, n: s.n + 1 }));
+    showView(next.v);
+  };
+
+  // کلیدهای داخلی Next.js باید در هر ورودی تاریخچه کپی شوند، وگرنه روتر صفحه را دوباره بارگذاری می‌کند
+  const nextMarks = () => {
+    const s = (window.history.state ?? {}) as Record<string, unknown>;
+    return { __NA: s.__NA, __PRIVATE_NEXTJS_INTERNALS_TREE: s.__PRIVATE_NEXTJS_INTERNALS_TREE };
+  };
+
+  const pushNav = (next: NavState) => {
+    const cur = navRef.current;
+    if (cur.v === next.v && cur.c === next.c) return;
+    window.history.pushState({ ...nextMarks(), hamdel: next }, "");
+    applyNav(next);
+  };
+
+  useEffect(() => {
+    if (!navInit) {
+      navInit = true;
+      window.history.replaceState({ ...nextMarks(), hamdel: { root: true } }, "");
+      window.history.pushState({ ...nextMarks(), hamdel: { v: "chats", c: null } }, "");
+    }
+    const onPop = (e: PopStateEvent) => {
+      const st = (e.state?.hamdel ?? null) as (NavState & { root?: boolean }) | null;
+      if (!st || st.root) {
+        if (Date.now() - lastRootBackRef.current < 2000) {
+          // دومین بک در صفحه‌ی اصلی: خروج از برنامه
+          window.history.back();
+          return;
+        }
+        lastRootBackRef.current = Date.now();
+        toast("info", "برای خروج دو بار کلیک کنید");
+        window.history.pushState({ ...nextMarks(), hamdel: { v: "chats", c: null } }, "");
+        applyNav({ v: "chats", c: null });
+        return;
+      }
+      applyNav({ v: st.v, c: st.c });
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // گفتگو از داخل Chats باز یا بسته شد: همان را در تاریخچه ثبت می‌کنیم (بسته‌شدن = یک مرحله به عقب)
+  const onChatChange = useCallback((id: string | null) => {
+    if (id === navRef.current.c) return;
+    if (id === null) window.history.back();
+    else pushNav({ v: "chats", c: id });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const go = (v: View) => {
+    pushNav({ v, c: null });
     setDrawer(false);
     if (v !== "classes") setClassSel(null);
   };
@@ -337,6 +415,15 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
             {view === "classes" && classSel ? `کلاس ${className(classSel.grade, classSel.section)}` : titles[view]}
           </h1>
           <div className="flex items-center gap-1">
+            {view === "chats" && listScrolled && !chatOpen && (
+              <button
+                onClick={() => setSearchSignal((n) => n + 1)}
+                className="anim-pop rounded-xl p-2.5 text-slate-500 transition hover:bg-surface-2 dark:hover:bg-white/10"
+                aria-label="جستجوی گفتگو"
+              >
+                <Search className="size-5" />
+              </button>
+            )}
             {/* زنگوله اطلاعیه‌ها */}
             <div className="relative" ref={bellRef}>
               <button
@@ -394,8 +481,18 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
         </header>
 
         {/* محتوای ویو */}
-        <main className="min-h-0 flex-1 overflow-hidden">
-          {view === "chats" && <Chats user={user} externalChatId={openChatId} onConsumeExternal={() => setOpenChatId(null)} />}
+        <main className={`min-h-0 flex-1 overflow-hidden ${chatOpen ? "" : "pb-24"} lg:pb-0`}>
+          {view === "chats" && (
+            <Chats
+              user={user}
+              externalChatId={openChatId}
+              onConsumeExternal={() => setOpenChatId(null)}
+              onChatChange={onChatChange}
+              syncChat={syncChat}
+              onListScroll={setListScrolled}
+              searchSignal={searchSignal}
+            />
+          )}
           {view === "classes" && (
             <Classes user={user} selected={classSel} onSelect={setClassSel} onOpenChat={openChatFromShell} />
           )}
@@ -409,34 +506,39 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
 
         <ClassroomPage open={classroomOpen} onClose={() => setClassroomOpen(false)} user={user} />
 
-        {/* ناوبری پایین موبایل — کپسول تیره‌ی شناور مثل ایتا؛ پروفایل سمت چپ، گفتگوها سمت راست */}
-        <div className="z-30 px-3 pb-[max(env(safe-area-inset-bottom),0.6rem)] pt-1.5 lg:hidden">
-          <nav dir="ltr" className="mx-auto flex max-w-md items-center justify-between rounded-[30px] bg-nav/95 p-1.5 shadow-[0_10px_30px_rgba(15,23,42,0.18)] backdrop-blur-xl dark:shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
-            {bottomItems.map((n) => {
-              const on = tab === n.v;
-              return (
-                <button
-                  key={n.v}
-                  onClick={() => go(n.v)}
-                  aria-current={on ? "page" : undefined}
-                  className={`flex min-w-0 flex-1 flex-col items-center gap-1 rounded-[22px] px-1 py-2 text-[11px] font-bold transition-colors duration-150 active:scale-95 ${
-                    on ? "bg-accent/15 text-accent" : "text-slate-500 dark:text-slate-300/80"
-                  }`}
-                >
-                  <span className="relative">
-                    {n.icon}
-                    {n.badge > 0 && (
-                      <span className="absolute -right-2.5 -top-1.5 flex min-w-[18px] items-center justify-center rounded-full bg-accent px-1 text-[10px] font-black leading-[18px] text-white">
-                        {fa(n.badge)}
-                      </span>
-                    )}
-                  </span>
-                  <span className="truncate">{n.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-        </div>
+        {/* ناوبری پایین موبایل — کپسول شناور تیره با سایه، بدون نوار یا رنگ زیر آن؛ هنگام باز بودن گفتگو پنهان می‌شود */}
+        {!chatOpen && (
+          <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-2 lg:hidden">
+            <nav
+              dir="ltr"
+              className="pointer-events-auto flex w-full max-w-md items-center justify-between gap-1 rounded-full bg-nav p-1.5 shadow-[0_8px_28px_rgba(15,23,42,0.22)] dark:shadow-[0_8px_28px_rgba(0,0,0,0.55)]"
+            >
+              {bottomItems.map((n) => {
+                const on = tab === n.v;
+                return (
+                  <button
+                    key={n.v}
+                    onClick={() => go(n.v)}
+                    aria-current={on ? "page" : undefined}
+                    className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-full px-1 py-2 text-[11px] font-bold transition-colors duration-200 active:scale-95 ${
+                      on ? "bg-accent/15 text-accent" : "text-slate-500 dark:text-slate-400"
+                    }`}
+                  >
+                    <span className="relative">
+                      {n.icon}
+                      {n.badge > 0 && (
+                        <span className="absolute -right-2.5 -top-1.5 flex min-w-[18px] items-center justify-center rounded-full bg-accent px-1 text-[10px] font-black leading-[18px] text-white">
+                          {fa(n.badge)}
+                        </span>
+                      )}
+                    </span>
+                    <span className="truncate">{n.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+        )}
 
         {/* تأیید خروج از حساب — در همه‌ی نقاط برنامه */}
         <Confirm
