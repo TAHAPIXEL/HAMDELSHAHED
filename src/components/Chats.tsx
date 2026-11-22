@@ -6,6 +6,10 @@ import {
   Send,
   ImagePlus,
   Smile,
+  Square,
+  Paperclip,
+  Mic,
+  ArrowUp,
   Users,
   Megaphone,
   MessagesSquare,
@@ -72,6 +76,8 @@ import {
   type User,
 } from "@/lib/model";
 import { Avatar, Btn, Confirm, Empty, Field, Modal, inputCls, useDbTick, useToast } from "./ui";
+import { FileBubble, PendingBubble, RecBars, VoicePlayer, type PendingUpload } from "./MediaBits";
+import { CHAT_FILE_MAX, FILE_ACCEPT, VoiceRecorder, baseMime, fmtDur, guessMime, uploadChatBlob, type Recording } from "@/lib/chatmedia";
 
 const groupGrad = "bg-gradient-to-br from-emerald-500 to-teal-500";
 const channelGrad = "bg-gradient-to-br from-amber-500 to-orange-500";
@@ -275,7 +281,7 @@ export default function Chats({
                       {c.locked && c.type === "group" && <Lock className="size-3 shrink-0 text-amber-500" />}
                     </div>
                     <div className="mt-0.5 truncate text-[12px] text-slate-400">
-                      {last ? (last.deleted ? "پیام حذف شد" : last.image ? "تصویر پیوست شد" : last.text) : "هنوز پیامی نیست"}
+                      {last ? (last.deleted ? "پیام حذف شد" : last.media ? (last.media.kind === "voice" ? "پیام صوتی" : `فایل: ${last.media.name}`) : last.image ? "تصویر پیوست شد" : last.text) : "هنوز پیامی نیست"}
                     </div>
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1">
@@ -433,6 +439,18 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
   const fileRef = useRef<HTMLInputElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
   const [showEmoji, setShowEmoji] = useState(false);
+  // ضبط ویس: idle → hold (نگه داشتن) → locked (قفل با کشیدن به بالا) → preview (بررسی قبل از ارسال)
+  const [rec, setRec] = useState<"idle" | "hold" | "locked" | "preview">("idle");
+  const [recMs, setRecMs] = useState(0);
+  const [recLevels, setRecLevels] = useState<number[]>([]);
+  const [dragX, setDragX] = useState(0);
+  const [dragY, setDragY] = useState(0);
+  const [preview, setPreview] = useState<(Recording & { url: string }) | null>(null);
+  const [pending, setPending] = useState<PendingUpload[]>([]);
+  const recorderRef = useRef<VoiceRecorder | null>(null);
+  const pressRef = useRef<{ x: number; y: number; released: boolean } | null>(null);
+  const startedRef = useRef(false);
+  const fileInRef = useRef<HTMLInputElement>(null);
   const stickRef = useRef(true);
   // زمان آخرین بازدید پیش از باز شدن این گفتگو. markSeen در effect اجرا می‌شود و وضعیت را پاک می‌کند،
   // پس باید همین‌جا (هنگام mount، قبل از effectها) ثبت شود. ChatWindow با key=chat.id ساخته می‌شود.
@@ -526,7 +544,7 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
     const all = DB.messages();
     const idx = all.findIndex((x) => x.id === m.id);
     if (idx >= 0) {
-      all[idx] = { ...all[idx], deleted: true, text: "", image: undefined };
+      all[idx] = { ...all[idx], deleted: true, text: "", image: undefined, media: undefined };
       DB.saveMessages(all);
     }
     toast("success", "پیام حذف شد");
@@ -551,6 +569,136 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
       toast("error", (err as Error).message || "بارگذاری تصویر ممکن نشد");
     }
     e.target.value = "";
+  };
+
+  /* ---------- فایل و ویس پیام ---------- */
+  useEffect(() => () => recorderRef.current?.cancel(), []);
+
+  const patchPending = (id: string, patch: Partial<PendingUpload>) =>
+    setPending((list) => list.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+
+  /** آپلود با درصد پیشرفت؛ حباب در حال ارسال تا پایان آپلود در گفتگو می‌ماند */
+  const sendMedia = async (kind: "voice" | "file", blob: Blob, name: string, mime: string, extra?: { duration?: number; wave?: number[] }) => {
+    const id = uid("pu");
+    stickRef.current = true;
+    anchorRef.current = false;
+    setPending((list) => [...list, { id, kind, name, size: blob.size, progress: 0 }]);
+    try {
+      const url = await uploadChatBlob(blob, mime, (p) => patchPending(id, { progress: p }));
+      sendMessage(chat.id, user, "", undefined, { kind, url, name, mime: baseMime(mime), size: blob.size, ...extra });
+      setPending((list) => list.filter((p) => p.id !== id));
+    } catch (err) {
+      patchPending(id, { error: (err as Error).message || "ارسال انجام نشد" });
+    }
+  };
+
+  const pickFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    e.target.value = "";
+    if (!f) return;
+    const mime = guessMime(f.name, f.type);
+    if (!mime) return toast("error", "این نوع فایل پذیرفته نمی‌شود");
+    if (f.size > CHAT_FILE_MAX) return toast("error", "حجم فایل بیش از ۲۵ مگابایت است");
+    void sendMedia("file", f, f.name, mime);
+  };
+
+  const startRec = async (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (rec !== "idle" || recorderRef.current) return;
+    e.preventDefault();
+    const press = { x: e.clientX, y: e.clientY, released: false };
+    pressRef.current = press;
+    const r = new VoiceRecorder();
+    r.onLevel = (lv, ms) => {
+      setRecLevels(lv.slice(-40));
+      setRecMs(ms);
+    };
+    recorderRef.current = r;
+    startedRef.current = false;
+    setRec("hold");
+    setDragX(0);
+    setDragY(0);
+    setRecMs(0);
+    setRecLevels([]);
+    try {
+      e.currentTarget.setPointerCapture?.(e.pointerId);
+      await r.start();
+    } catch (err) {
+      recorderRef.current = null;
+      pressRef.current = null;
+      setRec("idle");
+      toast("error", (err as Error).message || "میکروفون در دسترس نیست؛ دسترسی میکروفون را بدهید.");
+      return;
+    }
+    startedRef.current = true;
+    if (press.released) finishRec();
+  };
+
+  const moveRec = (e: React.PointerEvent) => {
+    const press = pressRef.current;
+    if (!press || rec !== "hold") return;
+    const dx = e.clientX - press.x;
+    const dy = e.clientY - press.y;
+    if (dx < -120) return cancelRec();
+    if (dy < -90) {
+      pressRef.current = null;
+      setRec("locked");
+      setDragX(0);
+      setDragY(0);
+      return;
+    }
+    setDragX(Math.min(0, dx));
+    setDragY(Math.min(0, dy));
+  };
+
+  const upRec = () => {
+    const press = pressRef.current;
+    if (!press) return;
+    press.released = true;
+    if (startedRef.current) finishRec();
+  };
+
+  const resetRec = () => {
+    recorderRef.current = null;
+    pressRef.current = null;
+    startedRef.current = false;
+    setRec("idle");
+    setRecLevels([]);
+    setDragX(0);
+    setDragY(0);
+  };
+
+  const cancelRec = () => {
+    recorderRef.current?.cancel();
+    resetRec();
+  };
+
+  /** پایان ضبط: ویس کوتاه‌تر از نیم ثانیه دور ریخته می‌شود؛ بقیه برای بررسی نمایش داده می‌شوند */
+  const finishRec = () => {
+    const r = recorderRef.current;
+    if (!r) return resetRec();
+    if (r.elapsed() < 600) return cancelRec();
+    recorderRef.current = null;
+    pressRef.current = null;
+    startedRef.current = false;
+    setRec("preview");
+    r.stop()
+      .then((res) => setPreview({ ...res, url: URL.createObjectURL(res.blob) }))
+      .catch(() => resetRec());
+  };
+
+  const discardPreview = () => {
+    if (preview) URL.revokeObjectURL(preview.url);
+    setPreview(null);
+    setRec("idle");
+  };
+
+  const sendPreview = () => {
+    if (!preview) return;
+    const p = preview;
+    setPreview(null);
+    setRec("idle");
+    void sendMedia("voice", p.blob, "پیام صوتی", p.mime, { duration: p.duration, wave: p.wave });
+    setTimeout(() => URL.revokeObjectURL(p.url), 60_000);
   };
 
   return (
@@ -614,7 +762,7 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
               <div className="min-w-0 flex-1">
                 <div className="text-[10.5px] font-black text-amber-600 dark:text-amber-300">پیام سنجاق‌شده</div>
                 <div className="truncate text-[12.5px] font-bold text-slate-700 dark:text-slate-200">
-                  {pm.poll ? `نظرسنجی: ${pm.poll.question}` : pm.image ? "تصویر" : pm.text}
+                  {pm.poll ? `نظرسنجی: ${pm.poll.question}` : pm.media ? (pm.media.kind === "voice" ? "پیام صوتی" : pm.media.name) : pm.image ? "تصویر" : pm.text}
                 </div>
               </div>
             </button>
@@ -703,6 +851,15 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
                     <PollBubble poll={m.poll} messageId={m.id} me={user} mine={mine} />
                   ) : (
                     <>
+                      {m.media && (
+                        <div className="mb-1.5" onClick={(e) => e.stopPropagation()}>
+                          {m.media.kind === "voice" ? (
+                            <VoicePlayer src={m.media.url} wave={m.media.wave} duration={m.media.duration} mine={mine} />
+                          ) : (
+                            <FileBubble media={m.media} mine={mine} />
+                          )}
+                        </div>
+                      )}
                       {m.image && (
                         <button
                           onClick={(e) => { e.stopPropagation(); setViewer(m.image!); }}
@@ -745,6 +902,9 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
             </div>
           );
         })}
+        {pending.map((p) => (
+          <PendingBubble key={p.id} p={p} onDismiss={() => setPending((list) => list.filter((x) => x.id !== p.id))} />
+        ))}
       </div>
 
       {/* نوار ارسال */}
@@ -766,59 +926,129 @@ function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: ()
                 </button>
               </div>
             )}
-            <div className="relative flex items-end gap-1.5">
-              {showEmoji && <EmojiPanel onPick={(e) => insertAtCursor(taRef.current, e, setText)} onClose={() => setShowEmoji(false)} />}
-              {/* ایموجی — سمت چپ */}
-              <button
-                onClick={() => setShowEmoji((o) => !o)}
-                className={`grid size-11 shrink-0 place-items-center rounded-full transition ${showEmoji ? "text-[#3b7ae0]" : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"}`}
-                aria-label="ایموجی"
-              >
-                <Smile className="size-6" />
-              </button>
-              <textarea
-                ref={taRef}
-                rows={1}
-                value={text}
-                onChange={(e) => {
-                  setText(e.target.value);
-                  e.target.style.height = "auto";
-                  e.target.style.height = Math.min(e.target.scrollHeight, 140) + "px";
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    submit();
-                  }
-                }}
-                onFocus={() => setShowEmoji(false)}
-                placeholder="پیام خود را بنویسید..."
-                className="max-h-[140px] min-h-11 flex-1 resize-none rounded-3xl bg-slate-100 px-4 py-2.5 text-sm outline-none transition placeholder:text-slate-400 focus:bg-slate-100/80 dark:bg-white/10 dark:focus:bg-white/15"
-              />
-              {!text.trim() && !image ? (
-                <>
-                  {isStaff(user) && chat.type !== "direct" && (
-                    <button onClick={() => setShowPoll(true)} className="grid size-11 shrink-0 place-items-center rounded-full text-slate-400 transition hover:text-slate-600 dark:hover:text-slate-200" aria-label="ایجاد نظرسنجی" title="ایجاد نظرسنجی">
-                      <BarChart3 className="size-5" />
-                    </button>
-                  )}
-                  <button onClick={() => fileRef.current?.click()} className="grid size-11 shrink-0 place-items-center rounded-full text-slate-400 transition hover:text-slate-600 dark:hover:text-slate-200" aria-label="ارسال تصویر">
-                    <ImagePlus className="size-5" />
-                  </button>
-                  <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={pickImage} />
-                </>
-              ) : (
-                /* ارسال — دایره‌ای، سمت راست */
-                <button
-                  onClick={submit}
-                  disabled={!text.trim() && !image}
-                  className="grid size-11 shrink-0 place-items-center rounded-full bg-[#4f8ff0] text-white shadow-md shadow-[#4f8ff0]/30 transition active:scale-90 disabled:opacity-40"
-                  aria-label="ارسال"
-                >
+            {rec === "preview" && preview ? (
+              <div className="flex items-center gap-2">
+                <button onClick={discardPreview} className="grid size-11 shrink-0 place-items-center rounded-full text-rose-500 transition hover:bg-rose-50 active:scale-90 dark:hover:bg-rose-500/10" aria-label="حذف ویس">
+                  <Trash2 className="size-5" />
+                </button>
+                <div className="flex min-w-0 flex-1 items-center rounded-3xl bg-slate-100 px-3 py-2 dark:bg-white/10">
+                  <VoicePlayer src={preview.url} wave={preview.wave} duration={preview.duration} mine={false} />
+                </div>
+                <button onClick={sendPreview} className="grid size-11 shrink-0 place-items-center rounded-full bg-[#4f8ff0] text-white shadow-md shadow-[#4f8ff0]/30 transition active:scale-90" aria-label="ارسال ویس">
                   <Send className="size-5 -scale-x-100" />
                 </button>
-              )}
-            </div>
+              </div>
+            ) : rec === "locked" ? (
+              <div className="flex items-center gap-2">
+                <button onClick={cancelRec} className="grid size-11 shrink-0 place-items-center rounded-full text-rose-500 transition hover:bg-rose-50 active:scale-90 dark:hover:bg-rose-500/10" aria-label="لغو ضبط">
+                  <Trash2 className="size-5" />
+                </button>
+                <div className="flex min-w-0 flex-1 items-center gap-2.5 rounded-3xl bg-rose-50 px-4 py-2.5 dark:bg-rose-500/10">
+                  <span className="size-2.5 shrink-0 animate-pulse rounded-full bg-rose-500" />
+                  <span dir="ltr" className="shrink-0 text-sm font-bold tabular-nums text-rose-600 dark:text-rose-300">{fmtDur(recMs)}</span>
+                  <RecBars levels={recLevels} />
+                </div>
+                <button onClick={finishRec} className="grid size-11 shrink-0 place-items-center rounded-full bg-rose-500 text-white shadow-md shadow-rose-500/30 transition active:scale-90" aria-label="پایان ضبط">
+                  <Square className="size-4 fill-current" />
+                </button>
+              </div>
+            ) : (
+              <div className="relative flex items-end gap-1.5">
+                {showEmoji && rec === "idle" && <EmojiPanel onPick={(e) => insertAtCursor(taRef.current, e, setText)} onClose={() => setShowEmoji(false)} />}
+                {/* ایموجی — سمت چپ */}
+                {rec === "idle" && (
+                  <button
+                    onClick={() => setShowEmoji((o) => !o)}
+                    className={`grid size-11 shrink-0 place-items-center rounded-full transition ${showEmoji ? "text-[#3b7ae0]" : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"}`}
+                    aria-label="ایموجی"
+                  >
+                    <Smile className="size-6" />
+                  </button>
+                )}
+                {rec === "hold" ? (
+                  <div className="flex min-h-11 flex-1 items-center gap-2.5 rounded-3xl bg-rose-50 px-4 py-2.5 dark:bg-rose-500/10">
+                    <span className="size-2.5 shrink-0 animate-pulse rounded-full bg-rose-500" />
+                    <span dir="ltr" className="shrink-0 text-sm font-bold tabular-nums text-rose-600 dark:text-rose-300">{fmtDur(recMs)}</span>
+                    <span className="min-w-0 flex-1 truncate text-center text-[13px] font-bold text-slate-400" style={{ transform: `translateX(${dragX / 2}px)` }}>
+                      ◀ بکشید برای لغو
+                    </span>
+                  </div>
+                ) : (
+                  <textarea
+                    ref={taRef}
+                    rows={1}
+                    value={text}
+                    onChange={(e) => {
+                      setText(e.target.value);
+                      e.target.style.height = "auto";
+                      e.target.style.height = Math.min(e.target.scrollHeight, 140) + "px";
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        submit();
+                      }
+                    }}
+                    onFocus={() => setShowEmoji(false)}
+                    placeholder="پیام خود را بنویسید..."
+                    className="max-h-[140px] min-h-11 flex-1 resize-none rounded-3xl bg-slate-100 px-4 py-2.5 text-sm outline-none transition placeholder:text-slate-400 focus:bg-slate-100/80 dark:bg-white/10 dark:focus:bg-white/15"
+                  />
+                )}
+                {rec === "idle" &&
+                  (!text.trim() && !image ? (
+                    <>
+                      {isStaff(user) && chat.type !== "direct" && (
+                        <button onClick={() => setShowPoll(true)} className="grid size-11 shrink-0 place-items-center rounded-full text-slate-400 transition hover:text-slate-600 dark:hover:text-slate-200" aria-label="ایجاد نظرسنجی" title="ایجاد نظرسنجی">
+                          <BarChart3 className="size-5" />
+                        </button>
+                      )}
+                      <button onClick={() => fileRef.current?.click()} className="grid size-11 shrink-0 place-items-center rounded-full text-slate-400 transition hover:text-slate-600 dark:hover:text-slate-200" aria-label="ارسال تصویر">
+                        <ImagePlus className="size-5" />
+                      </button>
+                      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={pickImage} />
+                      <button onClick={() => fileInRef.current?.click()} className="grid size-11 shrink-0 place-items-center rounded-full text-slate-400 transition hover:text-slate-600 dark:hover:text-slate-200" aria-label="ارسال فایل">
+                        <Paperclip className="size-5" />
+                      </button>
+                      <input ref={fileInRef} type="file" accept={FILE_ACCEPT} className="hidden" onChange={pickFile} />
+                    </>
+                  ) : (
+                    /* ارسال — دایره‌ای، سمت راست */
+                    <button
+                      onClick={submit}
+                      disabled={!text.trim() && !image}
+                      className="grid size-11 shrink-0 place-items-center rounded-full bg-[#4f8ff0] text-white shadow-md shadow-[#4f8ff0]/30 transition active:scale-90 disabled:opacity-40"
+                      aria-label="ارسال"
+                    >
+                      <Send className="size-5 -scale-x-100" />
+                    </button>
+                  ))}
+                {/* میکروفون — سمت راست؛ نگه دارید و ضبط کنید */}
+                {(rec === "hold" || (rec === "idle" && !text.trim() && !image)) && (
+                  <button
+                    onPointerDown={startRec}
+                    onPointerMove={moveRec}
+                    onPointerUp={upRec}
+                    onPointerCancel={upRec}
+                    onContextMenu={(e) => e.preventDefault()}
+                    className={`relative grid size-11 shrink-0 touch-none select-none place-items-center rounded-full text-white shadow-md transition duration-200 ${
+                      rec === "hold" ? "scale-125 bg-rose-500 shadow-rose-500/30" : "bg-[#4f8ff0] shadow-[#4f8ff0]/30 active:scale-95"
+                    }`}
+                    aria-label="ضبط ویس"
+                  >
+                    <Mic className="size-5" />
+                    {rec === "hold" && (
+                      <span
+                        className="pointer-events-none absolute bottom-full right-0 mb-3 flex flex-col items-center gap-1 rounded-full bg-white px-2.5 py-2.5 text-slate-500 shadow-lg dark:bg-slate-800"
+                        style={{ transform: `translateY(${dragY}px)` }}
+                      >
+                        <Lock className="size-4" />
+                        <ArrowUp className="size-3.5" />
+                      </span>
+                    )}
+                  </button>
+                )}
+              </div>
+            )}
           </>
         ) : (
           <div className="flex items-center justify-center gap-2 py-2 text-[13px] font-bold text-slate-400">

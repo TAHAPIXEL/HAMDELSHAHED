@@ -9,7 +9,33 @@ import { HttpError } from "./http";
 
 export const BUCKET = process.env.SUPABASE_STORAGE_BUCKET?.trim() || "hamdel-media";
 export const MAX_UPLOAD_BYTES = 3 * 1024 * 1024;
-const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+/** فایل‌های پیام (صوت و سند): MIME مجاز => پسوند ذخیره‌سازی */
+export const CHAT_MIME: Record<string, string> = {
+  "audio/webm": "webm",
+  "audio/ogg": "ogg",
+  "audio/mp4": "m4a",
+  "audio/mpeg": "mp3",
+  "audio/wav": "wav",
+  "audio/aac": "aac",
+  "application/pdf": "pdf",
+  "application/msword": "doc",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+  "application/vnd.ms-excel": "xls",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
+  "application/vnd.ms-powerpoint": "ppt",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation": "pptx",
+  "text/plain": "txt",
+  "application/zip": "zip",
+  "application/vnd.rar": "rar",
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/gif": "gif",
+};
+/** حداکثر حجم فایل پیام و ویس (بایت). آپلود مستقیم به فضای ابری است و از سقف بدنه‌ی Vercel نمی‌گذرد. */
+export const CHAT_MAX_BYTES = 25 * 1024 * 1024;
+export const VOICE_MAX_BYTES = 20 * 1024 * 1024;
+const ALLOWED_MIME = Object.keys(CHAT_MIME);
 
 let client: SupabaseClient | null = null;
 
@@ -29,10 +55,19 @@ function ensureBucket(): Promise<void> {
   bucketReady ??= (async () => {
     const s = storageClient();
     const existing = await s.storage.getBucket(BUCKET);
-    if (!existing.error) return;
+    if (!existing.error) {
+      // تنظیمات سطل را برای فایل‌های پیام به‌روز می‌کند (MIME و حجم)
+      const upd = await s.storage.updateBucket(BUCKET, {
+        public: true,
+        fileSizeLimit: CHAT_MAX_BYTES,
+        allowedMimeTypes: ALLOWED_MIME,
+      });
+      if (upd.error) console.error("[storage bucket update]", upd.error.message);
+      return;
+    }
     const created = await s.storage.createBucket(BUCKET, {
       public: true,
-      fileSizeLimit: MAX_UPLOAD_BYTES,
+      fileSizeLimit: CHAT_MAX_BYTES,
       allowedMimeTypes: ALLOWED_MIME,
     });
     if (created.error && !/already exists|duplicate/i.test(created.error.message)) {
@@ -154,4 +189,29 @@ export async function purgeAllMedia(): Promise<number> {
   }
   await query(`delete from hamdel_media`);
   return rows.length;
+}
+
+/** آیا آدرس، فایل پیامی است که از همین سامانه در پوشه‌ی chat/ ذخیره شده است؟ */
+export function isStoredChatUrl(url: unknown): url is string {
+  const base = storedImagePrefix();
+  return typeof url === "string" && !!base && url.length <= 1000 && url.startsWith(`${base}chat/`) && url.length > base.length + 5;
+}
+
+/**
+ * آدرس آپلود مستقیم (امضاشده) برای فایل پیام. مرورگر مستقیم به فضای ابری PUT می‌کند،
+ * پس حجم فایل از سقف بدنه‌ی Vercel عبور نمی‌کند.
+ */
+export async function createChatUpload(mime: string): Promise<{ uploadUrl: string; url: string }> {
+  const ext = CHAT_MIME[mime];
+  if (!ext) throw new HttpError(415, "این نوع فایل پذیرفته نمی‌شود.");
+  await ensureBucket();
+  const base = storedImagePrefix();
+  if (!base) throw new HttpError(503, "ذخیره‌سازی فایل هنوز پیکربندی نشده است.");
+  const path = `chat/${randomUUID()}.${ext}`;
+  const { data, error } = await storageClient().storage.from(BUCKET).createSignedUploadUrl(path);
+  if (error || !data) {
+    console.error("[storage sign]", error?.message);
+    throw new HttpError(503, "آپلود فایل در این لحظه ممکن نیست؛ کمی بعد دوباره تلاش کنید.");
+  }
+  return { uploadUrl: data.signedUrl, url: `${base}${path}` };
 }

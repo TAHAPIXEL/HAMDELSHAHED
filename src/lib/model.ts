@@ -107,12 +107,24 @@ export interface Poll {
   votes: Record<string, number>; // userId -> optionIndex
 }
 
+/** فایل پیوست‌شده‌ی پیام: ویس یا سند؛ url فقط به فضای ذخیره‌ی همین سامانه اشاره می‌کند */
+export interface ChatMedia {
+  kind: "voice" | "file";
+  url: string;
+  name: string;
+  mime: string;
+  size: number;
+  duration?: number; // ms
+  wave?: number[]; // ۴۸ مقدار بین ۰ تا ۱ برای نمایش شکل موج
+}
+
 export interface Message {
   id: string;
   chatId: string;
   senderId: string;
   text: string;
   image?: string; // dataURL
+  media?: ChatMedia;
   poll?: Poll; // نظرسنجی
   createdAt: number;
   editedAt?: number;
@@ -663,7 +675,7 @@ export function chatAvatarUser(c: Chat, me: User): User | undefined {
   return DB.users().find((u) => u.id === otherId);
 }
 
-export function sendMessage(chatId: string, sender: User, text: string, image?: string) {
+export function sendMessage(chatId: string, sender: User, text: string, image?: string, media?: ChatMedia) {
   const messages = DB.messages();
   messages.push({
     id: uid("m"),
@@ -671,6 +683,7 @@ export function sendMessage(chatId: string, sender: User, text: string, image?: 
     senderId: sender.id,
     text: text.trim(),
     image,
+    media,
     createdAt: Date.now(),
   });
   DB.saveMessages(messages);

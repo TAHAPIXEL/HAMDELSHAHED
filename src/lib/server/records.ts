@@ -14,7 +14,7 @@ import {
   type CollectionKey,
 } from "@/lib/collections";
 import { HttpError } from "./http";
-import { isInlineAvatar, isStoredImageUrl } from "./storage";
+import { CHAT_MAX_BYTES, isInlineAvatar, isStoredChatUrl, isStoredImageUrl } from "./storage";
 import type { Viewer } from "./session";
 
 export interface RecordRow {
@@ -37,6 +37,27 @@ const MAX_RECORD_CHARS = 300_000;
 const CHANGES_PAGE = 1000;
 
 /** کلیدهایی که دسترسی‌شان محدود است */
+/** فایل پیام (ویس یا سند) فقط باید به فایل‌های همین سامانه در پوشه‌ی chat/ اشاره کند */
+function validateChatMedia(raw: unknown): void {
+  const m = raw as Record<string, unknown> | null;
+  if (!m || typeof m !== "object" || (m.kind !== "voice" && m.kind !== "file")) {
+    throw new HttpError(400, "فایل پیام نامعتبر است.");
+  }
+  if (!isStoredChatUrl(m.url)) throw new HttpError(400, "آدرس فایل پیام نامعتبر است.");
+  if (typeof m.name !== "string" || m.name.length > 200) throw new HttpError(400, "نام فایل نامعتبر است.");
+  if (typeof m.mime !== "string" || m.mime.length > 100) throw new HttpError(400, "نوع فایل نامعتبر است.");
+  if (typeof m.size !== "number" || m.size <= 0 || m.size > CHAT_MAX_BYTES) throw new HttpError(400, "حجم فایل نامعتبر است.");
+  if (m.duration !== undefined && (typeof m.duration !== "number" || m.duration < 0 || m.duration > 36_000)) {
+    throw new HttpError(400, "مدت ویس نامعتبر است.");
+  }
+  if (
+    m.wave !== undefined &&
+    (!Array.isArray(m.wave) || m.wave.length > 64 || m.wave.some((v) => typeof v !== "number" || v < 0 || v > 1))
+  ) {
+    throw new HttpError(400, "شکل موج ویس نامعتبر است.");
+  }
+}
+
 const RESTRICTED = ["chats", "messages", "subs", "hwsubs", "attendance", "seen", "noticeReads"] as const;
 
 /**
@@ -291,6 +312,7 @@ async function enforceRules(viewer: Viewer, ops: SyncOp[]): Promise<void> {
           break;
         }
         const next = op.d as Record<string, unknown>;
+        if (next.media !== undefined && next.media !== null) validateChatMedia(next.media);
         if (prev && prev.senderId !== next.senderId) throw new HttpError(403, "فرستنده‌ی پیام قابل تغییر نیست.");
         if (!prev && next.senderId !== viewer.id && !sensitive) {
           throw new HttpError(403, "پیام باید به نام خودتان ثبت شود.");
