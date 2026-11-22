@@ -110,7 +110,7 @@ export function Avatar({
   return (
     <div
       className={`relative flex shrink-0 select-none items-center justify-center overflow-hidden rounded-full bg-gradient-to-br font-bold text-white ${palette} ${
-        ring ? "ring-2 ring-white/70 dark:ring-white/10" : ""
+        ring ? "ring-2 ring-surface/70 dark:ring-white/10" : ""
       } ${className}`}
       style={{ width: size, height: size, fontSize: size * 0.42 }}
     >
@@ -171,11 +171,11 @@ export function Modal({
   if (!open) return null;
   if (page) {
     return (
-      <div role="dialog" aria-modal="true" aria-label={title} className="fixed inset-0 z-[90] flex flex-col bg-white dark:bg-slate-900">
-        <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3.5 sm:px-6 dark:border-white/5">
+      <div role="dialog" aria-modal="true" aria-label={title} className="fixed inset-0 z-[90] flex flex-col bg-surface dark:bg-ink">
+        <div className="flex items-center gap-3 border-b border-line px-4 py-3.5 sm:px-6 dark:border-white/5">
           <button
             onClick={onClose}
-            className="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 dark:text-slate-300 dark:hover:bg-white/10"
+            className="rounded-xl p-2 text-slate-500 transition hover:bg-surface-2 hover:text-slate-800 dark:text-slate-300 dark:hover:bg-white/10"
             aria-label="بازگشت"
           >
             <ArrowRight className="size-5" />
@@ -193,20 +193,20 @@ export function Modal({
   }
   return (
     <div className="fixed inset-0 z-[90] flex items-end justify-center p-0 sm:items-center sm:p-6">
-      <div className="modal-bg absolute inset-0 bg-slate-950/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="modal-bg absolute inset-0 bg-scrim/50 backdrop-blur-sm" onClick={onClose} />
       <div
-        className={`modal-pop relative flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-3xl border border-slate-200/70 bg-white shadow-2xl dark:border-white/10 dark:bg-slate-900 sm:rounded-3xl ${
+        className={`modal-pop relative flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-3xl border border-line/70 bg-surface shadow-2xl dark:border-white/10 dark:bg-ink sm:rounded-3xl ${
           wide ? "sm:max-w-3xl" : "sm:max-w-lg"
         }`}
       >
-        <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 dark:border-white/5">
+        <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4 dark:border-white/5">
           <div className="flex items-center gap-2.5 font-bold text-slate-800 dark:text-slate-100">
             {icon}
             <span>{title}</span>
           </div>
           <button
             onClick={onClose}
-            className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/10 dark:hover:text-slate-200"
+            className="rounded-xl p-2 text-slate-400 transition hover:bg-surface-2 hover:text-slate-700 dark:hover:bg-white/10 dark:hover:text-slate-200"
             aria-label="بستن"
           >
             <X className="size-5" />
@@ -249,7 +249,7 @@ export function Field({
 }
 
 export const inputCls =
-  "w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100 dark:focus:border-indigo-400/60 dark:focus:bg-white/[0.07]";
+  "w-full rounded-xl border border-line bg-app/60 px-3.5 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-surface focus:ring-4 focus:ring-indigo-500/10 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100 dark:focus:border-indigo-400/60 dark:focus:bg-white/[0.07]";
 
 /**
  * ورودی رمز عبور با دکمه چشم برای نمایش/پنهان کردن رمز
@@ -297,7 +297,7 @@ export function PasswordInput({
       <button
         type="button"
         onClick={() => setShow((s) => !s)}
-        className="absolute left-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-white/10"
+        className="absolute left-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-slate-400 transition hover:bg-surface-2 hover:text-indigo-600 dark:hover:bg-white/10"
         aria-label={show ? "پنهان کردن رمز" : "نمایش رمز"}
         title={show ? "پنهان کردن رمز" : "نمایش رمز"}
         tabIndex={-1}
@@ -323,7 +323,7 @@ export function SecretReveal({ value, label = "رمز عبور" }: { value: stri
       </span>
       <button
         onClick={() => setShow((s) => !s)}
-        className="shrink-0 rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-white/10"
+        className="shrink-0 rounded-lg p-1 text-slate-400 transition hover:bg-surface-2 hover:text-indigo-600 dark:hover:bg-white/10"
         aria-label={show ? `پنهان کردن ${label}` : `نمایش ${label}`}
         title={show ? "پنهان کردن" : "نمایش"}
       >
@@ -336,7 +336,7 @@ export function SecretReveal({ value, label = "رمز عبور" }: { value: stri
             () => push("error", "کپی ممکن نشد")
           )
         }
-        className="shrink-0 rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-white/10"
+        className="shrink-0 rounded-lg p-1 text-slate-400 transition hover:bg-surface-2 hover:text-indigo-600 dark:hover:bg-white/10"
         aria-label={`کپی ${label}`}
         title="کپی"
       >
@@ -370,7 +370,7 @@ export function Btn({
       "bg-gradient-to-l from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-600/25 hover:shadow-indigo-600/40 hover:brightness-110",
     soft: "bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20",
     ghost:
-      "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-white/10 dark:bg-transparent dark:text-slate-300 dark:hover:bg-white/5",
+      "border border-line bg-surface text-slate-600 hover:bg-app dark:border-white/10 dark:bg-transparent dark:text-slate-300 dark:hover:bg-white/5",
     danger: "bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-500/10 dark:text-rose-300 dark:hover:bg-rose-500/20",
   };
   return (
@@ -387,7 +387,7 @@ export function Btn({
 
 export function Chip({ children, tone = "slate" }: { children: ReactNode; tone?: "slate" | "green" | "red" | "amber" | "indigo" | "violet" }) {
   const tones = {
-    slate: "bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300",
+    slate: "bg-surface-2 text-slate-600 dark:bg-white/10 dark:text-slate-300",
     green: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300",
     red: "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300",
     amber: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300",
@@ -420,14 +420,14 @@ export function Seg<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <div className="flex rounded-xl border border-slate-200 bg-slate-100/70 p-1 dark:border-white/10 dark:bg-white/5">
+    <div className="flex rounded-xl border border-line bg-surface-2/70 p-1 dark:border-white/10 dark:bg-white/5">
       {options.map((o) => (
         <button
           key={o.value}
           onClick={() => onChange(o.value)}
           className={`flex-1 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-[12px] font-bold transition ${
             value === o.value
-              ? "bg-white text-indigo-700 shadow dark:bg-white/15 dark:text-indigo-200"
+              ? "bg-surface text-indigo-700 shadow dark:bg-white/15 dark:text-indigo-200"
               : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
           }`}
         >
@@ -445,10 +445,10 @@ export function Toggle({ checked, onChange, label }: { checked: boolean; onChang
       className="flex items-center gap-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300"
     >
       <span
-        className={`relative h-6 w-11 rounded-full transition ${checked ? "bg-indigo-600" : "bg-slate-300 dark:bg-white/15"}`}
+        className={`relative h-6 w-11 rounded-full transition ${checked ? "bg-indigo-600" : "bg-line-strong dark:bg-white/15"}`}
       >
         <span
-          className={`absolute top-0.5 size-5 rounded-full bg-white shadow transition-all ${checked ? "left-[1.4rem]" : "left-0.5"}`}
+          className={`absolute top-0.5 size-5 rounded-full bg-surface shadow transition-all ${checked ? "left-[1.4rem]" : "left-0.5"}`}
         />
       </span>
       {label}
@@ -470,7 +470,7 @@ export function Stat({ label, value, icon, tone }: { label: string; value: strin
 
 export function Splash() {
   return (
-    <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-6 bg-gradient-to-br from-slate-50 via-indigo-50/60 to-violet-50 dark:from-slate-950 dark:via-indigo-950/40 dark:to-slate-950">
+    <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-6 bg-gradient-to-br from-app via-accent/10 to-app">
       <div className="splash-logo relative flex size-24 items-center justify-center rounded-[2rem] bg-gradient-to-br from-indigo-600 to-violet-600 shadow-2xl shadow-indigo-600/40">
         <svg viewBox="0 0 24 24" className="size-12 text-white" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M22 10L12 5 2 10l10 5 10-5z" />

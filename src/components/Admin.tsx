@@ -116,7 +116,7 @@ export default function Admin({ user }: { user: User }) {
           </div>
         )}
         {isDev && (
-          <div className="anim-fade-up mb-5 flex items-center gap-3 rounded-2xl bg-gradient-to-l from-slate-800 to-slate-900 px-5 py-4 text-white dark:from-indigo-950 dark:to-slate-900">
+          <div className="anim-fade-up mb-5 flex items-center gap-3 rounded-2xl bg-gradient-to-l from-ink to-ink px-5 py-4 text-white dark:from-accent-50 dark:to-ink">
             <Crown className="size-6 shrink-0 text-amber-400" />
             <div>
               <div className="text-sm font-black">ورود مدیر ارشد</div>
@@ -126,13 +126,13 @@ export default function Admin({ user }: { user: User }) {
         )}
 
         {/* تب‌ها */}
-        <div className="mb-6 flex gap-1.5 overflow-x-auto rounded-2xl bg-slate-100 p-1.5 dark:bg-white/5">
+        <div className="mb-6 flex gap-1.5 overflow-x-auto rounded-2xl bg-surface-2 p-1.5 dark:bg-white/5">
           {tabs.filter((t) => t.show).map((t) => (
             <button
               key={t.v}
               onClick={() => setTab(t.v)}
               className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-[12.5px] font-bold transition ${
-                tab === t.v ? "bg-white text-indigo-700 shadow-sm dark:bg-white/15 dark:text-indigo-200" : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
+                tab === t.v ? "bg-surface text-indigo-700 shadow-sm dark:bg-white/15 dark:text-indigo-200" : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
               }`}
             >
               {t.icon}
@@ -276,7 +276,7 @@ function UsersTab({ actor }: { actor: User }) {
             {/* اکشن‌ها — در گوشی به ردیف بعدی می‌روند و از صفحه بیرون نمی‌زنند */}
             <div className="mt-3 flex flex-wrap items-center gap-2">
               {canViewPasswords(actor) && (
-                <div className="flex min-w-0 max-w-full flex-1 items-center gap-1 rounded-xl bg-slate-50 px-3 py-2 text-[11.5px] dark:bg-white/5 sm:flex-none">
+                <div className="flex min-w-0 max-w-full flex-1 items-center gap-1 rounded-xl bg-app px-3 py-2 text-[11.5px] dark:bg-white/5 sm:flex-none">
                   <span className="shrink-0 text-[10px] font-bold text-slate-400">رمز:</span>
                   <SecretReveal value={u.password} />
                 </div>
@@ -350,7 +350,7 @@ function PasswordModal({ user, onClose }: { user: User; onClose: () => void }) {
 // بیرون از کامپوننت تعریف می‌شود تا با هر به‌روزرسانی دوباره ساخته نشود (رفع چشمک‌زدن)
 function DetailItem({ label, value, ltr }: { label: string; value?: string; ltr?: boolean }) {
   return (
-    <div className="rounded-xl bg-slate-50 px-3.5 py-3 dark:bg-white/5">
+    <div className="rounded-xl bg-app px-3.5 py-3 dark:bg-white/5">
       <div className="text-[10.5px] font-bold text-slate-400">{label}</div>
       <div className={`user-text mt-0.5 text-[13px] font-black text-slate-700 dark:text-slate-200 ${ltr ? "text-left" : ""}`} dir={ltr ? "ltr" : undefined}>
         {value || "—"}
@@ -376,7 +376,7 @@ function UserDetailModal({ user, viewer, onClose }: { user: User; viewer: User; 
       <div className="grid gap-2 sm:grid-cols-2">
         <DetailItem label="شماره تلفن" value={user.phone} ltr />
         {canViewPasswords(viewer) && (
-          <div className="rounded-xl bg-slate-50 px-3.5 py-3">
+          <div className="rounded-xl bg-app px-3.5 py-3">
             <div className="text-[10.5px] font-bold text-slate-400">رمز عبور</div>
             <div className="mt-1"><SecretReveal value={user.password} /></div>
           </div>
@@ -459,7 +459,7 @@ function AddStaff() {
                 key={o.v}
                 onClick={() => setRole(o.v)}
                 className={`rounded-xl border px-2 py-2.5 text-[12px] font-black transition ${
-                  role === o.v ? "border-indigo-400 bg-indigo-50 text-indigo-700 dark:border-indigo-400/50 dark:bg-indigo-500/10 dark:text-indigo-300" : "border-slate-200 text-slate-500 dark:border-white/10"
+                  role === o.v ? "border-indigo-400 bg-indigo-50 text-indigo-700 dark:border-indigo-400/50 dark:bg-indigo-500/10 dark:text-indigo-300" : "border-line text-slate-500 dark:border-white/10"
                 }`}
               >
                 {o.l}
@@ -478,7 +478,7 @@ function AddStaff() {
         <Field label="عکس پروفایل (اختیاری)">
           <div className="flex items-center gap-3">
             <Avatar user={{ id: phone || "x", firstName: firstName || "؟", lastName: "", avatar }} size={46} />
-            <button onClick={() => fileRef.current?.click()} className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 px-3 py-3 text-[12.5px] font-bold text-slate-500 transition hover:border-indigo-300 dark:border-white/10">
+            <button onClick={() => fileRef.current?.click()} className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-line px-3 py-3 text-[12.5px] font-bold text-slate-500 transition hover:border-indigo-300 dark:border-white/10">
               <Camera className="size-4" />
               {avatar ? "تغییر عکس" : "انتخاب عکس"}
             </button>
@@ -546,7 +546,7 @@ function ChatsTab({ actor }: { actor: User }) {
           {c.type === "group" && manage && (
             <button
               onClick={() => toggleLock(c)}
-              className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-black transition ${c.locked ? "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300" : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/10 dark:text-slate-300"}`}
+              className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-black transition ${c.locked ? "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300" : "bg-surface-2 text-slate-600 hover:bg-line dark:bg-white/10 dark:text-slate-300"}`}
             >
               {c.locked ? <Unlock className="size-3.5" /> : <Lock className="size-3.5" />}
               {c.locked ? "رفع محدودیت" : "فقط کادر"}
@@ -623,7 +623,7 @@ function ContentTab({ actor }: { actor: User }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-1.5 rounded-2xl bg-slate-100 p-1.5 dark:bg-white/5">
+      <div className="flex gap-1.5 rounded-2xl bg-surface-2 p-1.5 dark:bg-white/5">
         {(
           [
             { v: "exams", l: "آزمون‌ها", i: <ClipboardList className="size-4" />, n: exams.length },
@@ -635,12 +635,12 @@ function ContentTab({ actor }: { actor: User }) {
             key={t.v}
             onClick={() => setKind(t.v)}
             className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-[12.5px] font-bold transition ${
-              kind === t.v ? "bg-white text-indigo-700 shadow-sm dark:bg-white/15 dark:text-indigo-200" : "text-slate-500"
+              kind === t.v ? "bg-surface text-indigo-700 shadow-sm dark:bg-white/15 dark:text-indigo-200" : "text-slate-500"
             }`}
           >
             {t.i}
             {t.l}
-            <span className="rounded-full bg-slate-200 px-1.5 text-[10px] font-black text-slate-500 dark:bg-white/10 dark:text-slate-300">{fa(t.n)}</span>
+            <span className="rounded-full bg-line px-1.5 text-[10px] font-black text-slate-500 dark:bg-white/10 dark:text-slate-300">{fa(t.n)}</span>
           </button>
         ))}
       </div>
@@ -787,16 +787,16 @@ function AttendanceReportTab() {
       </div>
 
       <div className="card overflow-hidden p-0">
-        <div className="border-b border-slate-100 px-5 py-3.5 text-sm font-black text-slate-700 dark:border-white/5 dark:text-slate-200">
+        <div className="border-b border-line px-5 py-3.5 text-sm font-black text-slate-700 dark:border-white/5 dark:text-slate-200">
           تفکیک کلاس‌ها
         </div>
-        <div className="divide-y divide-slate-100 dark:divide-white/5">
+        <div className="divide-y divide-line dark:divide-white/5">
           {rows.map((r) => {
             const pct = r.total > 0 ? Math.round((r.present / r.total) * 100) : 0;
             return (
               <div key={r.key} className="flex flex-wrap items-center gap-3 px-5 py-3.5">
                 <div className="min-w-24 text-[13px] font-black text-slate-700 dark:text-slate-200">{r.label}</div>
-                <div className="relative h-2 min-w-32 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10">
+                <div className="relative h-2 min-w-32 flex-1 overflow-hidden rounded-full bg-surface-2 dark:bg-white/10">
                   <div className="absolute inset-y-0 right-0 rounded-full bg-gradient-to-l from-emerald-500 to-teal-500 transition-all" style={{ width: `${pct}%` }} />
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5">
@@ -833,12 +833,12 @@ function PermPicker({
   return (
     <div>
       <div className="mb-2 text-[12px] font-bold text-slate-500 dark:text-slate-400">{label}</div>
-      <div className="max-h-56 space-y-1 overflow-y-auto rounded-2xl border border-slate-200 p-2 dark:border-white/10">
+      <div className="max-h-56 space-y-1 overflow-y-auto rounded-2xl border border-line p-2 dark:border-white/10">
         {students.map((s) => (
           <button
             key={s.id}
             onClick={() => onChange(s.id)}
-            className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 transition ${value === s.id ? "bg-indigo-50 ring-1 ring-indigo-300 dark:bg-indigo-500/10" : "hover:bg-slate-50 dark:hover:bg-white/5"}`}
+            className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 transition ${value === s.id ? "bg-indigo-50 ring-1 ring-indigo-300 dark:bg-indigo-500/10" : "hover:bg-app dark:hover:bg-white/5"}`}
           >
             <Avatar user={s} size={30} />
             <span className="truncate text-[12.5px] font-bold text-slate-700 dark:text-slate-200">{s.firstName} {s.lastName}</span>
@@ -904,7 +904,7 @@ function PermsTab({ actor }: { actor: User }) {
         {perms.length === 0 && <Empty icon={<Handshake className="size-7" />} title="مجوزی نیست" desc="با صدور مجوز، یک چت شخصی بین دو دانش‌آموز ساخته می‌شود" />}
         <div className="space-y-2">
           {perms.map((p) => (
-            <div key={p.id} className="flex items-center gap-2 rounded-xl bg-slate-50 px-3.5 py-3 text-[12.5px] font-bold text-slate-600 dark:bg-white/5 dark:text-slate-300">
+            <div key={p.id} className="flex items-center gap-2 rounded-xl bg-app px-3.5 py-3 text-[12.5px] font-bold text-slate-600 dark:bg-white/5 dark:text-slate-300">
               <span className="truncate">{name(p.a)}</span>
               <Handshake className="size-4 shrink-0 text-indigo-400" />
               <span className="truncate">{name(p.b)}</span>
@@ -963,17 +963,17 @@ function PartSelector({
               key={p.key}
               onClick={() => onToggle(p.key)}
               className={`flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-right transition ${
-                on ? activeCls : "border-slate-200 hover:border-slate-300 dark:border-white/10"
+                on ? activeCls : "border-line hover:border-line-strong dark:border-white/10"
               }`}
             >
-              <span className={`flex size-5 shrink-0 items-center justify-center rounded-md border-2 transition ${on ? `${boxCls} text-white` : "border-slate-300 dark:border-white/20"}`}>
+              <span className={`flex size-5 shrink-0 items-center justify-center rounded-md border-2 transition ${on ? `${boxCls} text-white` : "border-line-strong dark:border-white/20"}`}>
                 {on && <Check className="size-3" />}
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[12.5px] font-black text-slate-700 dark:text-slate-200">{p.label}</span>
                 <span className="block truncate text-[10.5px] text-slate-400">{p.hint}</span>
               </span>
-              <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-black text-slate-500 dark:bg-white/10 dark:text-slate-300">
+              <span className="shrink-0 rounded-full bg-surface-2 px-2 py-0.5 text-[10px] font-black text-slate-500 dark:bg-white/10 dark:text-slate-300">
                 {fa(n)}
               </span>
             </button>
@@ -1138,12 +1138,12 @@ function DataTab({ actor }: { actor: User }) {
           <div className="text-sm font-black text-slate-800 dark:text-slate-100">عملیات خطرناک</div>
         </div>
         {!allowed && (
-          <div className="mb-3 rounded-xl bg-slate-50 px-4 py-3 text-[12px] font-bold text-slate-500 dark:bg-white/5">
+          <div className="mb-3 rounded-xl bg-app px-4 py-3 text-[12px] font-bold text-slate-500 dark:bg-white/5">
             این بخش فقط برای مدیر و معاون آموزشی فعال است.
           </div>
         )}
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-2xl border border-slate-200 p-4 dark:border-white/10">
+          <div className="rounded-2xl border border-line p-4 dark:border-white/10">
             <MessagesSquare className="mb-2 size-6 text-amber-500" />
             <div className="text-[13px] font-black text-slate-800 dark:text-slate-100">پاک کردن کل پیام‌ها</div>
             <p className="mb-3 mt-1 text-[11.5px] font-semibold leading-6 text-slate-400">
@@ -1172,7 +1172,7 @@ function DataTab({ actor }: { actor: User }) {
       <Modal open={!!pending} onClose={() => setPending(null)} title="بازیابی از فایل پشتیبان" wide icon={<Upload className="size-5 text-emerald-500" />}>
         {pending && (
           <div className="space-y-4">
-            <div className="flex items-center gap-2.5 rounded-2xl bg-slate-50 px-4 py-3 dark:bg-white/5">
+            <div className="flex items-center gap-2.5 rounded-2xl bg-app px-4 py-3 dark:bg-white/5">
               <FileJson className="size-5 shrink-0 text-emerald-500" />
               <span className="truncate text-[12.5px] font-black text-slate-700 dark:text-slate-200" dir="ltr">{pending.name}</span>
             </div>
@@ -1193,7 +1193,7 @@ function DataTab({ actor }: { actor: User }) {
                   className={`w-full rounded-2xl border px-4 py-3 text-right transition ${
                     mode === "merge"
                       ? "border-emerald-400 bg-emerald-50/70 ring-2 ring-emerald-500/15 dark:border-emerald-400/50 dark:bg-emerald-500/10"
-                      : "border-slate-200 hover:border-slate-300 dark:border-white/10"
+                      : "border-line hover:border-line-strong dark:border-white/10"
                   }`}
                 >
                   <div className="text-[13px] font-black text-slate-700 dark:text-slate-200">افزودن به داده‌های فعلی (پیشنهادی)</div>
@@ -1204,7 +1204,7 @@ function DataTab({ actor }: { actor: User }) {
                   className={`w-full rounded-2xl border px-4 py-3 text-right transition ${
                     mode === "replace"
                       ? "border-amber-400 bg-amber-50/70 ring-2 ring-amber-500/15 dark:border-amber-400/50 dark:bg-amber-500/10"
-                      : "border-slate-200 hover:border-slate-300 dark:border-white/10"
+                      : "border-line hover:border-line-strong dark:border-white/10"
                   }`}
                 >
                   <div className="text-[13px] font-black text-slate-700 dark:text-slate-200">جایگزینی داده‌های فعلی</div>
@@ -1237,7 +1237,7 @@ function DataTab({ actor }: { actor: User }) {
             {fa(counts.messages)} پیام شامل همه متن‌ها، تصاویر و نظرسنجی‌ها برای همیشه حذف می‌شود.
             گروه‌ها، کانال‌ها، کاربران، آزمون‌ها و تکالیف دست‌نخورده باقی می‌مانند.
           </div>
-          <div className="rounded-2xl bg-slate-50 px-4 py-3 text-[12px] font-semibold leading-6 text-slate-500 dark:bg-white/5 dark:text-slate-400">
+          <div className="rounded-2xl bg-app px-4 py-3 text-[12px] font-semibold leading-6 text-slate-500 dark:bg-white/5 dark:text-slate-400">
             پیشنهاد: پیش از ادامه، از بخش «پیام‌ها» یک فایل پشتیبان بگیرید.
           </div>
           <Field label="برای تأیید، عبارت «حذف پیام ها» را بنویسید" required error={purgeErr}>
@@ -1263,10 +1263,10 @@ function DataTab({ actor }: { actor: User }) {
           <div className="flex items-center gap-2">
             {[1, 2].map((s) => (
               <div key={s} className="flex flex-1 items-center gap-2">
-                <span className={`flex size-7 items-center justify-center rounded-full text-[11px] font-black transition ${wipeStep >= s ? "bg-rose-500 text-white" : "bg-slate-200 text-slate-500 dark:bg-white/10"}`}>
+                <span className={`flex size-7 items-center justify-center rounded-full text-[11px] font-black transition ${wipeStep >= s ? "bg-rose-500 text-white" : "bg-line text-slate-500 dark:bg-white/10"}`}>
                   {fa(s)}
                 </span>
-                <span className={`h-1 flex-1 rounded-full transition ${wipeStep > s ? "bg-rose-500" : "bg-slate-200 dark:bg-white/10"}`} />
+                <span className={`h-1 flex-1 rounded-full transition ${wipeStep > s ? "bg-rose-500" : "bg-line dark:bg-white/10"}`} />
               </div>
             ))}
           </div>
@@ -1292,7 +1292,7 @@ function DataTab({ actor }: { actor: User }) {
                 مرحله ۲ از ۲ — تأیید نهایی. تمام کاربران، گفتگوها، پیام‌ها، آزمون‌ها، تکالیف، حضور و غیاب و اطلاعیه‌ها
                 برای همیشه حذف می‌شود.
               </div>
-              <div className="rounded-2xl bg-slate-50 px-4 py-3 text-[12px] font-semibold leading-6 text-slate-500 dark:bg-white/5 dark:text-slate-400">
+              <div className="rounded-2xl bg-app px-4 py-3 text-[12px] font-semibold leading-6 text-slate-500 dark:bg-white/5 dark:text-slate-400">
                 پیشنهاد: پیش از ادامه، یک فایل پشتیبان کامل دانلود کنید.
               </div>
               <Field label="برای تأیید، عبارت «پاک کن» را بنویسید" required error={wipeErr}>
@@ -1424,7 +1424,7 @@ function AddStudent() {
         <Field label="عکس پروفایل (اختیاری)">
           <div className="flex items-center gap-3">
             <Avatar user={{ id: f.phone || "x", firstName: f.firstName || "؟", lastName: "", avatar }} size={46} />
-            <button onClick={() => fileRef.current?.click()} className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 px-3 py-3 text-[12.5px] font-bold text-slate-500 transition hover:border-indigo-300 dark:border-white/10">
+            <button onClick={() => fileRef.current?.click()} className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-line px-3 py-3 text-[12.5px] font-bold text-slate-500 transition hover:border-indigo-300 dark:border-white/10">
               <Camera className="size-4" />
               {avatar ? "تغییر عکس" : "انتخاب عکس"}
             </button>

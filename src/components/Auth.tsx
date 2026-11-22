@@ -162,7 +162,7 @@ export default function Auth({ onAuth }: { onAuth: (u: User) => void }) {
   };
 
   return (
-    <div className="min-h-dvh bg-gradient-to-br from-slate-50 via-indigo-50/50 to-violet-50 dark:from-slate-950 dark:via-indigo-950/30 dark:to-slate-950">
+    <div className="min-h-dvh bg-gradient-to-br from-app via-accent/10 to-app">
       {/* نورهای پس‌زمینه */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute -top-32 right-1/4 size-96 rounded-full bg-indigo-400/20 blur-3xl dark:bg-indigo-600/10" />
@@ -207,7 +207,7 @@ export default function Auth({ onAuth }: { onAuth: (u: User) => void }) {
         {/* کارت اصلی */}
         <div key={shake} className={`anim-pop mx-auto w-full max-w-md ${shake ? "shake" : ""}`}>
           <div className="card overflow-hidden p-0 shadow-2xl shadow-indigo-900/5">
-            <div className="flex items-center justify-between border-b border-slate-100 px-6 pb-0 pt-5 dark:border-white/5">
+            <div className="flex items-center justify-between border-b border-line px-6 pb-0 pt-5 dark:border-white/5">
               <div className="flex items-center gap-2.5">
                 <div className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 lg:hidden">
                   <GraduationCap className="size-5 text-white" />
@@ -220,7 +220,7 @@ export default function Auth({ onAuth }: { onAuth: (u: User) => void }) {
 
             {/* تب نوع کاربر */}
             <div className="px-6 pt-5">
-              <div className="grid grid-cols-2 gap-1 rounded-2xl bg-slate-100 p-1.5 dark:bg-white/5">
+              <div className="grid grid-cols-2 gap-1 rounded-2xl bg-surface-2 p-1.5 dark:bg-white/5">
                 {(
                   [
                     { v: "student", label: "ورود دانش‌آموز", icon: <GraduationCap className="size-4" /> },
@@ -232,7 +232,7 @@ export default function Auth({ onAuth }: { onAuth: (u: User) => void }) {
                     onClick={() => { setTab(t.v); setErrors({}); }}
                     className={`flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-[13px] font-bold transition ${
                       tab === t.v
-                        ? "bg-white text-indigo-700 shadow-sm dark:bg-white/15 dark:text-indigo-200"
+                        ? "bg-surface text-indigo-700 shadow-sm dark:bg-white/15 dark:text-indigo-200"
                         : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
                     }`}
                   >
@@ -357,7 +357,7 @@ export default function Auth({ onAuth }: { onAuth: (u: User) => void }) {
                               className={`rounded-xl border px-3 py-2.5 text-right transition ${
                                 staffRole === o.value
                                   ? "border-indigo-400 bg-indigo-50/70 ring-2 ring-indigo-500/15 dark:border-indigo-400/50 dark:bg-indigo-500/10"
-                                  : "border-slate-200 hover:border-slate-300 dark:border-white/10 dark:hover:border-white/20"
+                                  : "border-line hover:border-line-strong dark:border-white/10 dark:hover:border-white/20"
                               }`}
                             >
                               <div className="text-[13px] font-bold text-slate-700 dark:text-slate-200">{o.label}</div>
@@ -398,7 +398,7 @@ export default function Auth({ onAuth }: { onAuth: (u: User) => void }) {
                       <Avatar user={{ id: f.phone || "x", firstName: f.firstName || "؟", lastName: "", avatar }} size={52} ring />
                       <button
                         onClick={() => fileRef.current?.click()}
-                        className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 px-3 py-3 text-[13px] font-bold text-slate-500 transition hover:border-indigo-300 hover:text-indigo-600 dark:border-white/10 dark:hover:border-indigo-400/50"
+                        className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-line px-3 py-3 text-[13px] font-bold text-slate-500 transition hover:border-indigo-300 hover:text-indigo-600 dark:border-white/10 dark:hover:border-indigo-400/50"
                       >
                         <Camera className="size-4" />
                         {avatar ? "تغییر عکس" : "انتخاب عکس از گالری"}

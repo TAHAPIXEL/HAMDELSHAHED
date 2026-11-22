@@ -152,13 +152,13 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
             className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold transition ${
               view === n.v
                 ? "bg-gradient-to-l from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-600/25"
-                : "text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-slate-100"
+                : "text-slate-500 hover:bg-surface-2 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-slate-100"
             }`}
           >
             {n.icon}
             {n.label}
             {n.v === "notices" && unreadN > 0 && (
-              <span className={`mr-auto rounded-full px-2 py-0.5 text-[10px] font-black ${view === n.v ? "bg-white/25 text-white" : "bg-rose-500 text-white"}`}>
+              <span className={`mr-auto rounded-full px-2 py-0.5 text-[10px] font-black ${view === n.v ? "bg-surface/25 text-white" : "bg-rose-500 text-white"}`}>
                 {fa(unreadN)}
               </span>
             )}
@@ -182,7 +182,7 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
             className={`flex w-full items-center justify-between rounded-xl px-4 py-2 text-[13px] font-bold transition ${
               view === "classes" && classSel?.grade === g && classSel?.section === s
                 ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300"
-                : "text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/5"
+                : "text-slate-500 hover:bg-surface-2 dark:text-slate-400 dark:hover:bg-white/5"
             }`}
           >
             کلاس {className(g, s)}
@@ -191,10 +191,10 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
         ))}
       </div>
 
-      <div className="border-t border-slate-100 p-3 dark:border-white/5">
+      <div className="border-t border-line p-3 dark:border-white/5">
         <button
           onClick={() => go("profile")}
-          className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 transition hover:bg-slate-100 dark:hover:bg-white/5"
+          className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 transition hover:bg-surface-2 dark:hover:bg-white/5"
         >
           <Avatar user={user} size={38} ring />
           <div className="min-w-0 flex-1 text-right">
@@ -219,10 +219,10 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
   const drawerBody = (
     <div className="flex h-full flex-col">
       {/* بالاترین: پروفایل و خروج */}
-      <div className="flex items-center gap-2 border-b border-slate-100 p-4 dark:border-white/5">
+      <div className="flex items-center gap-2 border-b border-line p-4 dark:border-white/5">
         <button
           onClick={() => go("profile")}
-          className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl p-1.5 text-right transition hover:bg-slate-100 dark:hover:bg-white/5"
+          className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl p-1.5 text-right transition hover:bg-surface-2 dark:hover:bg-white/5"
         >
           <Avatar user={user} size={44} ring />
           <div className="min-w-0 flex-1">
@@ -242,7 +242,7 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
         </button>
         <button
           onClick={() => setDrawer(false)}
-          className="rounded-xl p-2.5 text-slate-400 transition hover:bg-slate-100 dark:hover:bg-white/10"
+          className="rounded-xl p-2.5 text-slate-400 transition hover:bg-surface-2 dark:hover:bg-white/10"
           aria-label="بستن منو"
         >
           <X className="size-5" />
@@ -258,7 +258,7 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
               setDrawer(false);
               setClassroomOpen(true);
             }}
-            className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/5"
+            className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold text-slate-600 transition hover:bg-surface-2 dark:text-slate-300 dark:hover:bg-white/5"
           >
             <Radio className="size-5" />
             کلاس آنلاین
@@ -270,7 +270,7 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
               className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold transition ${
                 view === n.v
                   ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300"
-                  : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/5"
+                  : "text-slate-600 hover:bg-surface-2 dark:text-slate-300 dark:hover:bg-white/5"
               }`}
             >
               {n.icon}
@@ -294,7 +294,7 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
               className={`flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-[13px] font-bold transition ${
                 view === "classes" && classSel?.grade === g && classSel?.section === s
                   ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300"
-                  : "text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/5"
+                  : "text-slate-500 hover:bg-surface-2 dark:text-slate-400 dark:hover:bg-white/5"
               }`}
             >
               کلاس {className(g, s)}
@@ -307,17 +307,17 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
   );
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+    <div className="flex h-dvh overflow-hidden bg-app text-slate-900 dark:bg-scrim dark:text-slate-100">
       {/* سایدبار دسکتاپ */}
-      <aside className="hidden w-72 shrink-0 border-l border-slate-200/70 bg-white/80 backdrop-blur-xl dark:border-white/5 dark:bg-slate-900/60 lg:block">
+      <aside className="hidden w-72 shrink-0 border-l border-line/70 bg-surface/80 backdrop-blur-xl dark:border-white/5 dark:bg-ink/60 lg:block">
         {sidebar}
       </aside>
 
       {/* دراور موبایل */}
       {drawer && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="modal-bg absolute inset-0 bg-slate-950/50 backdrop-blur-sm" onClick={() => setDrawer(false)} />
-          <aside className="modal-pop absolute right-0 top-0 h-full w-80 max-w-[85vw] border-l border-slate-200 bg-white dark:border-white/10 dark:bg-slate-900">
+          <div className="modal-bg absolute inset-0 bg-scrim/50 backdrop-blur-sm" onClick={() => setDrawer(false)} />
+          <aside className="modal-pop absolute right-0 top-0 h-full w-80 max-w-[85vw] border-l border-line bg-surface dark:border-white/10 dark:bg-ink">
             {drawerBody}
           </aside>
         </div>
@@ -326,7 +326,7 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
       {/* بدنه */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* نوار بالا */}
-        <header dir="ltr" className="z-30 flex items-center gap-3 border-b border-slate-200/70 bg-white/80 px-4 py-3 backdrop-blur-xl dark:border-white/5 dark:bg-slate-900/60 sm:px-6">
+        <header dir="ltr" className="z-30 flex items-center gap-3 border-b border-line/70 bg-surface/80 px-4 py-3 backdrop-blur-xl dark:border-white/5 dark:bg-ink/60 sm:px-6">
           {/* آواتار (پروفایل) */}
           <button onClick={() => go("profile")} className="shrink-0 transition active:scale-95" aria-label="پروفایل">
             <Avatar user={user} size={36} />
@@ -339,17 +339,17 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
             <div className="relative" ref={bellRef}>
               <button
                 onClick={() => setBellOpen((o) => !o)}
-                className="relative rounded-xl p-2.5 text-slate-500 transition hover:bg-slate-100 dark:hover:bg-white/10"
+                className="relative rounded-xl p-2.5 text-slate-500 transition hover:bg-surface-2 dark:hover:bg-white/10"
                 aria-label="اطلاعیه‌ها"
               >
                 <Bell className="size-5" />
                 {unreadN > 0 && (
-                  <span className="bell-dot absolute left-2 top-2 flex size-2.5 rounded-full bg-rose-500 ring-2 ring-white dark:ring-slate-900" />
+                  <span className="bell-dot absolute left-2 top-2 flex size-2.5 rounded-full bg-rose-500 ring-2 ring-surface dark:ring-slate-900" />
                 )}
               </button>
               {bellOpen && (
-                <div className="anim-pop absolute right-0 top-12 w-80 max-w-[86vw] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-slate-900">
-                  <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-white/5">
+                <div className="anim-pop absolute right-0 top-12 w-80 max-w-[86vw] overflow-hidden rounded-2xl border border-line bg-surface shadow-2xl dark:border-white/10 dark:bg-ink">
+                  <div className="flex items-center justify-between border-b border-line px-4 py-3 dark:border-white/5">
                     <span className="text-sm font-black">اطلاعیه‌ها</span>
                     {unreadN > 0 && <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white">{fa(unreadN)} خوانده‌نشده</span>}
                   </div>
@@ -363,9 +363,9 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
                         <button
                           key={n.id}
                           onClick={() => { markNoticeRead(n.id); setBellOpen(false); go("notices"); }}
-                          className="flex w-full items-start gap-3 border-b border-slate-50 px-4 py-3 text-right transition hover:bg-slate-50 dark:border-white/5 dark:hover:bg-white/5"
+                          className="flex w-full items-start gap-3 border-b border-slate-50 px-4 py-3 text-right transition hover:bg-app dark:border-white/5 dark:hover:bg-white/5"
                         >
-                          <span className={`mt-1.5 size-2 shrink-0 rounded-full ${read ? "bg-slate-200 dark:bg-white/15" : "bg-rose-500"}`} />
+                          <span className={`mt-1.5 size-2 shrink-0 rounded-full ${read ? "bg-line dark:bg-white/15" : "bg-rose-500"}`} />
                           <span className="min-w-0">
                             <span className={`block truncate text-[13px] font-bold ${read ? "text-slate-500 dark:text-slate-400" : "text-slate-800 dark:text-slate-100"}`}>
                               {n.title}
@@ -378,14 +378,14 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
                       );
                     })}
                   </div>
-                  <button onClick={() => { setBellOpen(false); go("notices"); }} className="w-full bg-slate-50 py-2.5 text-center text-[12px] font-black text-indigo-600 transition hover:bg-slate-100 dark:bg-white/5 dark:text-indigo-300 dark:hover:bg-white/10">
+                  <button onClick={() => { setBellOpen(false); go("notices"); }} className="w-full bg-app py-2.5 text-center text-[12px] font-black text-indigo-600 transition hover:bg-surface-2 dark:bg-white/5 dark:text-indigo-300 dark:hover:bg-white/10">
                     مشاهده همه
                   </button>
                 </div>
               )}
             </div>
 
-            <button onClick={() => setDrawer(true)} className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 lg:hidden" aria-label="منو">
+            <button onClick={() => setDrawer(true)} className="rounded-xl p-2 text-slate-500 hover:bg-surface-2 dark:hover:bg-white/10 lg:hidden" aria-label="منو">
               <EllipsisVertical className="size-5" />
             </button>
           </div>
@@ -418,13 +418,13 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
                   onClick={() => go(n.v)}
                   aria-current={on ? "page" : undefined}
                   className={`flex min-w-0 flex-1 flex-col items-center gap-1 rounded-[22px] px-1 py-2 text-[11px] font-bold transition-colors duration-150 active:scale-95 ${
-                    on ? "bg-[#23352a] text-[#58b662]" : "text-slate-300/80"
+                    on ? "bg-accent/15 text-accent" : "text-slate-300/80"
                   }`}
                 >
                   <span className="relative">
                     {n.icon}
                     {n.badge > 0 && (
-                      <span className="absolute -right-2.5 -top-1.5 flex min-w-[18px] items-center justify-center rounded-full bg-[#58b662] px-1 text-[10px] font-black leading-[18px] text-white">
+                      <span className="absolute -right-2.5 -top-1.5 flex min-w-[18px] items-center justify-center rounded-full bg-accent px-1 text-[10px] font-black leading-[18px] text-white">
                         {fa(n.badge)}
                       </span>
                     )}

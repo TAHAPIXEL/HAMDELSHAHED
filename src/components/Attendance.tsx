@@ -219,7 +219,7 @@ function StaffAttendance({ user }: { user: User }) {
                     {rec?.auto ? " • ثبت خودکار" : rec ? " • ثبت دستی" : ""}
                   </div>
                 </div>
-                <div className="flex rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-white/10 dark:bg-white/5">
+                <div className="flex rounded-xl border border-line bg-app p-1 dark:border-white/10 dark:bg-white/5">
                   {(
                     [
                       { v: "present", l: "حاضر", on: "bg-emerald-500 text-white" },

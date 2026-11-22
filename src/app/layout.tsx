@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
+import { themeBootScript } from "@/lib/theme";
 
 export const metadata: Metadata = {
   title: "هَمدِل | دبیرستان شاهد شهیدان فهیمی",
@@ -17,13 +18,15 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#6366f1",
+  themeColor: "#161616",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="fa" dir="rtl" suppressHydrationWarning>
       <head>
+        {/* پوسته‌ی ذخیره‌شده‌ی کاربر قبل از رسم صفحه اعمال می‌شود (بدون چشمک رنگ) */}
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript() }} />
         <link
           rel="preload"
           href="/fonts/abar/AbarMid-Regular.woff"
@@ -32,7 +35,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           crossOrigin="anonymous"
         />
       </head>
-      <body className="bg-slate-50 text-slate-900 antialiased">
+      <body className="bg-app text-slate-900 antialiased">
         {children}
       </body>
     </html>

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
-/* سایت فقط در حالت روشن اجرا می‌شود */
-@custom-variant dark (&:where(.__never-dark__));
+/* حالت تیره با کلاس .dark روی <html> فعال می‌شود (از پروفایل > ظاهر تنظیم می‌شود) */
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* ----------------------------------------------------------------------------
    فونت Abar — سه خانواده (High / Mid / Low) و پنج وزن (400 تا 900).
@@ -121,10 +121,91 @@
   --font-sans: "Abar Mid", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Abar High", "Abar Mid", ui-sans-serif, system-ui, sans-serif;
   --font-small: "Abar Low", "Abar Mid", ui-sans-serif, system-ui, sans-serif;
+
+  /* سطوح و خطوط — از متغیرهای پوسته (theme.ts) خوانده می‌شوند */
+  --color-app: var(--t-bg);
+  --color-surface: var(--t-surface);
+  --color-surface-2: var(--t-surface-2);
+  --color-surface-3: var(--t-surface-3);
+  --color-line: var(--t-line);
+  --color-line-strong: var(--t-line-strong);
+  --color-ink: var(--t-ink);
+  --color-accent: var(--t-accent);
+  --color-scrim: var(--t-scrim);
+
+  /* مقیاس متن (slate) */
+  --color-slate-50: var(--t-slate-50);
+  --color-slate-100: var(--t-slate-100);
+  --color-slate-200: var(--t-slate-200);
+  --color-slate-300: var(--t-slate-300);
+  --color-slate-400: var(--t-slate-400);
+  --color-slate-500: var(--t-slate-500);
+  --color-slate-600: var(--t-slate-600);
+  --color-slate-700: var(--t-slate-700);
+  --color-slate-800: var(--t-slate-800);
+  --color-slate-900: var(--t-slate-900);
+  --color-slate-950: var(--t-slate-950);
+
+  /* رنگ اصلی: indigo و violet هر دو از رنگ اصلی انتخابی ساخته می‌شوند */
+  --color-indigo-50: var(--t-accent-50);
+  --color-indigo-100: var(--t-accent-100);
+  --color-indigo-200: var(--t-accent-200);
+  --color-indigo-300: var(--t-accent-300);
+  --color-indigo-400: var(--t-accent-400);
+  --color-indigo-500: var(--t-accent-500);
+  --color-indigo-600: var(--t-accent-600);
+  --color-indigo-700: var(--t-accent-700);
+  --color-indigo-800: var(--t-accent-800);
+  --color-indigo-900: var(--t-accent-900);
+  --color-indigo-950: var(--t-accent-950);
+  --color-violet-500: var(--t-accent-500);
+  --color-violet-600: var(--t-accent-600);
+  --color-violet-100: var(--t-accent-100);
+  --color-violet-50: var(--t-accent-50);
 }
 
+/* مقادیر پیش‌فرض (پیش از اجرای پوسته‌ی ذخیره‌شده) — حالت تیره ایتا */
 :root {
-  --bg: 248 250 252;
+  --t-bg: #161616;
+  --t-surface: #1e1e1e;
+  --t-surface-2: #262626;
+  --t-surface-3: #2e2e2e;
+  --t-line: #2a2a2a;
+  --t-line-strong: #3b3b3b;
+  --t-scrim: #000000;
+  --t-ink: #2e2e30;
+  --t-other: #262626;
+  --t-mine: #6f3b86;
+  --t-mine-text: #ffffff;
+  --t-other-text: #e8e8ec;
+  --t-accent: #58b662;
+  --t-on-accent: #ffffff;
+  --t-wallpaper-bg: #0b0c0e;
+  --t-wallpaper: none;
+  --t-wallpaper-size: auto;
+  --t-slate-50: #141414;
+  --t-slate-100: #f0f0f2;
+  --t-slate-200: #e6e6ea;
+  --t-slate-300: #d2d2d8;
+  --t-slate-400: #9b9ba3;
+  --t-slate-500: #8e8e96;
+  --t-slate-600: #b0b0b8;
+  --t-slate-700: #cacad0;
+  --t-slate-800: #e4e4e8;
+  --t-slate-900: #f5f5f7;
+  --t-slate-950: #0c0c0e;
+  --t-accent-50: #1f2b21;
+  --t-accent-100: #243526;
+  --t-accent-200: #2d4531;
+  --t-accent-300: #5fa26b;
+  --t-accent-400: #7bbf86;
+  --t-accent-500: #58b662;
+  --t-accent-600: #4fa85c;
+  --t-accent-700: #92cc9c;
+  --t-accent-800: #a6d8b0;
+  --t-accent-900: #bbe3c4;
+  --t-accent-950: #d0ecd6;
+  color-scheme: dark;
 }
 
 html {
@@ -132,8 +213,7 @@ html {
 }
 
 body {
-  /* پس‌زمینه ملایم و کم‌خیرگی برای راحتی چشم */
-  background-color: #f6f7fb;
+  background-color: var(--t-bg);
   font-family: var(--font-sans);
   -webkit-tap-highlight-color: transparent;
   text-rendering: optimizeLegibility;
@@ -257,14 +337,29 @@ body {
   border-radius: 18px 18px 18px 4px;
 }
 
-/* پس‌زمینه‌ی نقش‌دار محاورت */
+/* پس‌زمینه‌ی گفتگو (والپیپر) — از پوسته‌ی کاربر می‌آید */
 .chat-bg {
-  background-image: radial-gradient(rgb(99 102 241 / 0.06) 1px, transparent 1px);
-  background-size: 22px 22px;
+  background-color: var(--t-wallpaper-bg);
+  background-image: var(--t-wallpaper);
+  background-size: var(--t-wallpaper-size);
 }
-.dark .chat-bg {
-  background-image: radial-gradient(rgb(148 163 184 / 0.07) 1px, transparent 1px);
+
+/* حباب پیام‌ها */
+.bubble-mine-c {
+  background-color: var(--t-mine);
+  color: var(--t-mine-text);
 }
+.bubble-other-c {
+  background-color: var(--t-other);
+  color: var(--t-other-text);
+}
+
+/* دکمه‌ی اصلی و نشان‌های رنگ اصلی */
+.accent-c {
+  background-color: var(--t-accent);
+  color: var(--t-on-accent);
+}
+
 
 /* ورودی عددی بدون فلش */
 input[type="number"]::-webkit-outer-spin-button,

@@ -20,8 +20,8 @@ export function AttachSheet({
 }) {
   if (!open) return null;
   const items = [
-    { label: "گالری", icon: ImageIcon, tone: "bg-[#3a80e3]", run: onGallery },
-    { label: "دوربین", icon: Camera, tone: "bg-[#4fa85c]", run: onCamera },
+    { label: "گالری", icon: ImageIcon, tone: "bg-accent", run: onGallery },
+    { label: "دوربین", icon: Camera, tone: "bg-accent", run: onCamera },
     { label: "فایل", icon: FileText, tone: "bg-[#e0873a]", run: onFile },
     ...(onPoll ? [{ label: "نظرسنجی", icon: BarChart3, tone: "bg-[#8a6cf0]", run: onPoll }] : []),
   ];
@@ -32,14 +32,14 @@ export function AttachSheet({
   return (
     <div className="fixed inset-0 z-[90]" role="dialog" aria-modal="true" aria-label="پیوست">
       <button className="absolute inset-0 bg-black/45 backdrop-blur-[2px]" onClick={onClose} aria-label="بستن" />
-      <div className="anim-pop absolute inset-x-0 bottom-0 mx-auto max-w-lg rounded-t-[26px] bg-[#1b1c21] pb-[max(env(safe-area-inset-bottom),14px)] text-white shadow-2xl">
-        <div className="mx-auto mt-2.5 h-1 w-10 rounded-full bg-white/25" />
+      <div className="anim-pop absolute inset-x-0 bottom-0 mx-auto max-w-lg rounded-t-[26px] bg-ink pb-[max(env(safe-area-inset-bottom),14px)] text-white shadow-2xl">
+        <div className="mx-auto mt-2.5 h-1 w-10 rounded-full bg-surface/25" />
         <div className="grid grid-cols-4 gap-2 px-4 pb-2 pt-4">
           {items.map((it) => (
             <button
               key={it.label}
               onClick={() => pick(it.run)}
-              className="flex flex-col items-center gap-2 rounded-2xl py-3 transition hover:bg-white/5 active:scale-95"
+              className="flex flex-col items-center gap-2 rounded-2xl py-3 transition hover:bg-surface/5 active:scale-95"
             >
               <span className={`grid size-12 place-items-center rounded-full text-white ${it.tone}`}>
                 <it.icon className="size-5" />
