@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     const viewer = await requireViewer(req);
     const body = await readJson(req);
     if (typeof body.room !== "string") throw new HttpError(400, "درخواست نامعتبر است.");
-    const res = await liveTokenFor(viewer, body.room);
+    const res = await liveTokenFor(viewer, body.room, body.joinToken);
     return Response.json(res, { headers: NO_STORE });
   } catch (err) {
     return errorResponse(err);

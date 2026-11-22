@@ -264,8 +264,23 @@ export function themeVars(input: Partial<ThemeSettings>): { dark: boolean; vars:
   const surface3 = dark ? mix("#ffffff", surface, 0.1) : "#e4e8ee";
   const line = dark ? mix("#ffffff", surface, 0.1) : "#e3e7ed";
   const lineStrong = dark ? mix("#ffffff", surface, 0.2) : "#cfd6df";
-  const otherC = pick(s.other, base.other);
-  const mineText = isHex(s.mineText) ? (s.mineText as string) : lum(mineC) > 0.45 ? "#101418" : "#ffffff";
+  // حباب‌ها باید همیشه از زمینه‌ی گفتگو به‌خوبی جدا باشند: اگر کنتراست کم بود، روشن‌تر/تیره‌تر می‌شوند
+  const chatRef = pick(s.chatBg, dark ? "#0b0c0e" : "#e4ebe6");
+  const contrast = (a: string, b: string): number => {
+    const l1 = lum(a);
+    const l2 = lum(b);
+    return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+  };
+  const apart = (c: string, ref: string, min: number): string => {
+    if (contrast(c, ref) >= min) return c;
+    const towards = lum(c) >= lum(ref) ? "#ffffff" : "#000000";
+    let out = c;
+    for (let i = 1; i <= 20 && contrast(out, ref) < min; i++) out = mix(towards, c, i * 0.05);
+    return out;
+  };
+  const otherC = apart(pick(s.other, base.other), chatRef, 2.1);
+  const mineC2 = apart(mineC, chatRef, 2.1);
+  const mineText = isHex(s.mineText) ? (s.mineText as string) : lum(mineC2) > 0.45 ? "#101418" : "#ffffff";
   const otherText = isHex(s.otherText) ? (s.otherText as string) : lum(otherC) > 0.45 ? "#1e293b" : "#e8e8ec";
 
   set("--t-bg", bg);
@@ -280,7 +295,7 @@ export function themeVars(input: Partial<ThemeSettings>): { dark: boolean; vars:
   set("--t-ink", base.ink);
   set("--t-other", otherC);
   set("--t-other-text", otherText);
-  set("--t-mine", mineC);
+  set("--t-mine", mineC2);
   set("--t-mine-text", mineText);
   set("--t-accent", accent);
   set("--t-on-accent", lum(accent) > 0.45 ? "#101418" : "#ffffff");
