@@ -8,7 +8,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const out = join(root, ".e2e-build");
 mkdirSync(out, { recursive: true });
 
-for (const name of ["collections", "store", "model"]) {
+for (const name of ["collections", "store", "model", "draftstore"]) {
   const src = readFileSync(join(root, "src/lib", `${name}.ts`), "utf8");
   let js = ts.transpileModule(src, {
     compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },

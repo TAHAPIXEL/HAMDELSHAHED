@@ -258,6 +258,103 @@ async function main() {
     assert.equal((await req("POST", "/api/classroom/token", { token: tokenA, body: { room: "7-1" } })).status, 409);
   });
 
+  // ── پیش‌نویس‌ها (ماندگار، فقط برای صاحب) ───────────────────────────────────
+  await check("drafts: owner's draft is stored; other students and staff never see it", async () => {
+    const id = `${studentA.id}:chat:c_draft_${uid()}`;
+    const w = await req("POST", "/api/state/sync", { token: tokenA, body: { ops: [{ c: "drafts", id, d: { id, userId: studentA.id, scope: "chat", key: "c", payload: "پیش‌نویس", updatedAt: Date.now() } }] } });
+    assert.equal(w.status, 200, JSON.stringify(w.json));
+    const own = await req("GET", "/api/state", { token: tokenA });
+    assert.ok(own.json.rows.some((r) => r.c === "drafts" && r.id === id), "owner sees the draft");
+    const other = await req("GET", "/api/state", { token: tokenB });
+    assert.ok(!other.json.rows.some((r) => r.c === "drafts" && r.id === id), "student B must not see it");
+    const staff = await req("GET", "/api/state", { token: teacherToken });
+    assert.ok(!staff.json.rows.some((r) => r.c === "drafts" && r.id === id), "staff must not see it");
+  });
+
+  await check("drafts: a user cannot write or overwrite someone else's draft", async () => {
+    const foreign = `${studentB.id}:chat:evil`;
+    const a = await req("POST", "/api/state/sync", { token: tokenA, body: { ops: [{ c: "drafts", id: foreign, d: { id: foreign, userId: studentB.id, scope: "chat", key: "evil", payload: "x", updatedAt: 1 } }] } });
+    assert.equal(a.status, 403);
+    const mine = `${studentA.id}:chat:spoof`;
+    const b = await req("POST", "/api/state/sync", { token: tokenA, body: { ops: [{ c: "drafts", id: mine, d: { id: mine, userId: studentB.id, scope: "chat", key: "spoof", payload: "x", updatedAt: 1 } }] } });
+    assert.equal(b.status, 403, "userId must match the writer");
+  });
+
+  await check("drafts: oversized payload is refused", async () => {
+    const id = `${studentA.id}:exam:huge`;
+    const r = await req("POST", "/api/state/sync", { token: tokenA, body: { ops: [{ c: "drafts", id, d: { id, userId: studentA.id, scope: "exam", key: "huge", payload: "ا".repeat(70_000), updatedAt: 1 } }] } });
+    assert.equal(r.status, 413);
+  });
+
+  // ── چت کلاس آنلاین (ماندگار در پایگاه‌داده) ────────────────────────────────
+  await check("class chat: teacher starts the class; a classmate's message is stored and history returns it", async () => {
+    assert.equal((await req("POST", "/api/classroom", { token: teacherToken, body: { room: "7-1", action: "start" } })).status, 200);
+    const id = `${studentA.id}-${uid()}`;
+    const r = await req("POST", "/api/classroom/chat", { token: tokenA, body: { room: "7-1", id, text: "سلام کلاس" } });
+    assert.equal(r.status, 200, JSON.stringify(r.json));
+    const h = await req("GET", "/api/classroom/chat?room=7-1", { token: tokenB });
+    assert.equal(h.status, 200);
+    assert.equal(h.json.chatOpen, true);
+    const m = h.json.messages.find((x) => x.id === id);
+    assert.ok(m, "classmate reads the stored message");
+    assert.equal(m.text, "سلام کلاس");
+    assert.equal(m.userId, studentA.id);
+  });
+
+  await check("class chat: sender name comes from the session, not the request", async () => {
+    const id = `${studentA.id}-${uid()}`;
+    await req("POST", "/api/classroom/chat", { token: tokenA, body: { room: "7-1", id, text: "نام", name: "جعلی" } });
+    const h = await req("GET", "/api/classroom/chat?room=7-1", { token: tokenA });
+    const m = h.json.messages.find((x) => x.id === id);
+    assert.ok(m && m.name !== "جعلی");
+  });
+
+  await check("class chat: retrying the same message stores it once", async () => {
+    const id = `${studentA.id}-${uid()}`;
+    assert.equal((await req("POST", "/api/classroom/chat", { token: tokenA, body: { room: "7-1", id, text: "یک‌بار" } })).status, 200);
+    assert.equal((await req("POST", "/api/classroom/chat", { token: tokenA, body: { room: "7-1", id, text: "یک‌بار" } })).status, 200);
+    const h = await req("GET", "/api/classroom/chat?room=7-1", { token: tokenA });
+    assert.equal(h.json.messages.filter((x) => x.id === id).length, 1);
+  });
+
+  await check("class chat: a student of another class cannot read or write it", async () => {
+    assert.equal((await req("GET", "/api/classroom/chat?room=8-1", { token: tokenA })).status, 403);
+    assert.equal((await req("POST", "/api/classroom/chat", { token: tokenA, body: { room: "8-1", id: `x-${uid()}`, text: "x" } })).status, 403);
+  });
+
+  await check("class chat: only the teacher can close or open it", async () => {
+    assert.equal((await req("POST", "/api/classroom", { token: tokenA, body: { room: "7-1", action: "chat", open: false } })).status, 403);
+  });
+
+  await check("class chat: teacher closes it; students are refused and the state shows closed", async () => {
+    assert.equal((await req("POST", "/api/classroom", { token: teacherToken, body: { room: "7-1", action: "chat", open: false } })).status, 200);
+    const s = await req("GET", "/api/classroom?room=7-1", { token: tokenA });
+    assert.equal(s.json.chatOpen, false);
+    const h = await req("GET", "/api/classroom/chat?room=7-1", { token: tokenB });
+    assert.equal(h.json.chatOpen, false, "a newly joining student sees the closed state");
+    assert.equal((await req("POST", "/api/classroom/chat", { token: tokenA, body: { room: "7-1", id: `c-${uid()}`, text: "بسته" } })).status, 403);
+  });
+
+  await check("class chat: teacher reopens it and students can write again", async () => {
+    assert.equal((await req("POST", "/api/classroom", { token: teacherToken, body: { room: "7-1", action: "chat", open: true } })).status, 200);
+    assert.equal((await req("POST", "/api/classroom/chat", { token: tokenB, body: { room: "7-1", id: `o-${uid()}`, text: "باز" } })).status, 200);
+  });
+
+  await check("class chat: bad message id and empty text are refused", async () => {
+    assert.equal((await req("POST", "/api/classroom/chat", { token: tokenA, body: { room: "7-1", id: "bad id!", text: "x" } })).status, 400);
+    assert.equal((await req("POST", "/api/classroom/chat", { token: tokenA, body: { room: "7-1", id: `e-${uid()}`, text: "   " } })).status, 400);
+  });
+
+  await check("class chat: history survives the end of the class; new messages are refused", async () => {
+    const id = `${studentA.id}-${uid()}`;
+    await req("POST", "/api/classroom/chat", { token: tokenA, body: { room: "7-1", id, text: "پیش از پایان" } });
+    assert.equal((await req("POST", "/api/classroom", { token: teacherToken, body: { room: "7-1", action: "end" } })).status, 200);
+    const h = await req("GET", "/api/classroom/chat?room=7-1", { token: tokenA });
+    assert.equal(h.status, 200);
+    assert.ok(h.json.messages.some((x) => x.id === id), "message stays in the database");
+    assert.equal((await req("POST", "/api/classroom/chat", { token: tokenA, body: { room: "7-1", id: `z-${uid()}`, text: "بعد" } })).status, 409);
+  });
+
   let groupId;
   let secretChatId;
   await check("group chat: members see messages, non-members do not", async () => {

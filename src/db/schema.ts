@@ -3,7 +3,7 @@
 //  تمام اسکریپت‌ها idempotent هستند و با قفل advisory از اجرای هم‌زمان جلوگیری می‌شود.
 // ----------------------------------------------------------------------------
 
-export const SCHEMA_VERSION = "2026-11-20-v3";
+export const SCHEMA_VERSION = "2026-11-22-v4";
 
 export const SCHEMA_SQL = `
 begin;
@@ -82,6 +82,21 @@ create table if not exists hamdel_signals (
 );
 create index if not exists hamdel_signals_to_idx on hamdel_signals (to_id, id);
 
+-- وضعیت چت کلاس (باز/بسته) روی خود اتاق ذخیره می‌شود تا ورود دوباره‌ی مدرس یا دانش‌آموز همان را ببیند
+alter table hamdel_live_rooms add column if not exists chat_open boolean not null default true;
+
+-- پیام‌های چت کلاس آنلاین؛ ارسال زنده از LiveKit می‌رود و این جدول تاریخچه‌ی ماندگار است
+create table if not exists hamdel_live_chat (
+  id         text primary key,
+  room_id    text not null,
+  user_id    text not null,
+  name       text not null default '',
+  body       text not null,
+  created_at bigint not null
+);
+create index if not exists hamdel_live_chat_room_idx on hamdel_live_chat (room_id, created_at);
+
+alter table hamdel_live_chat enable row level security;
 alter table hamdel_live_rooms enable row level security;
 alter table hamdel_live_members enable row level security;
 alter table hamdel_signals enable row level security;

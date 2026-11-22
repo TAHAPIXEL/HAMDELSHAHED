@@ -213,5 +213,10 @@ export async function createChatUpload(mime: string): Promise<{ uploadUrl: strin
     console.error("[storage sign]", error?.message);
     throw new HttpError(503, "آپلود فایل در این لحظه ممکن نیست؛ کمی بعد دوباره تلاش کنید.");
   }
+  // فایل پیام هم در فهرست رسانه‌ها ثبت می‌شود تا پاک‌سازی کامل سامانه آن را هم حذف کند
+  await query(
+    `insert into hamdel_media (path, public_url) values ($1, $2) on conflict (path) do nothing`,
+    [path, `${base}${path}`],
+  );
   return { uploadUrl: data.signedUrl, url: `${base}${path}` };
 }
