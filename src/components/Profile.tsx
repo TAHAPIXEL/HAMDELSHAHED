@@ -402,7 +402,7 @@ export default function Profile({
                     title="تغییر عکس پروفایل"
                   >
                     <Camera className="size-4" />
-                    <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-accent text-white ring-2 ring-surface dark:ring-ink">
+                    <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-accent text-on-accent ring-2 ring-surface dark:ring-ink">
                       <Plus className="size-2.5" strokeWidth={3.5} />
                     </span>
                   </button>
