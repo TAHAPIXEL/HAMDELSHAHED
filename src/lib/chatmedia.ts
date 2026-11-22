@@ -51,6 +51,14 @@ export function fmtDur(ms: number): string {
   return `${m}:${s < 10 ? "0" : ""}${s}`;
 }
 
+/** زمان ضبط با دهم ثانیه به شکل تلگرام: 0:03,3 */
+export function fmtRec(ms: number): string {
+  const tenths = Math.floor(Math.max(0, ms) / 100);
+  const m = Math.floor(tenths / 600);
+  const s = Math.floor((tenths % 600) / 10);
+  return `${m}:${s < 10 ? "0" : ""}${s},${tenths % 10}`;
+}
+
 /** آپلود بلاب به فضای ابری با گزارش پیشرفت؛ پاسخ آدرس نهایی فایل است */
 export async function uploadChatBlob(blob: Blob, mime: string, onProgress: (p: number) => void): Promise<string> {
   const type = baseMime(mime);
