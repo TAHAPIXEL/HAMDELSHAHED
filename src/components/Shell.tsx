@@ -407,28 +407,34 @@ export default function Shell({ user: initialUser, onLogout }: { user: User; onL
 
         <ClassroomPage open={classroomOpen} onClose={() => setClassroomOpen(false)} user={user} />
 
-        {/* ناوبری پایین موبایل: بدون قاب و بدون پس‌زمینه‌ی دور گزینه‌ها؛ گفتگوها سمت راست، پروفایل سمت چپ */}
-        <nav dir="ltr" className="z-30 flex items-center justify-around border-t border-slate-200/70 bg-white/95 px-2 pb-[max(env(safe-area-inset-bottom),0.4rem)] pt-1.5 backdrop-blur-xl dark:border-white/5 dark:bg-slate-900/95 lg:hidden">
-          {bottomItems.map((n) => (
-            <button
-              key={n.v}
-              onClick={() => go(n.v)}
-              className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 py-1 text-[10px] font-bold transition-colors ${
-                tab === n.v ? "text-[#3b7ae0] dark:text-[#7fb0ff]" : "text-slate-400"
-              }`}
-            >
-              <span className="relative">
-                {n.icon}
-                {n.badge > 0 && (
-                  <span className="absolute -right-2.5 -top-1.5 flex min-w-4 items-center justify-center rounded-full bg-[#4f8ff0] px-1 text-[9px] font-black leading-4 text-white">
-                    {fa(n.badge)}
+        {/* ناوبری پایین موبایل — کپسول تیره‌ی شناور مثل ایتا؛ پروفایل سمت چپ، گفتگوها سمت راست */}
+        <div className="z-30 px-3 pb-[max(env(safe-area-inset-bottom),0.6rem)] pt-1.5 lg:hidden">
+          <nav dir="ltr" className="mx-auto flex max-w-md items-center justify-between rounded-[30px] bg-[#17181c]/95 p-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.35)] backdrop-blur-xl">
+            {bottomItems.map((n) => {
+              const on = tab === n.v;
+              return (
+                <button
+                  key={n.v}
+                  onClick={() => go(n.v)}
+                  aria-current={on ? "page" : undefined}
+                  className={`flex min-w-0 flex-1 flex-col items-center gap-1 rounded-[22px] px-1 py-2 text-[11px] font-bold transition-colors duration-150 active:scale-95 ${
+                    on ? "bg-[#23352a] text-[#58b662]" : "text-slate-300/80"
+                  }`}
+                >
+                  <span className="relative">
+                    {n.icon}
+                    {n.badge > 0 && (
+                      <span className="absolute -right-2.5 -top-1.5 flex min-w-[18px] items-center justify-center rounded-full bg-[#58b662] px-1 text-[10px] font-black leading-[18px] text-white">
+                        {fa(n.badge)}
+                      </span>
+                    )}
                   </span>
-                )}
-              </span>
-              <span className="truncate">{n.label}</span>
-            </button>
-          ))}
-        </nav>
+                  <span className="truncate">{n.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </div>
 
         {/* تأیید خروج از حساب — در همه‌ی نقاط برنامه */}
         <Confirm

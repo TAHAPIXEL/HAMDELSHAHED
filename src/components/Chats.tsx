@@ -184,7 +184,7 @@ export default function Chats({
                     key={t.key}
                     onClick={() => setTab(t.key)}
                     className={`flex min-w-0 flex-auto items-center justify-center gap-1 whitespace-nowrap rounded-full px-1.5 py-1.5 text-[11px] font-bold transition ${
-                      active ? "bg-white text-[#3b7ae0] shadow-sm dark:bg-white/10 dark:text-[#7fb0ff]" : "text-slate-500 dark:text-slate-400"
+                      active ? "bg-white text-[#3f9a52] shadow-sm dark:bg-[#23352a] dark:text-[#58b662]" : "text-slate-500 dark:text-slate-400"
                     }`}
                   >
                     {t.label}
@@ -288,7 +288,7 @@ export default function Chats({
                   <div className="flex shrink-0 flex-col items-end gap-1">
                     {last && <span className="text-[10px] font-bold text-slate-400">{faTime(last.createdAt)}</span>}
                     {unread > 0 && (
-                      <span className="flex min-w-5 items-center justify-center rounded-full bg-gradient-to-l from-indigo-600 to-violet-600 px-1.5 py-0.5 text-[10px] font-black text-white">
+                      <span className="flex min-w-5 items-center justify-center rounded-full bg-[#4fa85c] px-1.5 py-0.5 text-[10px] font-black text-white">
                         {fa(unread)}
                       </span>
                     )}
@@ -323,7 +323,7 @@ export default function Chats({
               onClick={() => setFabOpen((o) => !o)}
               aria-label="ساخت گفتگو"
               aria-expanded={fabOpen}
-              className="absolute bottom-2 left-4 z-40 flex size-14 items-center justify-center rounded-full bg-[#4f8ff0] text-white shadow-lg shadow-[#4f8ff0]/40 transition active:scale-95 lg:bottom-4"
+              className="absolute bottom-3 left-4 z-40 flex size-14 items-center justify-center rounded-full bg-[#4fa85c] text-white shadow-lg shadow-[#4fa85c]/40 transition active:scale-95 lg:bottom-4"
             >
               {fabOpen ? <X className="size-6" /> : <MessageSquarePlus className="size-6" />}
             </button>
