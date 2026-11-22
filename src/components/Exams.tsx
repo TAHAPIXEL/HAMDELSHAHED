@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useDraft } from "@/lib/drafts";
 import {
   ClipboardList,
   Plus,
@@ -402,10 +403,18 @@ function ExamBuilder({ exam, user, onClose }: { exam: Exam | null; user: User; o
 // اجرای آزمون (دانش‌آموز)
 // ----------------------------------------------------------------------------
 
+type ExamDraft = { answers: Record<string, string>; startedAt: number };
+
 function ExamRunner({ exam, user, onClose, onDone }: { exam: Exam; user: User; onClose: () => void; onDone: () => void }) {
   const toast = useToast();
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [left, setLeft] = useState(exam.durationMin * 60);
+  // پاسخ‌ها و زمان شروع در پایگاه‌داده می‌مانند: رفرش یا قطع اتصال، زمان آزمون را ریست نمی‌کند
+  const draft = useDraft<ExamDraft>(user.id, "exam", exam.id, () => ({ answers: {}, startedAt: Date.now() }), {
+    persistInitial: true,
+  });
+  const { answers, startedAt } = draft.value;
+  const clearDraft = draft.clear;
+  const [now, setNow] = useState(() => Date.now());
+  const left = Math.max(0, exam.durationMin * 60 - Math.floor((now - startedAt) / 1000));
   const [confirmSubmit, setConfirmSubmit] = useState(false);
   const submittedRef = useRef(false);
 
@@ -419,18 +428,19 @@ function ExamRunner({ exam, user, onClose, onDone }: { exam: Exam; user: User; o
         examId: exam.id,
         studentId: user.id,
         answers,
-        startedAt: Date.now() - (exam.durationMin * 60 - left) * 1000,
+        startedAt,
         submittedAt: Date.now(),
       });
       DB.saveSubs(subs);
+      clearDraft();
       toast("success", auto ? "زمان تمام شد؛ پاسخ‌ها ثبت شد" : "پاسخ‌های شما ثبت شد و برای دبیر ارسال شد");
       onDone();
     },
-    [answers, left, exam.id, exam.durationMin, user.id, toast, onDone],
+    [answers, startedAt, exam.id, user.id, toast, onDone, clearDraft],
   );
 
   useEffect(() => {
-    const iv = setInterval(() => setLeft((s) => s - 1), 1000);
+    const iv = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(iv);
   }, []);
 
@@ -438,7 +448,7 @@ function ExamRunner({ exam, user, onClose, onDone }: { exam: Exam; user: User; o
     if (left <= 0) doSubmit(true);
   }, [left, doSubmit]);
 
-  const set = (qid: string, v: string) => setAnswers((a) => ({ ...a, [qid]: v }));
+  const set = (qid: string, v: string) => draft.set((d) => ({ ...d, answers: { ...d.answers, [qid]: v } }));
   const answered = exam.questions.filter((q) => (answers[q.id] ?? "").trim() !== "").length;
   const mm = Math.max(0, Math.floor(left / 60));
   const ss = Math.max(0, left % 60);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useDraft } from "@/lib/drafts";
 import {
   BookOpen,
   Plus,
@@ -288,8 +289,17 @@ function HwForm({ hw, user, onClose }: { hw: Hw | null; user: User; onClose: () 
 function AnswerModal({ hw, user, onClose }: { hw: Hw; user: User; onClose: () => void }) {
   const toast = useToast();
   const existing = DB.hwsubs().find((s) => s.homeworkId === hw.id && s.studentId === user.id);
-  const [text, setText] = useState(existing?.text ?? "");
-  const [images, setImages] = useState<string[]>(existing?.images ?? []);
+  // پیش‌نویس پاسخ در پایگاه‌داده می‌ماند تا بستن یا رفرش صفحه متن را از بین نبرد
+  const draft = useDraft<{ text: string; images: string[] }>(
+    user.id,
+    "hw",
+    hw.id,
+    () => ({ text: existing?.text ?? "", images: existing?.images ?? [] }),
+    { isEmpty: (v) => !v.text.trim() && v.images.length === 0 },
+  );
+  const { text, images } = draft.value;
+  const setText = (t: string) => draft.set((d) => ({ ...d, text: t }));
+  const setImages = (fn: (prev: string[]) => string[]) => draft.set((d) => ({ ...d, images: fn(d.images) }));
   const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const MAX_IMAGES = 4;
@@ -339,6 +349,7 @@ function AnswerModal({ hw, user, onClose }: { hw: Hw; user: User; onClose: () =>
       });
     }
     DB.saveHwsubs(subs);
+    draft.clear();
     toast("success", "پاسخ شما برای دبیر ارسال شد");
     onClose();
   };

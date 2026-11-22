@@ -219,6 +219,28 @@ await test("after wipe a fresh developer login sees zero data", async () => {
   await model.logout();
 });
 
+// ---- پیش‌نویس‌ها: ذخیره در سرور و بازیابی پس از شروع دوباره ----
+const drafts = await import("../../.e2e-build/draftstore.mjs");
+const DEV_ID = "dev-root";
+const DRAFT_ID = `${DEV_ID}:chat:c_draft`;
+
+await test("drafts: saved on the server and restored after a fresh start", async () => {
+  const r = await model.login(DEV.phone, DEV.password);
+  assert.equal(r.ok, true);
+  drafts.writeDraft(DEV_ID, "chat", "c_draft", "پیش‌نویس");
+  await waitFor(async () => (await rawState(tok())).rows.some((x) => x.c === "drafts" && x.id === DRAFT_ID));
+  store.clearLocal();
+  await store.hydrate();
+  assert.equal(drafts.readDraft(DEV_ID, "chat", "c_draft"), "پیش‌نویس");
+});
+
+await test("drafts: removal reaches the server", async () => {
+  drafts.removeDraft(DEV_ID, "chat", "c_draft");
+  await waitFor(async () => !(await rawState(tok())).rows.some((x) => x.c === "drafts" && x.id === DRAFT_ID));
+  assert.equal(drafts.readDraft(DEV_ID, "chat", "c_draft"), undefined);
+  await model.logout();
+});
+
 console.log(results.join("\n"));
 console.log(`\n${results.length - failed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

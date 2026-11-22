@@ -78,6 +78,7 @@ import {
 import { Avatar, Btn, Confirm, Empty, Field, Modal, inputCls, useDbTick, useToast } from "./ui";
 import { FileBubble, PendingBubble, VoicePlayer, type PendingUpload } from "./MediaBits";
 import { AttachSheet } from "./AttachSheet";
+import { useDraft } from "@/lib/drafts";
 import { CHAT_FILE_MAX, FILE_ACCEPT, VoiceRecorder, baseMime, fmtRec, guessMime, uploadChatBlob, type Recording } from "@/lib/chatmedia";
 
 const groupGrad = "bg-gradient-to-br from-emerald-500 to-teal-500";
@@ -428,9 +429,17 @@ function insertAtCursor(el: HTMLTextAreaElement | null, value: string, setText: 
 function ChatWindow({ chat, user, onBack }: { chat: Chat; user: User; onBack: () => void }) {
   useDbTick(); // زنده‌سازی پیام‌ها
   const toast = useToast();
-  const [text, setText] = useState("");
-  const [image, setImage] = useState<string | undefined>();
   const [editing, setEditing] = useState<Message | null>(null);
+  // پیش‌نویس گفتگو (متن و تصویر پیوست‌شده) در پایگاه‌داده می‌ماند؛ حین ویرایش پیام ذخیره نمی‌شود
+  const composer = useDraft<{ text: string; image?: string }>(user.id, "chat", chat.id, () => ({ text: "" }), {
+    enabled: !editing,
+    isEmpty: (v) => !v.text.trim() && !v.image,
+  });
+  const text = composer.value.text;
+  const image = composer.value.image;
+  const setText = (next: string | ((prev: string) => string)) =>
+    composer.set((d) => ({ ...d, text: typeof next === "function" ? next(d.text) : next }));
+  const setImage = (next: string | undefined) => composer.set((d) => ({ ...d, image: next }));
   const [showInfo, setShowInfo] = useState(false);
   const [viewer, setViewer] = useState<string | null>(null);
   const [delMsg, setDelMsg] = useState<Message | null>(null);

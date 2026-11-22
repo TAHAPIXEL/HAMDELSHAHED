@@ -59,7 +59,10 @@ function validateChatMedia(raw: unknown): void {
   }
 }
 
-const RESTRICTED = ["chats", "messages", "subs", "hwsubs", "attendance", "seen", "noticeReads"] as const;
+const RESTRICTED = ["chats", "messages", "subs", "hwsubs", "attendance", "seen", "noticeReads", "drafts"] as const;
+
+/** بیشترین اندازه‌ی یک پیش‌نویس (کاراکتر JSON) */
+const MAX_DRAFT_CHARS = 60_000;
 
 /**
  * فیلتر دسترسی در سطح پایگاه‌داده.
@@ -67,13 +70,15 @@ const RESTRICTED = ["chats", "messages", "subs", "hwsubs", "attendance", "seen",
  */
 const VISIBLE_SQL = `(
   r.deleted = true
-  or r.collection not in ('chats','messages','subs','hwsubs','attendance','seen','noticeReads')
+  or r.collection not in ('chats','messages','subs','hwsubs','attendance','seen','noticeReads','drafts')
   or (r.collection = 'chats' and ((r.data->'memberIds') ? $1 or ($2 and r.data->>'type' <> 'direct')))
   or (r.collection = 'messages' and exists (
         select 1 from hamdel_records c
          where c.collection = 'chats' and c.id = r.data->>'chatId' and c.deleted = false
            and ((c.data->'memberIds') ? $1 or ($2 and c.data->>'type' <> 'direct'))
       ))
+  -- پیش‌نویس فقط برای صاحبش (حتی کادر و مدیر هم پیش‌نویس دیگران را نمی‌بینند)
+  or (r.collection = 'drafts' and r.data->>'userId' = $1)
   or (r.collection in ('subs','hwsubs') and ($3 or r.data->>'studentId' = $1))
   or (r.collection = 'attendance' and ($3 or r.data->>'studentId' = $1))
   or (r.collection = 'noticeReads' and ($3 or left(r.id, length($1) + 1) = $1 || ':'))
@@ -345,6 +350,19 @@ async function enforceRules(viewer: Viewer, ops: SyncOp[]): Promise<void> {
       case "noticeReads": {
         if (!sensitive && !op.id.startsWith(`${viewer.id}:`)) {
           throw new HttpError(403, "اجازه‌ی تغییر این وضعیت را ندارید.");
+        }
+        break;
+      }
+      case "drafts": {
+        // هر کاربر فقط پیش‌نویس خودش را (با شناسه‌ی «userId:…») می‌نویسد و پاک می‌کند
+        if (prev && prev.userId !== viewer.id) throw new HttpError(403, "اجازه‌ی تغییر این پیش‌نویس را ندارید.");
+        if (op.del) break;
+        const next = op.d as Record<string, unknown>;
+        if (next.userId !== viewer.id || !op.id.startsWith(`${viewer.id}:`)) {
+          throw new HttpError(403, "اجازه‌ی ثبت این پیش‌نویس را ندارید.");
+        }
+        if (JSON.stringify(next.payload ?? null).length > MAX_DRAFT_CHARS) {
+          throw new HttpError(413, "پیش‌نویس بیش از حد بزرگ است.");
         }
         break;
       }

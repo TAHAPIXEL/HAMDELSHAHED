@@ -99,6 +99,19 @@ const EMPTY: LiveSnapshot = {
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
+/** خطای ذخیره‌ی چت/وضعیت کلاس؛ همان کانال خطای عمومی برنامه (نمایش به کاربر) */
+function reportChatError(message: string) {
+  if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("hamdel:error", { detail: message }));
+}
+
+interface ChatHistoryRow {
+  id: string;
+  userId: string;
+  name: string;
+  text: string;
+  createdAt: number;
+}
+
 export function isMobileDevice(): boolean {
   if (typeof navigator === "undefined") return false;
   return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && window.matchMedia("(pointer: coarse)").matches);
@@ -128,6 +141,8 @@ class LiveSession {
   private audioHost: HTMLDivElement | null = null;
   private emitTimer: ReturnType<typeof setTimeout> | null = null;
   private seq = 0;
+  /** ذخیره‌ی وضعیت چت به ترتیب ارسال می‌شود تا باز و بسته‌ی سریع مدرس جابه‌جا نشود */
+  private chatSave: Promise<unknown> = Promise.resolve();
 
   // ---- store ----------------------------------------------------------------
   subscribe = (fn: () => void) => {
@@ -249,11 +264,37 @@ class LiveSession {
       const isTeacher = !!res.canPublish;
       this.patch({ phase: "connected", isTeacher });
       this.rebuild();
-      if (isTeacher) this.announceChatState();
+      void this.loadHistory(roomId, seq, isTeacher);
     } catch (err) {
       if (seq !== this.seq) return;
       this.room = null;
       this.patch({ phase: "error", error: errorText(err, "ورود به کلاس انجام نشد؛ دوباره تلاش کنید.") });
+    }
+  }
+
+  /** تاریخچه و وضعیت چت را از پایگاه‌داده می‌خواند و با پیام‌های زنده‌ی رسیده ادغام می‌کند (بدون تکرار) */
+  private async loadHistory(roomId: string, seq: number, announce: boolean) {
+    try {
+      const h = await api<{ chatOpen: boolean; messages: ChatHistoryRow[] }>(
+        `/api/classroom/chat?room=${encodeURIComponent(roomId)}`,
+      );
+      if (seq !== this.seq || !this.room) return;
+      const me = this.room.localParticipant.identity;
+      const history: ChatMsg[] = h.messages.map((m) => ({
+        id: m.id,
+        from: m.userId,
+        name: m.name,
+        text: m.text,
+        ts: m.createdAt,
+        mine: m.userId === me,
+      }));
+      const seen = new Set(history.map((m) => m.id));
+      const live = this.snap.chat.filter((m) => !seen.has(m.id));
+      this.patch({ chat: [...history, ...live].slice(-MAX_CHAT), chatOpen: h.chatOpen });
+      if (announce) this.announceChatState();
+    } catch {
+      if (seq !== this.seq) return;
+      reportChatError("تاریخچه‌ی چت کلاس بارگذاری نشد؛ دوباره وارد کلاس شوید.");
     }
   }
 
@@ -402,6 +443,7 @@ class LiveSession {
         ts: Number(msg.ts) || Date.now(),
         mine: false,
       };
+      if (this.snap.chat.some((m) => m.id === item.id)) return; // پیام قبلاً از تاریخچه رسیده
       const chat = [...this.snap.chat, item].slice(-MAX_CHAT);
       this.patch({ chat });
     }
@@ -415,8 +457,14 @@ class LiveSession {
   /** مدرس: باز/بسته کردن چت برای همه */
   setChatOpen(open: boolean) {
     if (!this.snap.isTeacher) return;
+    const roomId = this.snap.roomId;
     this.patch({ chatOpen: open });
-    this.announceChatState();
+    this.announceChatState(); // زنده برای همه‌ی حاضران
+    if (!roomId) return;
+    // ماندگار: وضعیت در پایگاه‌داده ذخیره می‌شود تا ورود دوباره همان را نشان دهد
+    this.chatSave = this.chatSave
+      .then(() => api("/api/classroom", { method: "POST", body: { room: roomId, action: "chat", open } }))
+      .catch((err) => reportChatError((err as Error).message || "وضعیت چت ذخیره نشد."));
   }
 
   sendChat(text: string) {
@@ -424,9 +472,30 @@ class LiveSession {
     if (!clean || !this.room || !this.snap.chatOpen) return;
     const local = this.room.localParticipant;
     const msg: Msg = { t: "chat", id: `${local.identity}-${Date.now()}-${++this.seq}`, text: clean, ts: Date.now(), name: local.name || "کاربر" };
-    this.send(msg);
+    this.send(msg); // نمایش آنی برای حاضران
     const item: ChatMsg = { id: msg.id, from: local.identity, name: msg.name, text: clean, ts: msg.ts, mine: true };
     this.patch({ chat: [...this.snap.chat, item].slice(-MAX_CHAT) });
+    void this.persistChat(this.snap.roomId, msg.id, clean);
+  }
+
+  /** ذخیره‌ی پیام در پایگاه‌داده؛ خطای گذرا دوباره تلاش می‌شود */
+  private async persistChat(roomId: string | null, id: string, text: string) {
+    if (!roomId) return;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        await api("/api/classroom/chat", { method: "POST", body: { room: roomId, id, text } });
+        return;
+      } catch (err) {
+        const status = (err as { status?: number }).status ?? 0;
+        // خطای منطقی (چت بسته، کلاس تمام‌شده) دوباره فرستاده نمی‌شود
+        if (status >= 400 && status < 500) {
+          reportChatError((err as Error).message);
+          return;
+        }
+        await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
+      }
+    }
+    reportChatError("پیام شما در پایگاه‌داده ذخیره نشد؛ اتصال اینترنت را بررسی کنید.");
   }
 
   toggleHand() {

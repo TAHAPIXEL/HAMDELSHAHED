@@ -18,6 +18,8 @@ export const COLLECTION_KINDS = {
   seen: "record",
   homeworks: "array",
   hwsubs: "array",
+  /** پیش‌نویس‌های هر کاربر (متن گفتگو، پاسخ آزمون و تکلیف) — فقط برای خود او دیده می‌شود */
+  drafts: "array",
 } as const;
 
 export type CollectionKey = keyof typeof COLLECTION_KINDS;
